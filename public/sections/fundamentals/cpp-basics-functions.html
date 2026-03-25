@@ -9,10 +9,10 @@
         .lesson-nav { background: #151b28; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #00d4ff; }
         .learning-objectives { background: #1a2332; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #00d4ff; }
         .learning-objectives li { margin: 8px 0; }
-        .key-concepts { background: #2c5aa0; padding: 15px; margin: 15px 0; border-radius: 5px; font-weight: bold; }
         .concept-box { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #ff9000; border-radius: 3px; }
         .real-world { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
         .warning-box { background: #3a1a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #ff4444; border-radius: 3px; }
+        .safe-box { background: #1a3a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
         .section-divider { border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px; }
         .project { background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px; }
         pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
@@ -26,7 +26,7 @@
         <nav>
             <ul>
                 <li><a href="../intro.html">Introduction</a></li>
-                <li><a href="../cpp-basics.html">C++ Basics</a></li>
+                <li><a href="../cpp-basics.html">C++ Basics Hub</a></li>
                 <li><a href="../embedded-systems.html">Embedded Systems</a></li>
                 <li><a href="../peripherals.html">Peripherals</a></li>
                 <li><a href="../rtos.html">RTOS</a></li>
@@ -35,1098 +35,764 @@
     </header>
 
     <main class="container">
-        <section>
-            <h2>Functions in C++</h2>
-            <p><strong>What's a function?</strong> A function is a reusable recipe—like a cooking recipe that tells you step-by-step how to make something. Instead of writing the same steps over and over, you write them once and then just say "do this recipe!"</p>
-            
-            <p><strong>Example recipe:</strong> "To bake a cookie, do: mix flour, add butter, add sugar, add eggs, bake for 10 minutes." Instead of writing those steps 50 times for 50 batches, you just say "bake a cookie" and the computer follows the recipe.</p>
-            
-            <p><strong>Why use functions?</strong></p>
-            <ul>
-                <li><strong>Less repetition:</strong> Write code once, use it many times</li>
-                <li><strong>Easier to understand:</strong> Complex code is broken into smaller, named chunks</li>
-                <li><strong>Easier to fix mistakes:</strong> Fix it in one place, fixes it everywhere</li>
-                <li><strong>Team work:</strong> Different people can write different functions</li>
-            </ul>
-            
-            <p><strong>Embedded examples:</strong></p>
-            <ul>
-                <li><code>init_uart()</code> - Sets up the serial port (written once, used forever)</li>
-                <li><code>read_temperature()</code> - Gets the current temperature (called many times)</li>
-                <li><code>blink_led()</code> - Turns LED on, waits, turns off (simple and reusable)</li>
-            </ul>
-            
-            <a href="../cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics</a>
+        <!-- LEARNING OBJECTIVES -->
+        <section class="lesson-nav">
+            <h2>What You'll Learn</h2>
+            <div class="learning-objectives">
+                <ul>
+                    <li>What functions are and why they're essential for code organization</li>
+                    <li>Function declaration, definition, and calling</li>
+                    <li>Parameters: passing data into functions</li>
+                    <li>Return values: getting data out of functions</li>
+                    <li>Pass-by-value vs pass-by-reference (pointers in C)</li>
+                    <li>Function scope and variable lifetime</li>
+                    <li>Static variables and when to use them</li>
+                    <li>Embedded-specific patterns: ISRs, callback functions, state machines</li>
+                </ul>
+            </div>
         </section>
 
+        <!-- CORE CONCEPT -->
         <section>
-            <h3>Function Declaration and Definition</h3>
-            <p><strong>Two steps to using a function:</strong></p>
-            <ul>
-                <li><strong>Declaration (promise):</strong> "I promise there's a function called say_hello that doesn't take any inputs and returns nothing"</li>
-                <li><strong>Definition (delivery):</strong> "Here's the actual code that say_hello does"</li>
-            </ul>
+            <h2>Functions: Reusable Blocks of Code</h2>
             
-            <p><strong>Why two steps?</strong> The compiler needs to know a function exists before you try to use it. It's like telling your friend "I'm going to call you at 3pm" (declaration) before actually calling them (definition/execution).</p>
+            <p><strong>What is a function?</strong> A function is a reusable block of code that performs a specific task. Instead of copying the same code 100 times, you write it once in a function and call it 100 times. Functions are the foundation of organized, maintainable code.</p>
 
-            <p>A function must be declared before it's used, then defined with implementation.</p>
+            <p><strong>Why functions matter:</strong></p>
+            <ul>
+                <li><strong>Code reuse:</strong> Write once, use many times</li>
+                <li><strong>Modularity:</strong> Break complex problems into smaller, manageable pieces</li>
+                <li><strong>Maintainability:</strong> Fix a bug in one place instead of searching through your entire program</li>
+                <li><strong>Testability:</strong> Test functions in isolation before combining them</li>
+                <li><strong>Readability:</strong> A well-named function explains what code does immediately</li>
+            </ul>
 
-            <pre><code>void say_hello();
-uint8_t add_numbers(uint8_t a, uint8_t b);
+            <div class="concept-box">
+                <strong>Function Anatomy</strong>
+                <pre><code>return_type function_name(parameter1_type param1, parameter2_type param2) {
+    // Function body: the code that does the work
+    // Variables declared here are LOCAL (only exist inside function)
+    
+    return value;  // Return result to caller (if return_type is not void)
+}</code></pre>
+            </div>
 
-void say_hello() {
-    uart_print("Hello!");
-}
-
-uint8_t add_numbers(uint8_t a, uint8_t b) {
-    return a + b;
-}
-
-int main() {
-    say_hello();
-    uint8_t result = add_numbers(5, 3);
-}
-            </code></pre>
-
-            <h4>Return Type and Parameters</h4>
-            <pre><code>void turn_on_led() {
-    set_gpio_high(LED_PIN);
-}
-
-uint16_t read_adc() {
-    return ADC_VALUE;
-}
-
-void set_motor_speed(uint8_t speed) {
-    PWM_DUTY = speed;
-}
-
-uint16_t scale_voltage(uint16_t raw_value, uint8_t bits) {
-    return (raw_value * 3300) / (1 << bits);
-}
-
-void init_system() {
-    init_gpio();
-    init_uart();
-    init_adc();
-}
-            </code></pre>
+            <p><strong>Real embedded examples where functions exist:</strong></p>
+            <ul>
+                <li><strong>Sensor reading:</strong> `int read_temperature()` — centralizes all sensor logic in one place</li>
+                <li><strong>Data processing:</strong> `void filter_noise(int *data, int size)` — processes array without duplicating logic</li>
+                <li><strong>Motor control:</strong> `void set_motor_speed(uint8_t speed)` — abstracts PWM complexity</li>
+                <li><strong>Serial communication:</strong> `void send_message(char *str)` — handles protocol details</li>
+                <li><strong>Interrupt handlers:</strong> `void button_pressed_ISR()` — called by hardware when button pressed</li>
+            </ul>
         </section>
 
+        <!-- BASIC FUNCTIONS -->
         <section>
-            <h3>Parameters and Arguments</h3>
-            <p>Parameters are variables in the function definition. Arguments are the actual values passed.</p>
+            <div class="section-divider"></div>
+            <h2>Declaring and Calling Functions</h2>
+            
+            <h3>Function Declaration (Prototype)</h3>
+            <p><strong>Tell the compiler about your function BEFORE main():</strong></p>
+            <pre><code>// Function prototypes appear at top of file
+int add(int a, int b);           // Function that returns int
+void print_status();              // Function that returns nothing (void)
+int8_t read_sensor(uint8_t pin);  // Function with parameters and return</code></pre>
 
-            <pre><code>// Define function with parameters
-void set_brightness(uint8_t level) {
-    PWM_VALUE = level;
+            <h3>Function Definition</h3>
+            <p><strong>Write what the function actually does:</strong></p>
+            <pre><code>// Function definition
+int add(int a, int b) {
+    int result = a + b;
+    return result;  // Return the answer to the caller
+}</code></pre>
+
+            <h3>Calling Functions</h3>
+            <pre><code>// In main() or another function:
+int sum = add(5, 3);  // Call add() with 5 and 3
+printf("Sum: %d\n", sum);  // Output: Sum: 8</code></pre>
+
+            <h3>Example 1: Simple Function with Return Value</h3>
+            <pre><code>// Prototype
+uint8_t map_percent(uint8_t value, uint8_t max_value);
+
+// Definition
+uint8_t map_percent(uint8_t value, uint8_t max_value) {
+    return (value * 100) / max_value;  // Return percentage
 }
 
-// Call function with arguments
-set_brightness(100);  // 100 is the argument
+// Call
+uint8_t battery_percent = map_percent(current_voltage, max_voltage);
+printf("Battery: %d%%\n", battery_percent);</code></pre>
 
-// Multiple parameters
-void configure_uart(uint32_t baud, uint8_t parity) {
-    UART_BAUD = baud;
-    UART_PARITY = parity;
-}
+            <h3>Example 2: Function with No Return (void)</h3>
+            <pre><code>// Prototype
+void blink_led(uint8_t times, uint16_t delay_ms);
 
-// Call with values
-configure_uart(9600, PARITY_NONE);
-            </code></pre>
-
-            <h4>Pass by Value</h4>
-            <p>By default, parameters are passed by value (a copy is made). Changes inside the function don't affect the original variable.</p>
-            <pre><code>void increment(uint8_t value) {
-    value++;
-}
-
-uint8_t count = 5;
-increment(count);  // Pass 5 (copy)
-// count is still 5 - function modified the copy, not original
-
-// To modify the original, use pointers (covered next)
-void increment_ptr(uint8_t *value) {
-    (*value)++;  // Modifies original
-}
-
-count = 5;
-increment_ptr(&count);  // Pass address
-// count is now 6 - function modified original
-            </code></pre>
-
-            <h4>Default Parameters</h4>
-            <pre><code>// Parameter with default value
-void delay_ms(uint16_t ms = 100) {
-    // If no argument provided, use 100
-}
-
-// Call with argument
-delay_ms(500);     // Wait 500ms
-
-// Call without argument - uses default
-delay_ms();        // Wait 100ms (default)
-
-// Practical example
-void uart_send_string(const char *str, uint8_t newline = 1) {
-    uart_send(str);
-    if (newline) {
-        uart_send("\n");
+// Definition
+void blink_led(uint8_t times, uint16_t delay_ms) {
+    for (uint8_t i = 0; i < times; i++) {
+        digitalWrite(LED_PIN, HIGH);
+        delay(delay_ms);
+        digitalWrite(LED_PIN, LOW);
+        delay(delay_ms);
     }
 }
 
-uart_send_string("Hello", 1);    // With newline
-uart_send_string("World");        // Default newline=1
-            </code></pre>
+// Call
+blink_led(3, 500);  // Blink 3 times, 500ms each</code></pre>
+
+            <h3>Example 3: Multiple Parameters</h3>
+            <pre><code>// Prototype
+void configure_pwm(uint8_t pin, uint16_t frequency, uint8_t duty_cycle);
+
+// Definition
+void configure_pwm(uint8_t pin, uint16_t frequency, uint8_t duty_cycle) {
+    // Set up PWM on specified pin with frequency and duty cycle
+    set_pin_mode(pin, PWM);
+    set_frequency(pin, frequency);
+    set_duty_cycle(pin, duty_cycle);
+}
+
+// Call with multiple parameters
+configure_pwm(PIN_9, 1000, 75);  // 1kHz, 75% duty cycle</code></pre>
         </section>
 
+        <!-- PARAMETERS AND RETURN -->
         <section>
-            <h3>Return Values</h3>
-            <p>Functions return exactly one value (can be 0 or a structure containing multiple values).</p>
-
-            <pre><code>// Simple return
-uint16_t read_temperature() {
-    uint16_t raw = ADC_READ();
-    uint16_t celsius = (raw / 10);  // Convert
-    return celsius;
-}
-
-uint16_t temp = read_temperature();
-
-// Error codes
-uint8_t send_packet(uint8_t *data, uint8_t length) {
-    if (data == NULL) {
-        return ERROR_NULL_POINTER;
-    }
-    if (length > MAX_PACKET_SIZE) {
-        return ERROR_TOO_LARGE;
-    }
-    
-    // Send data
-    uart_transmit(data, length);
-    return SUCCESS;
-}
-
-uint8_t result = send_packet(my_data, 32);
-if (result != SUCCESS) {
-    log_error(result);
-}
-            </code></pre>
-
-            <h4>Returning Multiple Values</h4>
-            <pre><code>// Option 1: Use output parameters (pointers)
-void read_accelerometer(int16_t *x, int16_t *y, int16_t *z) {
-    *x = I2C_READ_X();
-    *y = I2C_READ_Y();
-    *z = I2C_READ_Z();
-}
-
-int16_t accel_x, accel_y, accel_z;
-read_accelerometer(&accel_x, &accel_y, &accel_z);
-
-// Option 2: Return a structure
-struct Acceleration {
-    int16_t x;
-    int16_t y;
-    int16_t z;
-};
-
-struct Acceleration read_accel() {
-    struct Acceleration data;
-    data.x = I2C_READ_X();
-    data.y = I2C_READ_Y();
-    data.z = I2C_READ_Z();
-    return data;
-}
-
-struct Acceleration accel = read_accel();
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Variable Scope in Functions</h3>
-            <p>Variables declared in a function are local to that function.</p>
-
-            <pre><code>uint8_t global_count = 0;  // Global scope
-
-void my_function() {
-    uint8_t local_count = 5;  // Local scope
-    
-    global_count++;           // Can access global
-    local_count++;            // Can access local
+            <div class="section-divider"></div>
+            <h2>Parameters: Input to Functions</h2>
+            
+            <h3>Pass-by-Value: Copy the Data</h3>
+            <p><strong>When you pass a variable by value, the function gets a COPY:</strong></p>
+            <pre><code>void increment(int x) {
+    x++;  // Increment the LOCAL copy, not the original
 }
 
 int main() {
-    global_count = 10;        // Can access global
-    // local_count = 15;       // ERROR - not in scope here
-    
-    my_function();            // local_count created and destroyed
-    // local_count doesn't exist anymore
-}
-            </code></pre>
+    int count = 5;
+    increment(count);
+    printf("%d\n", count);  // Still 5! Function modified its own copy
+}</code></pre>
 
-            <h4>Static Function Variables</h4>
-            <p>A static variable in a function persists between calls.</p>
-            <pre><code>void increment_counter() {
-    static uint16_t counter = 0;  // Initialized once
-    counter++;
-    uart_print_int(counter);
+            <h3>Pass-by-Reference (Using Pointers): Modify the Original</h3>
+            <p><strong>When you need a function to modify the original variable, pass a POINTER:</strong></p>
+            <pre><code>void increment(int *x) {
+    (*x)++;  // Dereference pointer, modify the ORIGINAL
 }
 
 int main() {
-    increment_counter();  // Prints 1
-    increment_counter();  // Prints 2
-    increment_counter();  // Prints 3
+    int count = 5;
+    increment(&count);  // Pass address of count
+    printf("%d\n", count);  // Now 6! Function modified the original
+}</code></pre>
+
+            <h3>Real Embedded Example: Returning Multiple Values</h3>
+            <p><strong>Problem:</strong> A function can return only ONE value. How do we get multiple outputs? Answer: Use pointers to modify multiple variables.</p>
+            <pre><code>// Read temperature and humidity from sensor
+// Can't return both, so use pointers to store both
+void read_sensor_data(int16_t *temperature, uint8_t *humidity) {
+    // Read from sensor/ADC
+    *temperature = 25;  // Dereference and set temperature
+    *humidity = 45;     // Dereference and set humidity
 }
 
-// Useful for state machines and counters
-uint8_t get_next_id() {
-    static uint8_t id = 0;
-    id++;
-    return id;
+int main() {
+    int16_t temp;
+    uint8_t humid;
+    
+    read_sensor_data(&temp, &humid);  // Pass addresses
+    
+    printf("Temp: %d C, Humidity: %d%%\n", temp, humid);
+}</code></pre>
+
+            <h3>Passing Arrays to Functions</h3>
+            <p><strong>Arrays are automatically passed by reference (you always get the original):</strong></p>
+            <pre><code>void clear_buffer(uint8_t *buffer, uint8_t size) {
+    for (uint8_t i = 0; i < size; i++) {
+        buffer[i] = 0;  // Modifies original array
+    }
 }
 
-get_next_id();  // Returns 1
-get_next_id();  // Returns 2
-get_next_id();  // Returns 3
-            </code></pre>
+uint8_t my_buffer[256];
+clear_buffer(my_buffer, 256);  // Clears the actual array</code></pre>
         </section>
 
+        <!-- SCOPE AND VARIABLES -->
         <section>
-            <h3>Function Pointers and Callbacks</h3>
-            <p>Pointers to functions enable powerful patterns like callbacks in embedded systems.</p>
+            <div class="section-divider"></div>
+            <h2>Scope: Where Variables Exist</h2>
+            
+            <h3>Local Variables: Inside Function Only</h3>
+            <pre><code>void example_function() {
+    int local_var = 100;  // Local—only exists inside this function
+    // ... use local_var ...
+}  // local_var ceases to exist here
 
-            <pre><code>// Define a function pointer type
-typedef void (*CALLBACK_T)(uint8_t);
+// This is an ERROR: local_var doesn't exist outside the function
+// printf("%d\n", local_var);  // UNDEFINED!</code></pre>
 
-// Function that matches the callback signature
-void on_button_press(uint8_t pin) {
-    uart_print("Button pressed on pin ");
-    uart_print_int(pin);
+            <h3>Global Variables: Exist Everywhere</h3>
+            <pre><code>int global_counter = 0;  // Declared at top level
+
+void increment_counter() {
+    global_counter++;  // Can access global from anywhere
+}
+
+int main() {
+    increment_counter();
+    printf("%d\n", global_counter);  // Can read global here too
+}</code></pre>
+
+            <h3>Static Variables: Persist Between Calls</h3>
+            <p><strong>A static variable inside a function keeps its value between calls:</strong></p>
+            <pre><code>void count_calls() {
+    static uint16_t call_count = 0;  // Initialized only once
+    call_count++;
+    printf("Function called %d times\n", call_count);
+}
+
+// In main:
+count_calls();  // Output: Function called 1 times
+count_calls();  // Output: Function called 2 times
+count_calls();  // Output: Function called 3 times
+// call_count persists between calls!</code></pre>
+
+            <div class="real-world">
+                <strong>Embedded Use: Debounce Counter</strong>
+                <p>Static variables are perfect for debouncing. The button debounce state persists between function calls:</p>
+                <pre><code>uint8_t is_button_pressed() {
+    static uint8_t debounce_count = 0;
+    
+    if (digitalRead(BUTTON_PIN) == HIGH) {
+        debounce_count++;
+        if (debounce_count >= 10) {
+            return 1;  // Button confirmed pressed
+        }
+    } else {
+        debounce_count = 0;
+    }
+    return 0;
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- EMBEDDED PATTERNS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Embedded-Specific Function Patterns</h2>
+            
+            <h3>Pattern 1: Interrupt Service Routines (ISRs)</h3>
+            <p><strong>Functions called by hardware when events occur:</strong></p>
+            <pre><code>// ISR called when button pressed
+void button_pressed_ISR() {
+    button_flag = 1;  // Set flag
+    // ISRs should be SHORT—do minimal work here
+}
+
+// Main loop checks flag
+int main() {
+    attachInterrupt(BUTTON_PIN, button_pressed_ISR, RISING);
+    
+    while (1) {
+        if (button_flag) {
+            handle_button_press();
+            button_flag = 0;
+        }
+    }
+}</code></pre>
+
+            <h3>Pattern 2: Callback Functions</h3>
+            <p><strong>Pass a function as a parameter (function pointer):</strong></p>
+            <pre><code>// Function pointer type
+typedef void (*EventCallback)(void);
+
+// Call a callback when event occurs
+void on_timer_expired(EventCallback callback) {
+    if (callback) {
+        callback();  // Call the passed function
+    }
+}
+
+// Define callbacks
+void alarm_function() {
+    printf("ALARM!\n");
 }
 
 // Register callback
-CALLBACK_T button_callback = on_button_press;
-
-// Call it
-button_callback(5);  // Same as on_button_press(5)
-
-// Interrupt handler pattern
-CALLBACK_T uart_rx_handler = NULL;
-
-void uart_interrupt() {
-    uint8_t byte = UART_READ_DATA;
-    if (uart_rx_handler != NULL) {
-        uart_rx_handler(byte);  // Call registered handler
-    }
-}
-
-void on_uart_receive(uint8_t byte) {
-    buffer_put(byte);
-}
-
-void init() {
-    uart_rx_handler = on_uart_receive;  // Register
-}
-            </code></pre>
-
-            <h4>Callback Use Cases</h4>
-            <pre><code>// Event dispatcher
-typedef void (*EVENT_HANDLER)(uint16_t);
-
-struct EventHandler {
-    uint16_t event_type;
-    EVENT_HANDLER handler;
-};
-
-// Register multiple handlers
-EventHandler handlers[10];
-uint8_t handler_count = 0;
-
-void register_handler(uint16_t event, EVENT_HANDLER handler) {
-    handlers[handler_count].event_type = event;
-    handlers[handler_count].handler = handler;
-    handler_count++;
-}
-
-void dispatch_event(uint16_t event) {
-    for (uint8_t i = 0; i < handler_count; i++) {
-        if (handlers[i].event_type == event) {
-            handlers[i].handler(event);
-        }
-    }
-}
-
-void on_temperature_threshold(uint16_t temp) {
-    activate_cooling();
-}
-
-void on_motion_detected(uint16_t sensor_id) {
-    log_motion(sensor_id);
-}
-
-void init() {
-    register_handler(EVENT_TEMP_HIGH, on_temperature_threshold);
-    register_handler(EVENT_MOTION, on_motion_detected);
-}
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Inline Functions</h3>
-            <p>Tell compiler to inline (expand) function at call sites for speed.</p>
-
-            <pre><code>// Small functions that get called often
-static inline uint8_t is_button_pressed() {
-    return (GPIO_READ(BUTTON_PIN) == 0);
-}
-
-static inline void set_led(uint8_t state) {
-    GPIO_WRITE(LED_PIN, state);
-}
-
-// Usage - compiled as inline code, not function call
-if (is_button_pressed()) {
-    set_led(1);
-}
-
-// Compiler generates:
-// if ((GPIO_READ(BUTTON_PIN) == 0)) {
-//     GPIO_WRITE(LED_PIN, 1);
-// }
-
-// Benefits:
-// - No function call overhead (push/pop stack)
-// - Compiler can optimize further
-// - Faster for critical code paths
-
-// Drawbacks:
-// - Code size increases (function body copied)
-// - Not suitable for large functions
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Recursion</h3>
-            <p>Functions can call themselves. Use with care in embedded systems!</p>
-
-            <pre><code>// Calculate factorial
-uint32_t factorial(uint8_t n) {
-    if (n <= 1) {
-        return 1;  // Base case
-    }
-    return n * factorial(n - 1);  // Recursive call
-}
-
-factorial(5);  // 5 * 4 * 3 * 2 * 1 = 120
-
-// Binary search (useful for embedded)
-uint8_t binary_search(uint8_t *arr, uint8_t size, uint8_t target) {
-    return binary_search_helper(arr, 0, size - 1, target);
-}
-
-uint8_t binary_search_helper(uint8_t *arr, uint8_t left, uint8_t right, uint8_t target) {
-    if (left > right) {
-        return NOT_FOUND;
-    }
-    
-    uint8_t mid = left + (right - left) / 2;
-    if (arr[mid] == target) {
-        return mid;
-    } else if (arr[mid] < target) {
-        return binary_search_helper(arr, mid + 1, right, target);
-    } else {
-        return binary_search_helper(arr, left, mid - 1, target);
-    }
-}
-
-// WARNING: Recursion uses stack memory
-// Each function call adds to the stack
-// With limited RAM in embedded systems, stack can overflow!
-// Avoid deep recursion
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>const and Function Parameters</h3>
-            <p>Use const to promise not to modify data.</p>
-
-            <pre><code>// Parameter that won't be modified
-void play_tone(const uint16_t *frequency) {
-    // Compiler prevents: *frequency = 1000;
-}
-
-// Pointer to constant data
-void send_data(const uint8_t *buffer, uint8_t length) {
-    for (uint8_t i = 0; i < length; i++) {
-        uart_tx(buffer[i]);  // Can read
-        // buffer[i] = 0;  // ERROR - can't modify
-    }
-}
-
-// Benefits:
-// - Intent is clear: this function doesn't modify your data
-// - Compiler catches mistakes
-// - Enables more optimizations
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Common Function Patterns</h3>
-
-            <h4>Getters and Setters</h4>
-            <pre><code>// Encapsulate internal state
-typedef struct {
-    uint8_t pwm_value;
-} Motor;
-
-Motor motor = {0};
-
-// Getter
-uint8_t motor_get_speed(Motor *m) {
-    return m->pwm_value;
-}
-
-// Setter with validation
-void motor_set_speed(Motor *m, uint8_t speed) {
-    if (speed > 255) {
-        speed = 255;  // Clamp
-    }
-    m->pwm_value = speed;
-}
-            </code></pre>
-
-            <h4>Initialization Functions</h4>
-            <pre><code>// Initialize module
-void uart_init(uint32_t baud, uint8_t parity) {
-    UART_BAUD_RATE = baud;
-    UART_PARITY = parity;
-    UART_CONTROL = UART_ENABLE;
-}
-
-void i2c_init(uint16_t clock_speed) {
-    I2C_CLOCK_SPEED = clock_speed;
-    I2C_CONTROL = I2C_ENABLE;
-}
-
-void app_init() {
-    uart_init(9600, PARITY_NONE);
-    i2c_init(400000);  // 400 kHz
-}
-            </code></pre>
-
-            <h4>Polling Functions</h4>
-            <pre><code>// Return current state
-uint8_t is_data_available() {
-    return (UART_STATUS & UART_RX_FULL) != 0;
-}
-
-// Called repeatedly
-while (1) {
-    if (is_data_available()) {
-        uint8_t byte = uart_read();
-        process_byte(byte);
-    }
-}
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Common Function Mistakes</h3>
-            <ul>
-                <li><strong>Not declaring function first:</strong> Can't call function before it's declared</li>
-                <li><strong>Wrong parameter types:</strong> Passing wrong type leads to incorrect behavior</li>
-                <li><strong>Forgetting return value:</strong> Function returns undefined value if no return statement</li>
-                <li><strong>Stack overflow:</strong> Too many function calls or deep recursion exhausts stack</li>
-                <li><strong>Not checking for NULL:</strong> Using pointer parameter without checking if NULL</li>
-            </ul>
-
-            <pre><code>// WRONG - Function called before declared
-main() {
-    my_function();  // ERROR - not declared yet
-}
-
-void my_function() {
-    // ...
-}
-
-// RIGHT - Use forward declaration
-void my_function();  // Declare first
-
-main() {
-    my_function();  // OK
-}
-
-void my_function() {
-    // ...
-}
-
-// WRONG - No return value
-uint8_t get_temperature() {
-    uint16_t raw = ADC_READ();
-    // Forgot return statement!
-}
-
-// RIGHT
-uint8_t get_temperature() {
-    uint16_t raw = ADC_READ();
-    return raw;
-}
-
-// WRONG - Unchecked pointer
-void process_data(uint8_t *data) {
-    uint8_t value = data[0];  // Crashes if data is NULL
-}
-
-// RIGHT
-void process_data(uint8_t *data) {
-    if (data == NULL) {
-        return ERROR_NULL;
-    }
-    uint8_t value = data[0];  // Safe
-}
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Function Stack Usage and Embedded Constraints</h3>
-            <p>Every function call uses stack memory. With limited RAM (2KB-256KB in many microcontrollers), you must be aware of stack usage.</p>
-
-            <pre><code>// Each call uses stack space
-void function_a() {
-    uint8_t buffer_a[100];  // 100 bytes on stack
-}
-
-void function_b() {
-    uint16_t data[50];      // 100 bytes on stack
-    function_a();           // Nested call adds more stack
-}
-
-void function_c() {
-    uint32_t value;         // 4 bytes on stack
-    function_b();           // Calls function_b which calls function_a
-                            // Stack now has all three functions' locals
-}
-
-// Deep nesting example:
-void level_1() { uint8_t a[100]; level_2(); }
-void level_2() { uint8_t b[100]; level_3(); }
-void level_3() { uint8_t c[100]; level_4(); }
-void level_4() { uint8_t d[100]; }
-
-// level_4 stack: 400 bytes just from local arrays
-// Add function return addresses and you could overflow!
-
-// SOLUTION: Use static buffers instead
-static uint8_t buffer_pool[256];  // Single shared buffer
-
-void process_data_safe() {
-    // Reuse buffer_pool instead of allocating on stack
-}
-            </code></pre>
-
-            <p><strong>Stack overflow signs:</strong></p>
-            <ul>
-                <li>Program crashes unexpectedly</li>
-                <li>Variables change value mysteriously</li>
-                <li>Hard faults or watchdog resets</li>
-            </ul>
-
-            <p><strong>Solutions:</strong></p>
-            <ul>
-                <li>Limit nesting depth (function A calls B calls C, not deeper)</li>
-                <li>Use static/global buffers for large data</li>
-                <li>Reduce local variable sizes</li>
-                <li>Profile stack usage with compiler tools</li>
-            </ul>
-        </section>
-
-        <section>
-            <h3>Function Attributes for Embedded Systems</h3>
-            <p>GCC allows function attributes to control code generation on ARM and AVR microcontrollers.</p>
-
-            <pre><code>// Weak function: Can be overridden elsewhere
-void uart_init() __attribute__((weak));
-void uart_init() {
-    // Default implementation
-    UART_BAUD = 9600;
-}
-// If another file defines uart_init without weak, that version is used
-
-
-// Interrupt handler (ARM Cortex-M)
-void UART0_IRQHandler() __attribute__((interrupt));
-void UART0_IRQHandler() {
-    // Compiler adds function prologue/epilogue for interrupt
-    uint8_t byte = UART_READ();
-    buffer_put(byte);
-}
-
-
-// No-return function (exits, never returns)
-void panic() __attribute__((noreturn));
-void panic() {
-    uart_print("PANIC!");
-    while (1);  // Infinite loop
-}
-// Compiler knows not to generate return code
-
-
-// Always inline (force inlining)
-static void __attribute__((always_inline)) get_pin_fast(uint8_t pin) {
-    return PIN_READ(pin);
-}
-
-
-// Packed struct for memory-mapped hardware registers
-typedef struct __attribute__((packed)) {
-    uint8_t control;     // Offset 0
-    uint8_t status;      // Offset 1
-    uint16_t data;       // Offset 2
-} HardwareReg;
-
-// Without packed, compiler might add padding
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Advanced Pattern: State Machines</h3>
-            <p>Functions and callbacks enable state machine patterns common in embedded systems.</p>
-
-            <pre><code>// State machine using function pointers
-typedef enum {
-    STATE_IDLE,
-    STATE_READING,
-    STATE_PROCESSING,
-    STATE_SENDING
-} SystemState;
-
-typedef void (*StateFunc)();
-
-SystemState current_state = STATE_IDLE;
-StateFunc state_functions[4];
+on_timer_expired(alarm_function);</code></pre>
+
+            <h3>Pattern 3: State Machine Functions</h3>
+            <p><strong>Organize state handling with dedicated functions:</strong></p>
+            <pre><code>enum State { IDLE, RUNNING, ERROR };
 
 void state_idle() {
-    if (sensor_data_available()) {
-        current_state = STATE_READING;
-    }
+    // Idle state logic
 }
 
-void state_reading() {
-    raw_value = adc_read();
-    current_state = STATE_PROCESSING;
+void state_running() {
+    // Running state logic
 }
 
-void state_processing() {
-    processed_value = apply_filter(raw_value);
-    current_state = STATE_SENDING;
+void state_error() {
+    // Error state logic
 }
 
-void state_sending() {
-    uart_send_value(processed_value);
-    current_state = STATE_IDLE;
-}
-
-void system_init() {
-    state_functions[STATE_IDLE] = state_idle;
-    state_functions[STATE_READING] = state_reading;
-    state_functions[STATE_PROCESSING] = state_processing;
-    state_functions[STATE_SENDING] = state_sending;
-}
-
-void main_loop() {
-    while (1) {
-        state_functions[current_state]();  // Call appropriate state handler
-        delay_ms(10);
-    }
-}
-
-// Benefits:
-// - Clear state transitions
-// - Each state is a separate function
-// - Easy to add new states
-// - Scales to complex embedded applications
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Real-World Embedded Function Examples</h3>
-
-            <h4>Example 1: I2C Communication</h4>
-            <pre><code>// Read multiple bytes from I2C device
-uint8_t i2c_read_register(uint8_t address, uint8_t reg, uint8_t *data, uint8_t length) {
-    if (data == NULL) return ERROR_NULL;
-    if (length == 0) return ERROR_INVALID_LENGTH;
-    
-    // Start condition
-    i2c_start();
-    
-    // Send device address + read bit
-    i2c_send_byte((address << 1) | 1);
-    
-    if (!i2c_wait_ack(TIMEOUT_MS)) {
-        i2c_stop();
-        return ERROR_NO_ACK;
-    }
-    
-    // Read data bytes
-    for (uint8_t i = 0; i < length; i++) {
-        data[i] = i2c_read_byte();
-        
-        // Send ACK for all but last byte
-        if (i < length - 1) {
-            i2c_send_ack();
-        } else {
-            i2c_send_nack();
-        }
-    }
-    
-    i2c_stop();
-    return SUCCESS;
-}
-            </code></pre>
-
-            <h4>Example 2: ADC Averaging</h4>
-            <pre><code>// Read ADC multiple times and return average
-uint16_t adc_read_average(uint8_t channel, uint8_t samples) {
-    uint32_t sum = 0;
-    
-    // Avoid reading too many samples (stack usage)
-    if (samples > 100) samples = 100;
-    
-    for (uint8_t i = 0; i < samples; i++) {
-        sum += adc_read(channel);
-        delay_us(100);  // Small delay between reads
-    }
-    
-    return (uint16_t)(sum / samples);
-}
-
-// Usage:
-uint16_t stable_temp = adc_read_average(ADC_TEMP_CHANNEL, 10);
-            </code></pre>
-
-            <h4>Example 3: Safe UART Send</h4>
-            <pre><code>// Send data with timeout (prevents hanging)
-uint8_t uart_send_with_timeout(const uint8_t *data, uint16_t length, uint16_t timeout_ms) {
-    if (data == NULL) return ERROR_NULL;
-    
-    for (uint16_t i = 0; i < length; i++) {
-        uint32_t start = system_ticks();
-        
-        // Wait until TX ready or timeout
-        while ((uart_get_status() & UART_TX_READY) == 0) {
-            if ((system_ticks() - start) > timeout_ms) {
-                return ERROR_TIMEOUT;
-            }
-        }
-        
-        uart_write_byte(data[i]);
-    }
-    
-    return SUCCESS;
-}
-
-// Usage:
-uint8_t result = uart_send_with_timeout(packet, packet_length, 100);
-if (result != SUCCESS) {
-    log_error("UART send timeout");
-}
-            </code></pre>
-
-            <h4>Example 4: Debounced Button Read</h4>
-            <pre><code>// Read button multiple times to verify press (debounce)
-uint8_t button_is_pressed_debounced(uint8_t pin, uint8_t checks) {
-    uint8_t pressed_count = 0;
-    
-    for (uint8_t i = 0; i < checks; i++) {
-        if (gpio_read(pin) == 0) {  // Button pulls to GND when pressed
-            pressed_count++;
-        }
-        delay_ms(10);  // Small delay between checks
-    }
-    
-    // Button is considered pressed if ALL checks read low
-    return (pressed_count == checks);
-}
-
-// Usage:
-if (button_is_pressed_debounced(BUTTON_PIN, 5)) {
-    handle_button_press();
-}
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Function Design Best Practices</h3>
-
-            <p><strong>Single Responsibility: Each function does ONE thing.</strong></p>
-            <pre><code>// BAD - does too much
-void read_and_process_and_send_data() {
-    uint16_t raw = adc_read();
-    uint16_t processed = apply_filter(raw);
-    uart_send_value(processed);
-}
-
-// GOOD - separated concerns
-uint16_t read_sensor() { return adc_read(); }
-uint16_t process_value(uint16_t raw) { return apply_filter(raw); }
-void send_value(uint16_t value) { uart_send_value(value); }
-
-// Main loop clearly shows the steps
+// State machine loop
 while (1) {
-    uint16_t raw = read_sensor();
-    uint16_t processed = process_value(raw);
-    send_value(processed);
+    switch (current_state) {
+        case IDLE: state_idle(); break;
+        case RUNNING: state_running(); break;
+        case ERROR: state_error(); break;
+    }
+}</code></pre>
+
+            <h3>Pattern 4: Inline Functions for Performance</h3>
+            <p><strong>Tell compiler to insert function code inline (no call overhead):</strong></p>
+            <pre><code>// Inline function for performance on repeated calls
+inline uint8_t clamp(uint8_t value, uint8_t min_val, uint8_t max_val) {
+    if (value < min_val) return min_val;
+    if (value > max_val) return max_val;
+    return value;
 }
-            </code></pre>
 
-            <p><strong>Defensive Programming: Validate inputs.</strong></p>
-            <pre><code>// Check for NULL, invalid ranges, etc.
-uint8_t motor_set_speed(Motor *m, uint8_t speed) {
-    if (m == NULL) return ERROR_NULL;
-    if (speed > MAX_SPEED) return ERROR_OUT_OF_RANGE;
-    
-    m->speed = speed;
-    return SUCCESS;
-}
-            </code></pre>
-
-            <p><strong>Consistent Naming: Names describe what function does.</strong></p>
-            <pre><code>// GOOD names
-void enable_interrupt();
-void read_temperature_sensor();
-uint8_t get_battery_voltage();
-void delay_milliseconds(uint16_t ms);
-
-// BAD names
-void do_stuff();           // What stuff?
-void x();                  // Meaningless
-void function123();        // What does it do?
-            </code></pre>
+// When you call clamp(x, 0, 255), compiler inserts the logic directly
+// No function call overhead!</code></pre>
         </section>
 
+        <!-- KEY TAKEAWAYS -->
+        <section style="background: #151b28; padding: 20px; border-radius: 5px; margin: 30px 0;">
+            <h2>Key Takeaways</h2>
+            <ul>
+                <li>Functions organize code into reusable, testable blocks</li>
+                <li>Function prototype declares it before main(); definition implements it</li>
+                <li>Parameters pass data INTO functions; return values send data OUT</li>
+                <li>Pass-by-value (default) copies data; pass-by-reference (pointers) modifies original</li>
+                <li>Local variables exist only inside their function; global variables exist everywhere</li>
+                <li>Static variables persist their value between function calls</li>
+                <li>ISRs (interrupt handlers) are functions called by hardware</li>
+                <li>Callback functions allow event-driven programming</li>
+                <li>Inline functions eliminate call overhead for small, frequently-used code</li>
+                <li>Functions are the foundation of organized embedded systems</li>
+            </ul>
+        </section>
+
+        <!-- MINI-PROJECTS -->
         <section>
-            <h3>Function Performance in Embedded Systems</h3>
-
-            <p><strong>Function call overhead:</strong></p>
-            <pre><code>// Every function call includes:
-// 1. PUSH return address (2-4 bytes on stack)
-// 2. PUSH saved registers (varies)
-// 3. Allocate local variables
-// 4. Function body
-// 5. POP local variables
-// 6. POP saved registers
-// 7. RET (jump back to caller)
-
-// For inner loops, this overhead matters!
-// Compare:
-
-// Version 1: Function call (overhead!)
-unsigned long ticks = 0;
-for (int i = 0; i < 1000; i++) {
-    if (is_button_pressed()) {  // Function call, ~10 cycles overhead
-        ticks++;
-    }
-}
-
-// Version 2: Inline (no function call overhead)
-unsigned long ticks = 0;
-for (int i = 0; i < 1000; i++) {
-    if ((GPIO_READ(BUTTON_PIN) == 0)) {  // Direct, ~2 cycles
-        ticks++;
-    }
-}
-
-// Solution: Use inline for frequently called small functions
-static inline uint8_t is_button_pressed() {
-    return (GPIO_READ(BUTTON_PIN) == 0);
-}
-            </code></pre>
-
-            <p><strong>Code size vs speed trade-offs:</strong></p>
-            <pre><code>// Small RAM? Use functions (saves code)
-uint8_t add(uint8_t a, uint8_t b) { return a + b; }
-uint8_t sub(uint8_t a, uint8_t b) { return a - b; }
-
-// Fast loop needed? Inline small functions
-static inline uint8_t add_fast(uint8_t a, uint8_t b) { return a + b; }
-            </code></pre>
-        </section>
-
+            <div class="section-divider"></div>
+            <h2>Mini-Projects to Strengthen Your Skills</h2>
             
-            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
-                <h3>Project 1: Reusable Blink Helper</h3>
-                <p><strong>Objective:</strong> Create a function that blinks an LED a specified number of times.</p>
-
-                <p><strong>What you'll learn:</strong> How functions eliminate code repetition and make programs easier to understand.</p>
-
-                <p><strong>Step by step:</strong></p>
-                <ol>
-                    <li>Write a function: void blinkLED(uint8_t pin, uint8_t times)</li>
-                    <li>Inside: use digitalWrite and delay to blink the specified number of times</li>
-                    <li>Call it multiple times with different pins and counts</li>
-                    <li>Notice how the code becomes cleaner and more readable</li>
-                </ol>
+            <div class="project">
+                <h3>Project 1: Sensor Reading Library Functions</h3>
+                <p><strong>Objective:</strong> Create reusable functions for sensor operations.</p>
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Function to read temperature and return as integer</li>
+                    <li>Function to read and return average of multiple samples</li>
+                    <li>Function to check if reading is in valid range (returns 1 if valid, 0 if out of range)</li>
+                    <li>Call all three functions and print results</li>
+                </ul>
 
                 <button class="solution-btn" onclick="toggleSolution('solution1')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
 
                 <div id="solution1" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
-                    <pre><code>// Function declaration (promise)
-void blinkLED(uint8_t pin, uint8_t times);
+                    <pre><code>int16_t read_temperature() {
+    int raw = analogRead(TEMP_PIN);
+    return (raw * 500) / 1024;  // Convert to celsius
+}
 
-// Function definition (implementation)
-void blinkLED(uint8_t pin, uint8_t times) {
-    for (uint8_t i = 0; i < times; i++) {
-        digitalWrite(pin, HIGH);
-        delay(200);
-        digitalWrite(pin, LOW);
-        delay(200);
+int16_t get_average(uint8_t samples) {
+    int32_t sum = 0;
+    for (uint8_t i = 0; i < samples; i++) {
+        sum += read_temperature();
+        delay(10);
     }
+    return sum / samples;
 }
 
-void loop() {
-    // Now we can use the function easily
-    blinkLED(13, 3);   // Red LED: 3 blinks
-    delay(1000);
-    
-    blinkLED(12, 5);   // Green LED: 5 blinks
-    delay(1000);
+uint8_t is_temperature_valid(int16_t temp) {
+    if (temp >= -40 && temp <= 125) {
+        return 1;  // Valid range
+    }
+    return 0;  // Out of range
 }
 
-// Without functions, we'd copy-paste the loop code multiple times!</code></pre>
-                    
-                    <p><strong>Why this works:</strong> Functions package code into a reusable recipe. Need to blink different pins? Just call the function with different parameters. Much cleaner than copying code!</p>
+// In main:
+int16_t temp = read_temperature();
+int16_t avg = get_average(5);
+if (is_temperature_valid(avg)) {
+    printf("Temperature valid: %d C\n", avg);
+}</code></pre>
+                    <p><strong>Key Learning:</strong> Decompose complex tasks into reusable functions with clear purposes.</p>
                 </div>
             </div>
 
-            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
-                <h3>Project 2: Temperature Converter Function</h3>
-                <p><strong>Objective:</strong> Create a function that converts raw sensor readings to temperature and returns the result.</p>
-
-                <p><strong>What you'll learn:</strong> How functions can take input and return calculated results.</p>
-
-                <p><strong>Step by step:</strong></p>
-                <ol>
-                    <li>Write: uint8_t convertRawToTemp(uint16_t raw_value)</li>
-                    <li>Inside: scale the raw value (0-1023) to temperature (0-100°C)</li>
-                    <li>Return the calculated temperature</li>
-                    <li>Call it with different raw values and store/print the results</li>
-                </ol>
+            <div class="project">
+                <h3>Project 2: Using Pointers to Modify Multiple Values</h3>
+                <p><strong>Objective:</strong> Write a function that returns multiple values using pointers.</p>
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Create function that takes array and calculates stats (min, max, average)</li>
+                    <li>Use pointers to return all three statistics</li>
+                    <li>Call function with test data and print results</li>
+                </ul>
 
                 <button class="solution-btn" onclick="toggleSolution('solution2')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
 
                 <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
-                    <pre><code">// Function that returns a value
-uint8_t convertRawToTemp(uint16_t raw_value) {
-    // Scale 0-1023 to 0-100°C
-    uint8_t temp = (raw_value / 1023) * 100;
-    return temp;  // Send the result back to caller
+                    <pre><code>void calculate_stats(uint8_t *data, uint8_t size,
+                      uint8_t *min, uint8_t *max, uint8_t *avg) {
+    uint16_t sum = 0;
+    *min = data[0];
+    *max = data[0];
+    
+    for (uint8_t i = 0; i < size; i++) {
+        sum += data[i];
+        if (data[i] < *min) *min = data[i];
+        if (data[i] > *max) *max = data[i];
+    }
+    
+    *avg = sum / size;
 }
 
-void setup() {
-    Serial.begin(9600);
-}
+// In main:
+uint8_t sensor_data[10] = {45, 50, 48, 52, 49, 51, 47, 50, 48, 49};
+uint8_t minimum, maximum, average;
 
-void loop() {
-    // Get a raw reading from sensor
-    uint16_t raw = analogRead(A0);
-    
-    // Call function and store the result
-    uint8_t temperature = convertRawToTemp(raw);
-    
-    // Use the result
-    Serial.print("Temperature: ");
-    Serial.print(temperature);
-    Serial.println("°C");
-    
-    delay(1000);
-}
+calculate_stats(sensor_data, 10, &minimum, &maximum, &average);
 
-// Notice: convertRawToTemp() does ONE thing—convert raw to temp
-// Single Responsibility Principle!</code></pre>
-                    
-                    <p><strong>Why this works:</strong> Functions with return values let you compute something and send the answer back. The caller can then use that result. This separation means the conversion logic is independent and reusable.</p>
+printf("Min: %d, Max: %d, Avg: %d\n", minimum, maximum, average);</code></pre>
+                    <p><strong>Key Learning:</strong> Use pointers to return multiple values from a function.</p>
                 </div>
             </div>
 
-            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
-                <h3>Project 3: Multi-Purpose Delay Helper</h3>
-                <p><strong>Objective:</strong> Create multiple versions of a function using function overloading or parameters with defaults.</p>
-
-                <p><strong>What you'll learn:</strong> How functions can be flexible with optional parameters or different behaviors.</p>
-
-                <p><strong>Step by step:</strong></p>
-                <ol>
-                    <li>Write: void wait(uint16_t milliseconds)</li>
-                    <li>Write: void waitSeconds(uint8_t seconds)</li>
-                    <li>The second calls the first internally: wait(seconds * 1000)</li>
-                    <li>Call both and see how they save you from remembering ms vs seconds</li>
-                </ol>
+            <div class="project">
+                <h3>Project 3: Persistent Counter with Static Variables</h3>
+                <p><strong>Objective:</strong> Track internal state across function calls using static variables.</p>
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Create function that counts how many times it was called</li>
+                    <li>Use static variable to persist count</li>
+                    <li>Call function 10 times (in loop) and verify count increments each time</li>
+                </ul>
 
                 <button class="solution-btn" onclick="toggleSolution('solution3')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
 
                 <div id="solution3" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
-                    <pre><code>// Low-level delay in milliseconds
-void wait(uint16_t milliseconds) {
-    delay(milliseconds);
+                    <pre><code>uint16_t get_call_count() {
+    static uint16_t count = 0;
+    count++;
+    return count;
 }
 
-// High-level delay in seconds
-void waitSeconds(uint8_t seconds) {
-    wait(seconds * 1000);  // Convert to ms and call lower function
+// In main:
+for (uint8_t i = 0; i < 10; i++) {
+    uint16_t call_num = get_call_count();
+    printf("Call #%d\n", call_num);
 }
 
-void loop() {
-    // Wait 500ms (directly using milliseconds)
-    wait(500);
-    
-    // Wait 2 seconds (easier to read)
-    waitSeconds(2);
-    
-    // Wait 5 seconds without thinking about conversion
-    waitSeconds(5);
-}
-
-// This layering pattern appears everywhere:
-// - High-level: simple, human-readable
-// - Low-level: does actual work
-// High-level calls low-level internally</code></pre>
-                    
-                    <p><strong>Why this works:</strong> By creating two functions at different levels of abstraction, users can call whichever makes sense. Someone who thinks in seconds calls waitSeconds(). Someone who needs precision calls wait(). Both work correctly!</p>
+// Output:
+// Call #1
+// Call #2
+// ... through ...
+// Call #10</code></pre>
+                    <p><strong>Key Learning:</strong> Static variables maintain state across function calls, perfect for counters and debouncing.</p>
                 </div>
             </div>
         </section>
 
+        <!-- QUIZ -->
         <section>
-            <h2>Summary</h2>
-            <ul>
-                <li>Functions organize code into reusable blocks</li>
-                <li>Each function has one purpose (single responsibility)</li>
-                <li>Parameters passed by value; use pointers for modification</li>
-                <li>Functions return exactly one value (use structures for multiple)</li>
-                <li>Local variables only exist within function scope</li>
-                <li>Use inline for small, frequently-called functions</li>
-                <li>Use pointer parameters for output and modification</li>
-                <li>Check for NULL pointers and out-of-range values</li>
-                <li>Callbacks enable flexible event handling patterns</li>
-            </ul>
+            <div class="section-divider"></div>
+            <h2>Functions Quiz</h2>
+            <p>Test your understanding of function declaration, parameters, and scope:</p>
+
+            <div style="background: #1a2332; padding: 20px; border-radius: 5px; margin: 15px 0;">
+                <div id="quiz-container">
+                    <!-- Quiz populated by JavaScript -->
+                </div>
+                <button id="quiz-start-btn" onclick="startQuiz()" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 20px;">Start Quiz</button>
+            </div>
+
+            <div id="quiz-result" style="display: none; background: #151b28; padding: 20px; border-radius: 5px; margin-top: 20px; border: 2px solid #00d4ff;">
+                <h3>Quiz Complete!</h3>
+                <p id="score-display" style="font-size: 18px; color: #00d4ff; margin: 10px 0;"></p>
+                <div id="feedback-display" style="margin-top: 15px;"></div>
+                <button onclick="resetQuiz()" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 20px;">Retake Quiz</button>
+            </div>
         </section>
 
+        <script>
+            const quizQuestions = [
+                {
+                    question: "What does a function prototype do?",
+                    options: [
+                        "Executes the function immediately",
+                        "Tells the compiler about the function before main() for forward references",
+                        "Deletes the function",
+                        "Nothing important"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What's the difference between pass-by-value and pass-by-reference?",
+                    options: [
+                        "No difference, they're the same",
+                        "Pass-by-value copies; pass-by-reference modifies the original",
+                        "Pass-by-reference is slower",
+                        "Only C uses pass-by-value, C++ uses pass-by-reference"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "How do you pass a pointer to a function in C?",
+                    options: [
+                        "Use the * operator",
+                        "Use the & operator to pass the address",
+                        "Just pass the variable name",
+                        "Pointers can't be passed to functions"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "When does a local variable cease to exist?",
+                    options: [
+                        "When you declare it",
+                        "When the function returns (scope ends)",
+                        "At the end of the program",
+                        "Local variables never cease to exist"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What are static variables used for?",
+                    options: [
+                        "Making variables faster",
+                        "Persisting values between function calls",
+                        "Hiding variables from other files",
+                        "Allocating variables on the stack"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What does 'void' as a return type mean?",
+                    options: [
+                        "The function returns null",
+                        "The function doesn't return a value",
+                        "The function crashes",
+                        "The function takes no parameters"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "How do you get MULTIPLE values OUT of a function?",
+                    options: [
+                        "Use multiple return statements",
+                        "Global variables",
+                        "Pass pointers and modify them inside the function",
+                        "You can't—functions return only one value"
+                    ],
+                    correct: 2
+                },
+                {
+                    question: "When should you use an inline function?",
+                    options: [
+                        "Always, it's always better",
+                        "For small, frequently-called functions to eliminate call overhead",
+                        "Never, it's deprecated",
+                        "Only for mathematical operations"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What's an ISR?",
+                    options: [
+                        "A type of function parameter",
+                        "A function called by hardware when an interrupt occurs",
+                        "A variable scope type",
+                        "A compiler optimization"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "How are arrays passed to functions?",
+                    options: [
+                        "By value (copied)",
+                        "By reference (you get the original array)",
+                        "Arrays can't be passed to functions",
+                        "It depends on the compiler"
+                    ],
+                    correct: 1
+                }
+            ];
+
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let quizInProgress = false;
+
+            function startQuiz() {
+                quizInProgress = true;
+                currentQuestionIndex = 0;
+                score = 0;
+                document.getElementById('quiz-result').style.display = 'none';
+                document.getElementById('quiz-start-btn').style.display = 'none';
+                displayQuizQuestion();
+            }
+
+            function displayQuizQuestion() {
+                if (currentQuestionIndex >= quizQuestions.length) {
+                    completeQuiz();
+                    return;
+                }
+
+                const q = quizQuestions[currentQuestionIndex];
+                const container = document.getElementById('quiz-container');
+                
+                let html = `<div style="margin-bottom: 20px;">
+                    <h4>Question ${currentQuestionIndex + 1}/${quizQuestions.length}</h4>
+                    <p style="font-size: 16px; margin: 15px 0;"><strong>${q.question}</strong></p>
+                    <div style="margin-left: 20px;">`;
+                
+                q.options.forEach((option, idx) => {
+                    html += `<label style="display: block; margin: 8px 0;">
+                        <input type="radio" name="quiz-answer" value="${idx}"> ${option}
+                    </label>`;
+                });
+
+                html += `</div>
+                    <button onclick="nextQuizQuestion()" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 20px;">Next Question</button>
+                </div>`;
+
+                container.innerHTML = html;
+            }
+
+            function nextQuizQuestion() {
+                const selected = document.querySelector('input[name="quiz-answer"]:checked');
+                if (!selected) {
+                    alert('Please select an answer');
+                    return;
+                }
+
+                if (parseInt(selected.value) === quizQuestions[currentQuestionIndex].correct) {
+                    score++;
+                }
+
+                currentQuestionIndex++;
+                displayQuizQuestion();
+            }
+
+            function completeQuiz() {
+                quizInProgress = false;
+                const percentage = Math.round((score / quizQuestions.length) * 100);
+                const maxScore = quizQuestions.length;
+
+                document.getElementById('quiz-container').innerHTML = '';
+                document.getElementById('quiz-result').style.display = 'block';
+                document.getElementById('score-display').textContent = `Score: ${score}/${maxScore} (${percentage}%)`;
+
+                let feedback = '';
+                let showCompletionButton = false;
+                
+                if (percentage === 100) {
+                    feedback = '🏆 Perfect! You master functions completely!';
+                    showCompletionButton = true;
+                } else if (percentage >= 80) {
+                    feedback = '✓ Excellent! You understand functions well.';
+                    showCompletionButton = true;
+                } else if (percentage >= 60) {
+                    feedback = '👍 Good understanding! Review pointers and scope.';
+                } else {
+                    feedback = '📚 Keep studying! Review function parameters and return values.';
+                }
+
+                let feedbackHtml = `<p style="font-size: 16px; color: #00d4ff;">${feedback}</p>`;
+                
+                if (showCompletionButton) {
+                    feedbackHtml += `<button onclick="markLessonComplete()" style="background: #00ff00; color: #0a0f1b; padding: 12px 30px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 16px;">Mark Lesson Complete</button>`;
+                }
+
+                document.getElementById('feedback-display').innerHTML = feedbackHtml;
+            }
+            
+            function markLessonComplete() {
+                localStorage.setItem('functions_complete', 'true');
+                document.querySelector('button[onclick="markLessonComplete()"]').style.background = '#888';
+                document.querySelector('button[onclick="markLessonComplete()"]').textContent = '✓ Marked Complete';
+                document.querySelector('button[onclick="markLessonComplete()"]').disabled = true;
+            }
+
+            function resetQuiz() {
+                document.getElementById('quiz-result').style.display = 'none';
+                document.getElementById('quiz-container').innerHTML = '';
+                document.getElementById('quiz-start-btn').style.display = 'block';
+            }
+
+            function toggleSolution(solutionId) {
+                const solutionDiv = document.getElementById(solutionId);
+                if (solutionDiv.style.display === 'none') {
+                    solutionDiv.style.display = 'block';
+                } else {
+                    solutionDiv.style.display = 'none';
+                }
+            }
+        </script>
+
+        <!-- RESOURCES -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Additional Resources</h2>
+            <p>Deepen your understanding of functions with these video resources:</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Functions Basics and Declarations</h4>
+                    <p>Understanding function prototypes, definitions, and calling.</p>
+                    <a href="https://www.youtube.com/watch?v=OMmMNvKj40Y" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Parameters and Return Values</h4>
+                    <p>Passing data into and getting data out of functions.</p>
+                    <a href="https://www.youtube.com/watch?v=W5Y6_Bq4pZE" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Pass-by-Value vs Pass-by-Reference</h4>
+                    <p>Understanding the difference and when to use pointers.</p>
+                    <a href="https://www.youtube.com/watch?v=d2aPo7F-KMQ" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Scope and Static Variables</h4>
+                    <p>Variable lifetime and persistence across function calls.</p>
+                    <a href="https://www.youtube.com/watch?v=ZLjJ-jbFmqw" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Interrupt Handlers and ISRs</h4>
+                    <p>Functions called by hardware events in embedded systems.</p>
+                    <a href="https://www.youtube.com/watch?v=S5SaB4lBLf8" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Function Pointers and Callbacks</h4>
+                    <p>Passing functions as parameters for event-driven programming.</p>
+                    <a href="https://www.youtube.com/watch?v=kFkJrz0HTW8" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- NAVIGATION -->
         <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
-            <h3>Ready for the next lesson?</h3>
-            <a href="cpp-basics-pointers.html" style="display: inline-block; background: #00d4ff; color: #0a0f1b; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Next: Pointers →</a>
-            <a href="../cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to Basics</a>
-        </section>
-
-        <section>
-            <p><a href="../cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Overview</a></p>
+            <h3>You've mastered functions!</h3>
+            <p>You now understand how to organize code into reusable, testable functions with proper parameter passing and return values.</p>
+            <a href="../cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to C++ Basics Hub</a>
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2023 C++ Embedded Learning Site</p>
+        <p>&copy; 2024 C++ Embedded Learning Site</p>
     </footer>
-    <script src="../assets/js/script.js"></script>
+    <script src="../../assets/js/script.js"></script>
 </body>
 </html>
