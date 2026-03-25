@@ -3,30 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classes & Structs - C++ Basics</title>
+    <title>Structs & Classes - C++ Basics</title>
     <link rel="stylesheet" href="../../assets/css/styles.css">
     <style>
         .lesson-nav { background: #151b28; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #00d4ff; }
         .learning-objectives { background: #1a2332; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #00d4ff; }
         .learning-objectives li { margin: 8px 0; }
-        .key-concepts { background: #2c5aa0; padding: 15px; margin: 15px 0; border-radius: 5px; font-weight: bold; }
         .concept-box { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #ff9000; border-radius: 3px; }
         .real-world { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
         .warning-box { background: #3a1a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #ff4444; border-radius: 3px; }
+        .safe-box { background: #1a3a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
         .section-divider { border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px; }
         .project { background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px; }
         pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
         code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
         pre code { color: #e0e0e0; background: transparent; }
+        .collapsible { background: #151b28; color: #00d4ff; padding: 12px; border: none; border-left: 3px solid #00d4ff; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 8px 0; width: 100%; }
+        .collapsible:hover { background: #1a2332; }
+        .collapsible.active { background: #1a2332; }
+        .collapsible-content { display: none; background: #0f1419; padding: 15px; border-left: 3px solid #00d4ff; margin: 0 0 15px 0; }
+        .collapsible-content.show { display: block; }
+        .quiz-section { background: #1a2333; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        .quiz-question { margin: 20px 0; padding: 15px; background: #151b28; border-left: 3px solid #ffaa00; border-radius: 3px; }
+        .quiz-option { margin: 8px 0; padding: 8px; background: #0f1419; border-radius: 3px; cursor: pointer; border-left: 2px solid transparent; padding-left: 10px; }
+        .quiz-option:hover { border-left-color: #00d4ff; }
+        .quiz-option input[type="radio"] { margin-right: 8px; }
+        .quiz-feedback { margin-top: 10px; padding: 10px; border-radius: 3px; display: none; }
+        .quiz-feedback.show { display: block; }
+        .correct { background: #1a3a1a; color: #00ff00; border-left: 3px solid #00ff00; }
+        .incorrect { background: #3a1a1a; color: #ff4444; border-left: 3px solid #ff4444; }
+        .resources-section { background: #1a2333; padding: 20px; margin: 20px 0; border-radius: 5px; }
+        .resource { margin: 12px 0; padding: 12px; background: #151b28; border-left: 3px solid #00d4ff; border-radius: 3px; }
+        .resource a { color: #00d4ff; text-decoration: none; font-weight: bold; }
+        .resource a:hover { text-decoration: underline; }
+        .resource-desc { font-size: 0.95em; margin-top: 5px; color: #c0c0c0; }
+        .footer-nav { background: #151b28; padding: 20px; margin-top: 40px; border-radius: 5px; text-align: center; border-top: 2px solid #00d4ff; }
+        .footer-nav a { color: #00d4ff; text-decoration: none; margin: 0 15px; }
+        .footer-nav a:hover { text-decoration: underline; }
+        @media (max-width: 768px) {
+            pre, .project, .concept-box { font-size: 0.9em; padding: 12px; }
+            .collapsible { font-size: 0.95em; padding: 10px; }
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>Classes & Structs</h1>
+        <h1>Structs & Classes</h1>
         <nav>
             <ul>
                 <li><a href="../intro.html">Introduction</a></li>
-                <li><a href="../cpp-basics.html">C++ Basics</a></li>
+                <li><a href="../cpp-basics.html">C++ Basics Hub</a></li>
                 <li><a href="../embedded-systems.html">Embedded Systems</a></li>
                 <li><a href="../peripherals.html">Peripherals</a></li>
                 <li><a href="../rtos.html">RTOS</a></li>
@@ -35,807 +61,1170 @@
     </header>
 
     <main class="container">
-        <section>
-            <h2>Classes & Structs in C++</h2>
-            <p><strong>What's a struct or class?</strong> They're like blueprints (or templates) that bundle related information and functions together. Think of it like a real-world example:</p>
-            
-            <p><strong>Car as a struct/class:</strong></p>
-            <ul>
-                <li><strong>Data (properties):</strong> color, speed, fuel level, engine temperature</li>
-                <li><strong>Functions (behaviors):</strong> accelerate(), brake(), openDoor(), startEngine()</li>
-            </ul>
-            
-            <p><strong>Instead of creating separate variables:</strong></p>
-            <pre style="color: #ff6b6b; background: #3d1f1f; padding: 10px; border-radius: 4px;">uint8_t car_color;
-uint16_t car_speed;
-int16_t car_temp;
-void car_accelerate() { } // So confusing! Nothing grouped
-            </pre>
-            
-            <p><strong>Use a struct to group them:</strong></p>
-            <ul>
-                <li>Data + functions = organized, clean, reusable</li>
-                <li>Create multiple cars: <code>Car car1, car2, car3;</code> Each one has its own car_color and car_speed</li>
-            </ul>
-            
-            <p><strong>Embedded examples:</strong> A Motor object (speed, direction, enable_func), a Sensor object (readings, calibration, read_func), a HAL (Hardware Abstraction Layer) for your specific microcontroller.</p>
-            
-            <a href="../cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics</a>
+        <!-- LEARNING OBJECTIVES -->
+        <section class="lesson-nav">
+            <h2>What You'll Learn</h2>
+            <div class="learning-objectives">
+                <ul>
+                    <li>Why structs and classes organize related data and functions together</li>
+                    <li>Declaring and using structs in C/C++</li>
+                    <li>The difference between structs and classes (mainly access control)</li>
+                    <li>Object-oriented basics: encapsulation and data hiding</li>
+                    <li>Constructor and destructor functions</li>
+                    <li>Methods: functions inside structs/classes</li>
+                    <li>Real embedded patterns: peripheral drivers, finite state machines, device abstractions</li>
+                </ul>
+            </div>
         </section>
 
+        <!-- CORE CONCEPT -->
         <section>
-            <h3>Structs Basics</h3>
-            <p>A struct groups multiple variables and functions into one type.</p>
+            <h2>Structs & Classes: Organizing Data and Behavior Together</h2>
+            
+            <p><strong>The fundamental problem we're solving:</strong> In C, when you have related data, you scatter it across separate variables. A motor controller needs speed, direction, acceleration, and current readings—four separate variables. This is error-prone: you might forget to update one, pass the wrong variable, or lose track of which variables belong together.</p>
 
-            <pre><code>// Define a struct
-struct Point {
-    int16_t x;
-    int16_t y;
-};
+            <p><strong>The solution: Structs and Classes</strong> bundle related data (variables) and functions (methods) that operate on that data into a single unit. Instead of motor_speed, motor_direction, motor_acceleration, motor_current—four separate variables—you have ONE Motor struct containing all four, plus functions that operate on them.</p>
 
-Point p;
-p.x = 10;
-p.y = 20;
+            <div class="concept-box">
+                <strong>Struct vs Class</strong>
+                <p>In C++, the main difference is <strong>access control</strong>:</p>
+                <ul>
+                    <li><strong>struct:</strong> Members are PUBLIC by default (anyone can access them)</li>
+                    <li><strong>class:</strong> Members are PRIVATE by default (only the class can access them)</li>
+                </ul>
+                <p>For embedded systems where simplicity and transparency matter, structs are often sufficient. Use classes when you need data hiding and abstraction.</p>
+            </div>
 
-Point origin = {0, 0};
-
-Point *ptr = &p;
-ptr->x = 5;
-            </code></pre>
-
-            <h4>Practical Examples</h4>
-            <pre><code>struct SensorReading {
-    uint16_t raw_value;
-    int16_t temperature_celsius;
-    uint8_t error_code;
-    uint32_t timestamp;
-};
-
-SensorReading reading;
-reading.raw_value = 512;
-reading.temperature_celsius = 25;
-reading.error_code = 0;
-reading.timestamp = get_ms();
-
-struct Color {
-    uint8_t red;
-    uint8_t green;
-    uint8_t blue;
-};
-
-Color white = {255, 255, 255};
-Color black = {0, 0, 0};
-
-struct MotorState {
-    uint8_t speed;
-    uint8_t direction;
-    uint8_t enabled;
-};
-            </code></pre>
+            <p><strong>Real embedded examples where structs/classes organize complexity:</strong></p>
+            <ul>
+                <li><strong>Peripheral driver:</strong> A UART driver struct contains the port address, baud rate, interrupt flags, and functions like send_byte() and read_byte()</li>
+                <li><strong>Sensor abstraction:</strong> A Temperature Sensor struct contains pin, calibration data, and functions like read() and calibrate()</li>
+                <li><strong>State machine:</strong> A Motor Controller struct contains state, speed, direction, and functions like set_speed(), set_direction(), update()</li>
+                <li><strong>Configuration data:</strong> Device settings packed into struct for easy serialization to EEPROM</li>
+            </ul>
         </section>
 
+        <!-- STRUCTS BASICS -->
         <section>
-            <h3>Struct Functions (Methods)</h3>
-            <p>Structs can contain functions that operate on their data. These are member functions, also called methods.</p>
-
+            <div class="section-divider"></div>
+            <h2>Structs: Grouping Related Data</h2>
+            
+            <h3>Basic Struct Declaration</h3>
             <pre><code>struct Point {
-    int16_t x;
-    int16_t y;
-    
-    uint32_t distance_from_origin() {
-        return (x*x) + (y*y);
-    }
+    int x;
+    int y;
 };
 
-Point p = {3, 4};
-uint32_t dist_squared = p.distance_from_origin();
+// Using the struct
+Point p1;
+p1.x = 10;
+p1.y = 20;
 
-struct Motor {
-    uint8_t pwm_pin;
-    uint8_t direction_pin;
+printf("Point: (%d, %d)\n", p1.x, p1.y);</code></pre>
+
+            <h3>Real Embedded Example: Motor Controller Struct</h3>
+            <pre><code>struct MotorController {
+    uint8_t pin_pwm;       // PWM pin number
+    uint8_t pin_direction; // Direction pin
+    uint8_t speed;         // Current speed (0-255)
+    uint8_t direction;     // 0 = forward, 1 = backward
+    uint16_t max_rpm;      // Motor specification
+};
+
+// Create and use motor instance
+MotorController motor1;
+motor1.pin_pwm = 9;
+motor1.pin_direction = 8;
+motor1.speed = 100;
+motor1.direction = 0;
+motor1.max_rpm = 3000;</code></pre>
+
+            <h3>Struct Initialization</h3>
+            <pre><code>// Method 1: Initialize as you declare
+MotorController motor = {9, 8, 100, 0, 3000};
+
+// Method 2: Name the fields (clearer)
+MotorController motor = {
+    .pin_pwm = 9,
+    .pin_direction = 8,
+    .speed = 100,
+    .direction = 0,
+    .max_rpm = 3000
+};
+
+// Method 3: Set individually
+MotorController motor;
+motor.pin_pwm = 9;
+motor.pin_direction = 8;
+// ... etc</code></pre>
+
+            <h3>Memory Layout of Structs</h3>
+            <pre><code>struct Motor {
+    uint8_t speed;      // 1 byte at offset 0
+    uint8_t direction;  // 1 byte at offset 1
+    uint16_t rpm;       // 2 bytes at offset 2-3
+};
+
+// Total size: 4 bytes (1 + 1 + 2)
+// This is important! A struct's size is sum of its members' sizes
+printf("Motor struct size: %d bytes\n", sizeof(Motor));  // 4</code></pre>
+
+            <div class="real-world">
+                <strong>Embedded Reality: EEPROM Storage</strong>
+                <p>Knowing struct size is critical for storing data in EEPROM (persistent storage). You need to know exactly how many bytes to read/write:</p>
+                <pre><code>struct DeviceConfig {
+    uint8_t device_id;
+    uint16_t calibration_offset;
+    uint32_t power_on_count;
+};
+
+// Store config to EEPROM (64 bytes offset)
+EEPROM_write(64, (uint8_t*)&config, sizeof(DeviceConfig));
+config_size = sizeof(DeviceConfig);  // 7 bytes</code></pre>
+            </div>
+        </section>
+
+        <!-- STRUCT METHODS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Adding Functions to Structs (Methods)</h2>
+            
+            <h3>Functions That Work on Structs</h3>
+            <p><strong>In C, you pass the struct pointer to functions:</strong></p>
+            <pre><code>void motor_set_speed(MotorController *motor, uint8_t new_speed) {
+    motor->speed = new_speed;
+    analogWrite(motor->pin_pwm, new_speed);
+}
+
+void motor_set_direction(MotorController *motor, uint8_t dir) {
+    motor->direction = dir;
+    digitalWrite(motor->pin_direction, dir);
+}
+
+// Usage
+MotorController motor = {9, 8, 0, 0, 3000};
+motor_set_speed(&motor, 150);
+motor_set_direction(&motor, 0);</code></pre>
+
+            <h3>C++ Class Methods (Cleaner Syntax)</h3>
+            <p><strong>In C++, methods are part of the class:</strong></p>
+            <pre><code>class Motor {
+public:
     uint8_t speed;
+    uint8_t pin_pwm;
     
     void set_speed(uint8_t new_speed) {
         speed = new_speed;
-        write_pwm(pwm_pin, new_speed);
-    }
-    
-    void forward() {
-        direction_pin = HIGH;
-    }
-    
-    void backward() {
-        direction_pin = LOW;
-    }
-    
-    void stop() {
-        speed = 0;
-        write_pwm(pwm_pin, 0);
+        analogWrite(pin_pwm, speed);
     }
 };
 
-Motor left_motor = {5, 6, 0};
-left_motor.set_speed(200);
-left_motor.forward();
-            </code></pre>
+// Usage (no need to pass &motor)
+Motor motor;
+motor.speed = 0;
+motor.pin_pwm = 9;
+motor.set_speed(150);  // 'this' pointer implicit</code></pre>
 
-            <h4>Using this Pointer</h4>
-            <p>Inside member functions, the <code>this</code> pointer refers to the current object instance. It's automatically available and lets you access the object's data explicitly.</p>
-            <pre><code>struct CircularBuffer {
-    uint8_t data[256];
-    uint8_t write_index;
-    uint8_t read_index;
-    uint8_t count;
-    
-    void put(uint8_t value) {
-        if (this->count < 256) {
-            this->data[this->write_index] = value;
-            this->write_index = (this->write_index + 1) % 256;
-            this->count++;
-        }
-    }
-    
-    uint8_t get() {
-        if (this->count > 0) {
-            uint8_t value = this->data[this->read_index];
-            this->read_index = (this->read_index + 1) % 256;
-            this->count--;
-            return value;
-        }
-        return 0;
-    }
-    
-    uint8_t is_empty() {
-        return this->count == 0;
-    }
-};
-
-CircularBuffer buffer;
-buffer.put(42);
-uint8_t val = buffer.get();
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Structs vs Classes</h3>
-            <p>In C++, the main difference is visibility (public vs private).</p>
-
-            <pre><code>// Struct - members are public by default
-struct PublicStruct {
-    uint8_t value;
-};
-
-PublicStruct ps;
-ps.value = 5;
-
-class PrivateClass {
-private:
-    uint8_t value;
-    
+            <h3>Real Example: Sensor Class</h3>
+            <pre><code>class TemperatureSensor {
 public:
-    void set_value(uint8_t v) {
-        value = v;
+    uint8_t pin;
+    int16_t calibration_offset;
+    
+    // Constructor: runs when object is created
+    TemperatureSensor(uint8_t sensor_pin) {
+        pin = sensor_pin;
+        calibration_offset = 0;
+        pinMode(pin, INPUT);
     }
     
-    uint8_t get_value() {
-        return value;
+    // Method: read current temperature
+    int16_t read() {
+        int raw = analogRead(pin);
+        return (raw * 500) / 1024 + calibration_offset;
+    }
+    
+    // Method: calibrate
+    void set_calibration(int16_t offset) {
+        calibration_offset = offset;
     }
 };
 
-PrivateClass pc;
-pc.set_value(5);
-            </code></pre>
-
-            <h4>When to Use Each</h4>
-            <pre><code>// Use struct when all data is public
-struct Point {
-    int16_t x;
-    int16_t y;
-};
-
-Point p = {10, 20};  // Simple, no validation needed
-
-// Use class when you need validation/control
-class ValidatedPoint {
-private:
-    int16_t x, y;
-    
-public:
-    void set_x(int16_t new_x) {
-        if (new_x >= -1000 && new_x <= 1000) {
-            x = new_x;
-        }
-    }
-    
-    int16_t get_x() {
-        return x;
-    }
-};
-
-// In embedded, often use struct for simplicity
-            </code></pre>
+// Usage
+TemperatureSensor temp_sensor(A0);
+int16_t current_temp = temp_sensor.read();
+temp_sensor.set_calibration(-5);</code></pre>
         </section>
 
+        <!-- ENCAPSULATION -->
         <section>
-            <h3>Constructors and Initialization</h3>
-            <p>Constructors automatically initialize struct/class members.</p>
+            <div class="section-divider"></div>
+            <h2>Encapsulation: Hiding Implementation Details</h2>
+            
+            <p><strong>The power of classes:</strong> You can make some data private (hidden from users) and provide public methods to access it safely.</p>
 
-            <pre><code>struct Timer {
-    uint32_t start_time;
-    uint32_t duration;
-    
-    Timer(uint32_t duration_ms) {
-        start_time = get_ms();
-        duration = duration_ms;
-    }
-    
-    bool is_expired() {
-        return (get_ms() - start_time) >= duration;
-    }
-};
-
-Timer button_timer(500);
-while (!button_timer.is_expired()) {
-    // processing
-}
-
-struct Range {
-    int16_t min;
-    int16_t max;
-    
-    Range() {
-        min = 0;
-        max = 100;
-    }
-    
-    Range(int16_t minimum, int16_t maximum) {
-        min = minimum;
-        max = maximum;
-    }
-};
-
-Range r1;
-Range r2(-50, 50);
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Device Driver Example</h3>
-            <p>Practical patterns for hardware abstraction.</p>
-
+            <h3>Private vs Public Members</h3>
             <pre><code>class UART {
 private:
+    // Private: only UART methods can access these
     uint32_t baud_rate;
-    uint8_t tx_buffer[256];
-    uint8_t rx_buffer[256];
+    uint8_t buffer[256];
+    uint8_t buffer_index;
     
 public:
-    UART(uint32_t baud) {
+    // Public: anyone can call these
+    void init(uint32_t baud) {
         baud_rate = baud;
-        init_uart(baud);
+        buffer_index = 0;
+        // Configure hardware
     }
     
-    void send_byte(uint8_t byte) {
-        while (is_tx_busy());
-        write_uart(byte);
+    void send(uint8_t data) {
+        buffer[buffer_index++] = data;
     }
     
-    void send_string(const char *str) {
-        while (*str) {
-            send_byte(*str++);
-        }
-    }
-    
-    uint8_t read_byte() {
-        while (!is_rx_available());
-        return read_uart();
+    uint8_t receive() {
+        // Return data from buffer
+        return buffer[0];
     }
 };
 
-UART serial(9600);
-serial.send_string("Hello World\n");
+// User code:
+UART uart;
+uart.init(9600);      // OK—public method
+uart.send(0x42);      // OK—public method
+// uart.baud_rate = 115200;  // ERROR! Private—not allowed</code></pre>
 
-class GPIO {
+            <h3>Real Embedded Pattern: GPIO Abstraction</h3>
+            <pre><code>class DigitalPin {
+private:
+    uint8_t pin;
+    uint8_t mode;  // INPUT or OUTPUT
+    
+public:
+    DigitalPin(uint8_t pin_number) : pin(pin_number) {
+        mode = INPUT;  // Default
+    }
+    
+    void set_output() {
+        mode = OUTPUT;
+        pinMode(pin, OUTPUT);
+    }
+    
+    void set_input() {
+        mode = INPUT;
+        pinMode(pin, INPUT);
+    }
+    
+    void write(uint8_t value) {
+        digitalWrite(pin, value);
+    }
+    
+    uint8_t read() {
+        return digitalRead(pin);
+    }
+};
+
+// Usage: simple, clean interface
+DigitalPin led(13);
+led.set_output();
+led.write(1);  // Turn on</code></pre>
+        </section>
+
+        <!-- CONSTRUCTORS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Constructors and Initialization</h2>
+            
+            <p><strong>A constructor is a special function that runs automatically when an object is created:</strong></p>
+
+            <h3>Constructor Basics</h3>
+            <pre><code>class Motor {
+public:
+    uint8_t pin_pwm;
+    uint8_t speed;
+    
+    // Constructor: runs automatically on creation
+    Motor(uint8_t pwm_pin) {
+        pin_pwm = pwm_pin;
+        speed = 0;
+        pinMode(pin_pwm, OUTPUT);
+        digitalWrite(pin_pwm, LOW);  // Start off
+    }
+};
+
+// Create motor—constructor runs automatically
+Motor motor1(9);    // Constructor called with 9
+Motor motor2(10);   // Constructor called with 10
+// Both motors now initialized and ready to use</code></pre>
+
+            <h3>Initializer Lists (C++ Style)</h3>
+            <p><strong>Initializer lists are the preferred C++ way to initialize member variables:</strong></p>
+            <pre><code>class Sensor {
+private:
+    uint8_t pin;
+    uint16_t reading;
+    
+public:
+    // Initializer list: initialize members before constructor body runs
+    Sensor(uint8_t pin_number) : pin(pin_number), reading(0) {
+        pinMode(pin, INPUT);
+    }
+};
+
+// Alternative (less efficient): assignment in constructor
+class SensorOld {
 private:
     uint8_t pin;
     
 public:
-    GPIO(uint8_t pin_number) {
-        pin = pin_number;
-        configure_pin_as_output(pin);
-    }
-    
-    void set_high() {
-        write_pin(pin, 1);
-    }
-    
-    void set_low() {
-        write_pin(pin, 0);
-    }
-    
-    void toggle() {
-        write_pin(pin, !read_pin(pin));
+    SensorOld(uint8_t pin_number) {
+        pin = pin_number;  // Assign after creation
     }
 };
 
-GPIO led(13);
-led.set_high();
-led.toggle();
-led.set_low();
-            </code></pre>
-        </section>
+// The initializer list version is better because members are 
+// initialized at their declaration, not assigned after</code></pre>
 
-        <section>
-            <h3>State Machines with Structs</h3>
-            <p>Common embedded pattern: state machine encapsulated in a struct.</p>
-
-            <pre><code>// Device state machine
-enum State {
-    IDLE = 0,
-    RUNNING = 1,
-    ERROR = 2,
-    SHUTDOWN = 3
-};
-
-struct Device {
-    State current_state;
-    uint16_t error_code;
-    uint32_t uptime_ms;
-    
-    void process() {
-        switch (current_state) {
-            case IDLE:
-                if (should_start()) {
-                    current_state = RUNNING;
-                }
-                break;
-                
-            case RUNNING:
-                if (check_error()) {
-                    error_code = get_error();
-                    current_state = ERROR;
-                } else if (should_shutdown()) {
-                    current_state = SHUTDOWN;
-                }
-                uptime_ms++;
-                break;
-                
-            case ERROR:
-                if (user_acknowledged_error()) {
-                    current_state = IDLE;
-                }
-                break;
-                
-            case SHUTDOWN:
-                shutdown_hardware();
-                break;
-        }
-    }
-    
-    const char *state_str() {
-        switch (current_state) {
-            case IDLE: return "IDLE";
-            case RUNNING: return "RUNNING";
-            case ERROR: return "ERROR";
-            case SHUTDOWN: return "SHUTDOWN";
-            default: return "UNKNOWN";
-        }
-    }
-};
-
-Device device = {IDLE, 0, 0};
-
-void main_loop() {
-    while (1) {
-        device.process();
-        delay_ms(1);
-    }
-}
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Static Members</h3>
-            <p>Shared across all instances of a struct/class.</p>
-
-            <pre><code>struct Logger {
-    static uint16_t message_count;  // Shared by all instances
-    uint8_t level;  // Per-instance
-    
-    static void print_stats() {
-        uart_print("Total messages: ");
-        uart_print_int(message_count);
-    }
-    
-    void log(const char *msg) {
-        message_count++;  // All instances share this
-        uart_print("[");
-        uart_print_int(level);
-        uart_print("] ");
-        uart_print(msg);
-        uart_print("\n");
-    }
-};
-
-uint16_t Logger::message_count = 0;  // Initialize static
-
-Logger logger1, logger2;
-logger1.log("Starting");
-logger2.log("Running");
-Logger::print_stats();  // Shows 2 messages total
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Inheritance (Careful in Embedded!)</h3>
-            <p>One class can inherit from another. Use sparingly in embedded—it adds code size.</p>
-
-            <pre><code>// Base class
-class Peripheral {
-protected:
-    uint32_t base_address;
+            <h3>Destructors: Cleanup on Deletion</h3>
+            <pre><code>class DynamicBuffer {
+private:
+    uint8_t *buffer;
+    uint16_t size;
     
 public:
-    Peripheral(uint32_t addr) {
-        base_address = addr;
+    // Constructor: allocate memory
+    DynamicBuffer(uint16_t buffer_size) : size(buffer_size) {
+        buffer = new uint8_t[size];
     }
     
-    virtual void init() = 0;  // Pure virtual
+    // Destructor: cleanup—runs when object is deleted
+    ~DynamicBuffer() {
+        delete[] buffer;  // Free memory
+        buffer = NULL;
+    }
 };
 
-// Derived class
-class GPIO : public Peripheral {
+// Usage
+{
+    DynamicBuffer buf(512);
+    // ... use buf
+}  // Destructor called here automatically</code></pre>
+
+            <div class="warning-box">
+                <strong>Warning: Memory Leaks</strong>
+                <p>If you allocate memory in a constructor but forget to free it in a destructor, you leak memory. On embedded systems with limited RAM, this is critical to manage:</p>
+                <pre><code>// BAD: No destructor—memory leak!
+class BadBuffer {
+    uint8_t *data;
 public:
-    GPIO(uint32_t addr) : Peripheral(addr) {}
-    
-    void init() {
-        volatile uint32_t *reg = (volatile uint32_t *)base_address;
-        *reg = 0x01;  // Enable GPIO
-    }
+    BadBuffer() { data = new uint8_t[1024]; }
+    // Forgot destructor—memory never freed!
 };
 
-GPIO port_a(0x40020000);
-port_a.init();
-
-// In embedded, often prefer composition over inheritance
-struct System {
-    UART uart;
-    GPIO led;
-    ADC adc;
-    
-    System() : uart(9600), led(13), adc(A0) {}
+// GOOD: Destructor cleans up
+class GoodBuffer {
+    uint8_t *data;
+public:
+    GoodBuffer() { data = new uint8_t[1024]; }
+    ~GoodBuffer() { delete[] data; }
 };
-            </code></pre>
+</code></pre>
+            </div>
         </section>
 
+        <!-- EMBEDDED PATTERNS -->
         <section>
-            <h3>Memory Layout and sizeof</h3>
-            <p>Understand how much memory structs use.</p>
-
-            <pre><code>struct Compact {
-    uint8_t a;
-    uint8_t b;
-    uint8_t c;
-};
-// sizeof(Compact) = 3 bytes
-
-struct WithPadding {
-    uint8_t a;
-    uint16_t b;
-    uint8_t c;
-};
-// sizeof(WithPadding) = 6 bytes (not 4!)
-
-// #pragma pack prevents padding (but slower)
-#pragma pack(1)
-struct Packed {
-    uint8_t a;
-    uint16_t b;
-    uint8_t c;
-};
-#pragma pack()
-// sizeof(Packed) = 4 bytes (tight packing)
-
-// Word-align for hardware efficiency
-struct Aligned {
-    uint32_t value1;  // 4 bytes
-    uint32_t value2;  // 4 bytes
-};
-// sizeof(Aligned) = 8 bytes (efficient)
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>Common Mistakes</h3>
-            <ul>
-                <li><strong>Forgetting semicolon:</strong> struct/class definition ends with ;</li>
-                <li><strong>Private members:</strong> In classes, members are private by default</li>
-                <li><strong>Memory overhead:</strong> Virtual functions and inheritance add code size</li>
-                <li><strong>Struct alignment:</strong> Padding added for alignment; check sizeof()</li>
-                <li><strong>Passing copies:</strong> Passing struct by value copies all data</li>
-            </ul>
-
-            <pre><code>// WRONG - Missing semicolon
-struct Point {
-    int16_t x, y;
-}  // ERROR - need semicolon here
-
-// RIGHT
-struct Point {
-    int16_t x, y;
-};
-
-// WRONG - Forgetting object pointer in method
-void process(Data &data) {
-    data.value = 5;  // If not reference parameter
-}
-
-// RIGHT - Use pointer or reference
-void process(Data *data) {
-    data->value = 5;
-}
-
-void process(Data &data) {
-    data.value = 5;
-}
-
-// WRONG - Expensive struct copy
-void process_sensor(SensorReading reading) {
-
-// RIGHT - Use pointer or const reference
-void process_sensor(const SensorReading *reading) {
-            </code></pre>
-        </section>
-
-        <section>
-            <h2>Mini-Projects to Strengthen Your Skills</h2>
+            <div class="section-divider"></div>
+            <h2>Embedded Patterns with Structs and Classes</h2>
             
-            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
-                <h3>Project 1: LED Controller Struct</h3>
-                <p><strong>Objective:</strong> Create a struct to represent an LED with control functions.</p>
-
-                <p><strong>What you'll learn:</strong> How structs bundle data and functions that work together.</p>
-
-                <p><strong>Step by step:</strong></p>
-                <ol>
-                    <li>Create: struct LED { uint8_t pin; uint8_t brightness; }</li>
-                    <li>Add a constructor: LED(uint8_t p, uint8_t b) to initialize</li>
-                    <li>Add methods: turnOn(), turnOff(), setBrightness(uint8_t b)</li>
-                    <li>Create two LED objects and control them independently</li>
-                </ol>
-
-                <button class="solution-btn" onclick="toggleSolution('solution1')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
-
-                <div id="solution1" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
-                    <pre><code>struct LED {
-    uint8_t pin;
-    uint8_t brightness;
-        pin = p;
-        brightness = b;
-        pinMode(pin, OUTPUT);
-    }
-struct LED {
+            <h3>Pattern 1: Peripheral Driver Abstraction</h3>
+            <p>Wrap hardware registers and functionality in a class for clean, portable code:</p>
+            <pre><code>class SPIBus {
+private:
+    uint32_t base_address;  // Hardware register base
+    uint32_t speed;
+    
 public:
-    uint8_t pin;
-        digitalWrite(pin, HIGH);
+    SPIBus(uint32_t address, uint32_t spi_speed) 
+        : base_address(address), speed(spi_speed) {
+        configure_hardware();
     }
     
-    void turnOff() {
+    void transmit(uint8_t *data, uint16_t length) {
+        for (int i = 0; i < length; i++) {
+            *(volatile uint8_t*)(base_address + 0x04) = data[i];
+            while (!(*(volatile uint32_t*)(base_address) & 0x80));
+        }
+    }
+    
+    uint8_t receive() {
+        return *(volatile uint8_t*)(base_address + 0x04);
+    }
+    
+private:
+    void configure_hardware() {
+        // Setup SPI controller
+    }
+};
+
+// Clean driver interface:
+SPIBus spi(0x40013000, 1000000);
+uint8_t data[] = {0xAA, 0xBB, 0xCC};
+spi.transmit(data, 3);</code></pre>
+
+            <h3>Pattern 2: Finite State Machine</h3>
+            <p>Structs organize state and transition functions:</p>
+            <pre><code>struct State {
+    uint8_t id;
+    void (*on_enter)();
+    void (*on_update)();
+    void (*on_exit)();
+};
+
+class TrafficLight {
+private:
+    uint8_t current_state;  // RED=0, YELLOW=1, GREEN=2
+    uint32_t state_timer;
+    State states[3];
+    
+public:
+    TrafficLight() : current_state(0), state_timer(0) {
+        states[0] = {0, red_enter, NULL, red_exit};
+        states[1] = {1, yellow_enter, NULL, yellow_exit};
+        states[2] = {2, green_enter, NULL, green_exit};
+    }
+    
+    void update() {
+        if (states[current_state].on_update) {
+            states[current_state].on_update();
+        }
+    }
+    
+    void transition_to(uint8_t new_state) {
+        if (states[current_state].on_exit) {
+            states[current_state].on_exit();
+        }
+        current_state = new_state;
+        if (states[current_state].on_enter) {
+            states[current_state].on_enter();
+        }
+    }
+};
+
+// Usage
+TrafficLight light;
+light.transition_to(0);  // Go to RED
+light.update();</code></pre>
+
+            <h3>Pattern 3: Sensor Data with Calibration</h3>
+            <pre><code>class PressureSensor {
+private:
+    uint16_t raw_reading;
+    float calibration_scale;
+    int16_t calibration_offset;
+    uint8_t adc_pin;
+    
+public:
+    PressureSensor(uint8_t pin) : adc_pin(pin), 
+                                   calibration_scale(1.0), 
+                                   calibration_offset(0) {
+        pinMode(adc_pin, INPUT);
+    }
+    
+    void calibrate(float zero_pressure_reading) {
+        raw_reading = analogRead(adc_pin);
+        calibration_offset = raw_reading;
+    }
+    
+    float read_pressure_kpa() {
+        raw_reading = analogRead(adc_pin);
+        int16_t calibrated = raw_reading - calibration_offset;
+        return calibrated * calibration_scale / 100.0;
+    }
+};
+
+// Usage in main loop
+PressureSensor sensor(A0);
+// Calibrate on startup:
+sensor.calibrate(0);
+// Then read:
+float pressure = sensor.read_pressure_kpa();</code></pre>
+
+            <div class="safe-box">
+                <strong>Best Practice: Keep Classes Lightweight on Microcontrollers</strong>
+                <p>Avoid heavy C++ features (virtual functions, inheritance, STL containers) on tiny microcontrollers. Use simple structs or lightweight classes instead:</p>
+                <ul>
+                    <li>Prefer structs with simple data and functions</li>
+                    <li>Avoid virtual functions (they add memory overhead)</li>
+                    <li>Avoid inheritance hierarchies (stack is limited)</li>
+                    <li>Use fixed-size arrays, not dynamic vectors</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- KEY TAKEAWAYS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Key Takeaways</h2>
+            <div class="concept-box">
+                <ul>
+                    <li><strong>Structs and classes bundle related data and functions:</strong> Instead of scattered variables, organize them into cohesive units</li>
+                    <li><strong>Struct = all public by default; class = all private by default:</strong> Use structs for simple data grouping, classes for encapsulation</li>
+                    <li><strong>Constructors initialize objects automatically:</strong> Ensure all member variables are set up correctly on creation</li>
+                    <li><strong>Destructors clean up resources:</strong> Free memory and reset hardware state when an object is destroyed</li>
+                    <li><strong>Embedded patterns use structs/classes for drivers, FSMs, and abstractions:</strong> They make embedded code cleaner and more maintainable</li>
+                    <li><strong>Know your struct size:</strong> You need sizeof(struct) for EEPROM storage and memory calculations</li>
+                    <li><strong>Keep it simple on microcontrollers:</strong> Avoid heavy OOP features; focus on lightweight, efficient code</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- MINI-PROJECTS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Mini-Projects</h2>
+            
+            <!-- PROJECT 1 -->
+            <div class="project">
+                <h3>Project 1: LED Controller Class</h3>
+                <p><strong>Goal:</strong> Create an LED controller class that manages multiple LEDs with different pins and brightness levels.</p>
+                
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Create an LED class with pin, brightness, and state (on/off)</li>
+                    <li>Implement constructor to initialize GPIO pin</li>
+                    <li>Add methods: turn_on(), turn_off(), set_brightness()</li>
+                    <li>Implement pulse-width modulation (PWM) for brightness control</li>
+                    <li>Create 3 LED objects and control them independently</li>
+                </ul>
+
+                <button class="collapsible">Show Solution</button>
+                <div class="collapsible-content">
+                    <pre><code>class LED {
+private:
+    uint8_t pin;
+    uint8_t brightness;  // 0-255
+    bool state;
+    
+public:
+    LED(uint8_t led_pin) : pin(led_pin), brightness(0), state(false) {
+        pinMode(pin, OUTPUT);
         digitalWrite(pin, LOW);
     }
     
-    void setBrightness(uint8_t b) {
-        brightness = b;
+    void turn_on() {
+        state = true;
         analogWrite(pin, brightness);
+    }
+    
+    void turn_off() {
+        state = false;
+        digitalWrite(pin, LOW);
+    }
+    
+    void set_brightness(uint8_t level) {
+        brightness = level;
+        if (state) {
+            analogWrite(pin, brightness);
+        }
+    }
+    
+    uint8_t get_brightness() const {
+        return brightness;
     }
 };
 
-// Create LED objects
-LED red_led(13, 255);
-LED green_led(12, 128);
+// Usage
+class LEDArray {
+private:
+    LED led1;
+    LED led2;
+    LED led3;
+    
+public:
+    LEDArray() : led1(9), led2(10), led3(11) {}
+    
+    void demo() {
+        // Turn on all LEDs
+        led1.turn_on();
+        led2.turn_on();
+        led3.turn_on();
+        
+        // Fade: brightness ramp 0-255
+        for (int b = 0; b <= 255; b += 5) {
+            led1.set_brightness(b);
+            delay(20);
+        }
+        
+        // Turn off
+        led1.turn_off();
+        led2.turn_off();
+        led3.turn_off();
+    }
+};
+
+void setup() {
+    LEDArray leds;
+    leds.demo();
+}
+
+void loop() {}
+</code></pre>
+                </div>
+            </div>
+
+            <!-- PROJECT 2 -->
+            <div class="project">
+                <h3>Project 2: State Machine Motor Controller</h3>
+                <p><strong>Goal:</strong> Create a motor controller using a state machine pattern (IDLE → ACCELERATE → RUNNING → DECELERATE → IDLE).</p>
+                
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Define an enum for states: IDLE, ACCELERATE, RUNNING, DECELERATE</li>
+                    <li>Create a Motor class with state, speed, target_speed, acceleration</li>
+                    <li>Implement state transition logic in update() method</li>
+                    <li>Gradual speed ramp (don't jump instantly to full speed)</li>
+                    <li>Demo: set target speed and observe smooth acceleration</li>
+                </ul>
+
+                <button class="collapsible">Show Solution</button>
+                <div class="collapsible-content">
+                    <pre><code>enum MotorState {
+    IDLE,
+    ACCELERATE,
+    RUNNING,
+    DECELERATE
+};
+
+class MotorController {
+private:
+    uint8_t pin_pwm;
+    uint8_t pin_direction;
+    MotorState state;
+    uint8_t current_speed;
+    uint8_t target_speed;
+    uint8_t acceleration;
+    
+public:
+    MotorController(uint8_t pwm, uint8_t dir) 
+        : pin_pwm(pwm), pin_direction(dir), 
+          state(IDLE), current_speed(0), 
+          target_speed(0), acceleration(2) {
+        pinMode(pin_pwm, OUTPUT);
+        pinMode(pin_direction, OUTPUT);
+    }
+    
+    void set_target_speed(uint8_t speed) {
+        target_speed = speed;
+        if (target_speed > 0 && state == IDLE) {
+            state = ACCELERATE;
+        }
+    }
+    
+    void update() {
+        switch (state) {
+            case IDLE:
+                current_speed = 0;
+                analogWrite(pin_pwm, 0);
+                break;
+                
+            case ACCELERATE:
+                if (current_speed < target_speed) {
+                    current_speed += acceleration;
+                    if (current_speed > target_speed) {
+                        current_speed = target_speed;
+                    }
+                }
+                if (current_speed >= target_speed) {
+                    state = RUNNING;
+                }
+                analogWrite(pin_pwm, current_speed);
+                break;
+                
+            case RUNNING:
+                if (target_speed == 0) {
+                    state = DECELERATE;
+                }
+                break;
+                
+            case DECELERATE:
+                if (current_speed > 0) {
+                    current_speed -= acceleration;
+                }
+                if (current_speed == 0) {
+                    state = IDLE;
+                }
+                analogWrite(pin_pwm, current_speed);
+                break;
+        }
+    }
+    
+    uint8_t get_speed() const { return current_speed; }
+    MotorState get_state() const { return state; }
+};
 
 void setup() {
     Serial.begin(9600);
 }
 
-void loop() {
-    red_led.turnOn();
-    delay(500);
-    
-    green_led.setBrightness(50);
-    delay(500);
-    
-    red_led.turnOff();
-    delay(500);
-}</code></pre>
-                    
-                    <p><strong>Why this works:</strong> Each LED object bundles its pin and brightness data with the methods that control it. This is much cleaner than separate arrays and functions. You can create as many LEDs as needed, each fully independent.</p>
-                </div>
-            </div>
-
-            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
-                <h3>Project 2: Simple Motor State Machine</h3>
-                <p><strong>Objective:</strong> Create a struct to represent a motor with multiple states (off, spinning slow, spinning fast).</p>
-
-                <p><strong>What you'll learn:</strong> How structs naturally represent state machines with data and behavior together.</p>
-
-                <p><strong>Step by step:</strong></p>
-                <ol>
-                    <li>Create: struct Motor with fields: pin, current_speed, max_speed</li>
-                    <li>Add methods: start(), stop(), setSpeed(uint8_t s)</li>
-                    <li>Track state (is it running?)</li>
-                    <li>Create a motor and demonstrate state changes</li>
-                </ol>
-
-                <button class="solution-btn" onclick="toggleSolution('solution2')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
-
-                <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
-                    <pre><code>struct Motor {
-    uint8_t pin;
-    uint8_t current_speed;
-    uint8_t max_speed;
-    uint8_t is_running;
-    
-    Motor(uint8_t p, uint8_t max_s) {
-        pin = p;
-        max_speed = max_s;
-        current_speed = 0;
-        is_running = 0;
-        pinMode(pin, OUTPUT);
-    }
-    
-    void start() {
-        is_running = 1;
-        analogWrite(pin, current_speed);
-    }
-    
-    void stop() {
-        is_running = 0;
-        current_speed = 0;
-        analogWrite(pin, 0);
-    }
-    
-    void setSpeed(uint8_t speed) {
-        if (speed > max_speed) {
-            speed = max_speed;
-        }
-        current_speed = speed;
-        if (is_running) {
-            analogWrite(pin, current_speed);
-        }
-    }
-};
-
-Motor main_motor(9, 200);
+MotorController motor(9, 8);
 
 void loop() {
-    main_motor.start();
-    main_motor.setSpeed(100);   // Slow
-    delay(2000);
+    // Simulate speed commands
+    static unsigned long last_time = 0;
+    unsigned long now = millis();
     
-    main_motor.setSpeed(200);   // Fast
-    delay(2000);
-    
-    main_motor.stop();
-    delay(1000);
-}</code></pre>
-                    
-                    <p><strong>Why this works:</strong> The Motor struct keeps state (is_running, current_speed) and provides methods that change state safely. setSpeed includes validation—it won't exceed max_speed. This prevents bugs from invalid states.</p>
-                </div>
-            </div>
-
-            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
-                <h3>Project 3: Temperature Sensor Wrapper</h3>
-                <p><strong>Objective:</strong> Create a struct that reads a temperature sensor and provides averaged, filtered readings.</p>
-
-                <p><strong>What you'll learn:</strong> How structs wrap complex hardware behavior in a clean interface.</p>
-
-                <p><strong>Step by step:</strong></p>
-                <ol>
-                    <li>Create: struct TempSensor with pin, last_reading, min_temp, max_temp</li>
-                    <li>Add methods: read(), getAverage(), exceeded()</li>
-                    <li>Use a simple moving average technique (keep last 3 readings)</li>
-                    <li>Track min and max temperatures seen</li>
-                </ol>
-
-                <button class="solution-btn" onclick="toggleSolution('solution3')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
-
-                <div id="solution3" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
-                    <pre><code">struct TempSensor {
-    uint8_t pin;
-    uint8_t last_temp;
-    uint8_t min_temp;
-    uint8_t max_temp;
-    uint8_t sample_count;
-    
-    TempSensor(uint8_t p) {
-        pin = p;
-        last_temp = 0;
-        min_temp = 255;
-        max_temp = 0;
-        sample_count = 0;
-        pinMode(pin, INPUT);
-    }
-    
-    void read() {
-        uint16_t raw = analogRead(pin);
-        uint8_t temp = (raw / 1023) * 100;  // Scale to 0-100°C
-        last_temp = temp;
-        sample_count++;
+    if (now - last_time > 5000) {  // Every 5 seconds
+        static uint8_t phase = 0;
         
-        // Track min/max
-        if (temp < min_temp) min_temp = temp;
-        if (temp > max_temp) max_temp = temp;
+        if (phase == 0) {
+            motor.set_target_speed(255);  // Full speed
+            Serial.println("Accelerating...");
+        } else if (phase == 1) {
+            motor.set_target_speed(0);    // Stop
+            Serial.println("Decelerating...");
+        }
+        
+        phase = (phase + 1) % 2;
+        last_time = now;
     }
     
-    uint8_t getLastReading() {
-        return last_temp;
-    }
+    motor.update();
     
-    uint8_t getMin() {
-        return min_temp;
+    // Print speed every 500ms
+    static unsigned long last_print = 0;
+    if (millis() - last_print > 500) {
+        Serial.print("Speed: ");
+        Serial.println(motor.get_speed());
+        last_print = millis();
     }
-    
-    uint8_t getMax() {
-        return max_temp;
-    }
-    
-    uint8_t getSampleCount() {
-        return sample_count;
-    }
+}
+</code></pre>
+                </div>
+            </div>
+
+            <!-- PROJECT 3 -->
+            <div class="project">
+                <h3>Project 3: Configuration Storage with Structs</h3>
+                <p><strong>Goal:</strong> Create a device configuration struct and save/load it from EEPROM.</p>
+                
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Define a DeviceConfig struct with device_id, baud_rate, calibration_value, debug_enabled</li>
+                    <li>Create methods to save_to_eeprom() and load_from_eeprom()</li>
+                    <li>Handle struct size using sizeof()</li>
+                    <li>Demo: Save config, simulate power cycle (manual EEPROM reset), load and verify</li>
+                    <li>Print loaded values to confirm persistence</li>
+                </ul>
+
+                <button class="collapsible">Show Solution</button>
+                <div class="collapsible-content">
+                    <pre><code>// Arduino with EEPROM library
+#include <EEPROM.h>
+
+struct DeviceConfig {
+    uint8_t device_id;
+    uint16_t baud_rate;  // In units of 100 (so 96 = 9600)
+    int16_t calibration_offset;
+    uint8_t debug_enabled;
 };
 
-TempSensor sensor(A0);
+class ConfigManager {
+private:
+    DeviceConfig config;
+    const uint16_t eeprom_address = 0;
+    
+public:
+    ConfigManager() {
+        // Set defaults
+        config.device_id = 1;
+        config.baud_rate = 96;  // 9600
+        config.calibration_offset = 0;
+        config.debug_enabled = 1;
+    }
+    
+    void save_to_eeprom() {
+        // Write struct to EEPROM
+        uint8_t *data = (uint8_t*)&config;
+        for (uint16_t i = 0; i < sizeof(DeviceConfig); i++) {
+            EEPROM.write(eeprom_address + i, data[i]);
+        }
+        Serial.println("Config saved to EEPROM");
+        print_config();
+    }
+    
+    void load_from_eeprom() {
+        // Read struct from EEPROM
+        uint8_t *data = (uint8_t*)&config;
+        for (uint16_t i = 0; i < sizeof(DeviceConfig); i++) {
+            data[i] = EEPROM.read(eeprom_address + i);
+        }
+        Serial.println("Config loaded from EEPROM");
+        print_config();
+    }
+    
+    void print_config() {
+        Serial.print("Device ID: ");
+        Serial.println(config.device_id);
+        Serial.print("Baud Rate: ");
+        Serial.println(config.baud_rate * 100);
+        Serial.print("Calibration Offset: ");
+        Serial.println(config.calibration_offset);
+        Serial.print("Debug Enabled: ");
+        Serial.println(config.debug_enabled);
+        Serial.print("Config Size: ");
+        Serial.print(sizeof(DeviceConfig));
+        Serial.println(" bytes");
+    }
+    
+    void set_device_id(uint8_t id) { config.device_id = id; }
+    void set_calibration(int16_t offset) { config.calibration_offset = offset; }
+    uint8_t get_device_id() const { return config.device_id; }
+};
+
+ConfigManager config_mgr;
+
+void setup() {
+    Serial.begin(9600);
+    delay(1000);
+    
+    Serial.println("=== Device Configuration Demo ===");
+    Serial.println();
+    
+    // Set some values
+    config_mgr.set_device_id(42);
+    config_mgr.set_calibration(50);
+    
+    // Save to EEPROM
+    config_mgr.save_to_eeprom();
+    Serial.println();
+    
+    // Simulate power cycle by creating new manager
+    ConfigManager config_mgr2;
+    Serial.println("After simulated power cycle:");
+    config_mgr2.load_from_eeprom();
+}
 
 void loop() {
-    sensor.read();
-    
-    Serial.print("Temp: ");
-    Serial.print(sensor.getLastReading());
-    Serial.print("°C  Min: ");
-    Serial.print(sensor.getMin());
-    Serial.print("  Max: ");
-    Serial.print(sensor.getMax());
-    Serial.print("  Samples: ");
-    Serial.println(sensor.getSampleCount());
-    
-    delay(1000);
-}</code></pre>
-                    
-                    <p><strong>Why this works:</strong> The TempSensor struct encapsulates all sensor behavior. The outside code doesn't care how it reads or calculates—it just calls read() and asks for the data it needs. If you later add averaging logic, only the struct changes; the calling code stays the same.</p>
+}
+</code></pre>
                 </div>
             </div>
         </section>
 
-        <section>
-            <h2>Summary</h2>
-            <ul>
-                <li>Structs group related data and functions</li>
-                <li>Structs are public-by-default, classes are private-by-default</li>
-                <li>Use structs for simple data, classes for complex objects with validation</li>
-                <li>Constructors initialize members automatically</li>
-                <li>Perfect for hardware abstraction and device drivers</li>
-                <li>Static members are shared by all instances</li>
-                <li>Be aware of struct padding; check sizeof()</li>
-                <li>Use pointers/references to avoid expensive copies</li>
-                <li>State machines fit naturally in structs</li>
-            </ul>
+        <!-- QUIZ SECTION -->
+        <section class="quiz-section">
+            <h2>Knowledge Check</h2>
+            <p>Test your understanding of structs and classes:</p>
+
+            <!-- Q1 -->
+            <div class="quiz-question">
+                <p><strong>Question 1:</strong> What is the main difference between a struct and a class in C++?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q1a" name="q1" value="a">
+                    <label for="q1a">A struct can only hold data, a class can hold data and functions</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q1b" name="q1" value="b">
+                    <label for="q1b">A struct's members are public by default; a class's members are private by default</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q1c" name="q1" value="c">
+                    <label for="q1c">There is no difference; they are the same</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(1, 'b', 'Correct! In C++, structs default to public access, while classes default to private access.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback1"></div>
+            </div>
+
+            <!-- Q2 -->
+            <div class="quiz-question">
+                <p><strong>Question 2:</strong> When does a constructor run?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q2a" name="q2" value="a">
+                    <label for="q2a">Every time you call a method on the object</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q2b" name="q2" value="b">
+                    <label for="q2b">Automatically when an object is created</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q2c" name="q2" value="c">
+                    <label for="q2c">At the end of the program when the object is destroyed</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(2, 'b', 'Correct! A constructor runs automatically when an object is created, allowing you to initialize member variables.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback2"></div>
+            </div>
+
+            <!-- Q3 -->
+            <div class="quiz-question">
+                <p><strong>Question 3:</strong> What is the purpose of a destructor?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q3a" name="q3" value="a">
+                    <label for="q3a">To initialize private member variables</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q3b" name="q3" value="b">
+                    <label for="q3b">To clean up resources when an object is destroyed</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q3c" name="q3" value="c">
+                    <label for="q3c">To copy one object to another</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(3, 'b', 'Correct! Destructors clean up allocated memory and resources when an object is destroyed.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback3"></div>
+            </div>
+
+            <!-- Q4 -->
+            <div class="quiz-question">
+                <p><strong>Question 4:</strong> Why use structs/classes instead of separate variables?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q4a" name="q4" value="a">
+                    <label for="q4a">To make code run faster</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q4b" name="q4" value="b">
+                    <label for="q4b">To organize related data together and reduce errors</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q4c" name="q4" value="c">
+                    <label for="q4c">They don't provide any real benefit</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(4, 'b', 'Correct! Structs and classes bundle related data and functions, making code more organized and maintainable.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback4"></div>
+            </div>
+
+            <!-- Q5 -->
+            <div class="quiz-question">
+                <p><strong>Question 5:</strong> What is encapsulation in OOP?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q5a" name="q5" value="a">
+                    <label for="q5a">Making all class members public</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q5b" name="q5" value="b">
+                    <label for="q5b">Hiding implementation details and providing a clean public interface</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q5c" name="q5" value="c">
+                    <label for="q5c">Using only global variables</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(5, 'b', 'Correct! Encapsulation hides private implementation and exposes only necessary public methods.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback5"></div>
+            </div>
+
+            <!-- Q6 -->
+            <div class="quiz-question">
+                <p><strong>Question 6:</strong> Why is knowing sizeof(struct) important on embedded systems?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q6a" name="q6" value="a">
+                    <label for="q6a">To calculate exactly how many bytes to store in EEPROM</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q6b" name="q6" value="b">
+                    <label for="q6b">To prevent buffer overflow attacks</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q6c" name="q6" value="c">
+                    <label for="q6c">It's not really important</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(6, 'a', 'Correct! On embedded systems, you must know struct size to properly handle persistent storage and communication.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback6"></div>
+            </div>
+
+            <!-- Q7 -->
+            <div class="quiz-question">
+                <p><strong>Question 7:</strong> What happens if you allocate memory in a constructor but don't free it in a destructor?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q7a" name="q7" value="a">
+                    <label for="q7a">The memory is automatically freed when the object is destroyed</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q7b" name="q7" value="b">
+                    <label for="q7b">You create a memory leak, wasting RAM</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q7c" name="q7" value="c">
+                    <label for="q7c">It's not a problem on embedded systems</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(7, 'b', 'Correct! Memory leaks are especially critical on embedded systems with limited RAM.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback7"></div>
+            </div>
+
+            <!-- Q8 -->
+            <div class="quiz-question">
+                <p><strong>Question 8:</strong> What does an initializer list do in C++?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q8a" name="q8" value="a">
+                    <label for="q8a">Creates a list of all public members</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q8b" name="q8" value="b">
+                    <label for="q8b">Initializes member variables before the constructor body runs</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q8c" name="q8" value="c">
+                    <label for="q8c">Lists all private member variables</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(8, 'b', 'Correct! Initializer lists initialize members at declaration time, which is more efficient.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback8"></div>
+            </div>
+
+            <!-- Q9 -->
+            <div class="quiz-question">
+                <p><strong>Question 9:</strong> What is a real embedded use case for classes with encapsulation?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q9a" name="q9" value="a">
+                    <label for="q9a">Abstracting hardware registers behind a clean driver interface</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q9b" name="q9" value="b">
+                    <label for="q9b">Making code unnecessarily complex</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q9c" name="q9" value="c">
+                    <label for="q9c">They're not used in embedded systems</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(9, 'a', 'Correct! Encapsulation is critical for clean, portable hardware drivers in embedded systems.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback9"></div>
+            </div>
+
+            <!-- Q10 -->
+            <div class="quiz-question">
+                <p><strong>Question 10:</strong> Why avoid heavy C++ features like virtual functions on microcontrollers?</p>
+                <div class="quiz-option">
+                    <input type="radio" id="q10a" name="q10" value="a">
+                    <label for="q10a">They add memory overhead that we can't afford</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q10b" name="q10" value="b">
+                    <label for="q10b">They make the code run slower</label>
+                </div>
+                <div class="quiz-option">
+                    <input type="radio" id="q10c" name="q10" value="c">
+                    <label for="q10c">Both A and B</label>
+                </div>
+                <button class="btn" onclick="checkAnswer(10, 'c', 'Correct! Heavy OOP features add both memory and CPU overhead, which is problematic on resource-constrained devices.')">Check Answer</button>
+                <div class="quiz-feedback" id="feedback10"></div>
+            </div>
+
+            <div style="margin-top: 20px; padding: 15px; background: #1a2332; border-radius: 5px; border-left: 4px solid #00ff00;">
+                <button onclick="submitQuiz()" class="btn" style="background: #00dd00; color: black; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold;">Submit Quiz</button>
+                <p id="quiz-result" style="margin-top: 10px; display: none;"></p>
+            </div>
         </section>
 
-        <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
-            <h3>Ready for the next lesson?</h3>
-            <a href="cpp-basics-memory.html" style="display: inline-block; background: #00d4ff; color: #0a0f1b; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Next: Memory Management →</a>
-            <a href="../cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to Basics</a>
+        <!-- YOUTUBE RESOURCES -->
+        <section class="resources-section">
+            <h2>Video Resources</h2>
+            <p>Deepen your understanding with these recommended videos:</p>
+
+            <div class="resource">
+                <a href="https://www.youtube.com/results?search_query=C%2B%2B+structs+tutorial" target="_blank">C++ Structs Tutorial - Complete Guide</a>
+                <div class="resource-desc">Introduction to structs, member access, and real-world usage patterns</div>
+            </div>
+
+            <div class="resource">
+                <a href="https://www.youtube.com/results?search_query=C%2B%2B+classes+OOP+tutorial" target="_blank">C++ Classes & Object-Oriented Programming</a>
+                <div class="resource-desc">Classes, public/private access, encapsulation, and methods</div>
+            </div>
+
+            <div class="resource">
+                <a href="https://www.youtube.com/results?search_query=C%2B%2B+constructors+destructors" target="_blank">Constructors and Destructors in C++</a>
+                <div class="resource-desc">Automatic initialization and cleanup with constructors and destructors</div>
+            </div>
+
+            <div class="resource">
+                <a href="https://www.youtube.com/results?search_query=Arduino+class+example+LED+motor" target="_blank">Arduino Classes - Real Examples (LED, Motor Control)</a>
+                <div class="resource-desc">Practical examples using classes on Arduino and embedded platforms</div>
+            </div>
+
+            <div class="resource">
+                <a href="https://www.youtube.com/results?search_query=embedded+systems+hardware+driver+abstraction" target="_blank">Hardware Abstraction Layers in Embedded Systems</a>
+                <div class="resource-desc">Using classes and structs to abstract peripheral hardware in embedded code</div>
+            </div>
+
+            <div class="resource">
+                <a href="https://www.youtube.com/results?search_query=C%2B%2B+memory+optimization+embedded" target="_blank">C++ Memory Optimization for Embedded Systems</a>
+                <div class="resource-desc">Efficient struct/class design for limited RAM and program memory</div>
+            </div>
         </section>
 
-        <section>
-            <p><a href="../cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Overview</a></p>
-        </section>
+        <!-- FOOTER -->
+        <footer class="footer-nav">
+            <a href="../cpp-basics.html">Back to C++ Basics Hub</a>
+            <a href="../intro.html">Introduction</a>
+            <a href="../embedded-systems.html">Embedded Systems</a>
+        </footer>
     </main>
 
-    <footer>
-        <p>&copy; 2023 C++ Embedded Learning Site</p>
-    </footer>
-    <script src="../assets/js/script.js"></script>
+    <script>
+        // Collapsible solutions
+        const collapsibles = document.querySelectorAll('.collapsible');
+        collapsibles.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                content.classList.toggle('show');
+                this.classList.toggle('active');
+            });
+        });
+
+        // Quiz functionality
+        function checkAnswer(questionNum, correct, feedback) {
+            const selected = document.querySelector(`input[name="q${questionNum}"]:checked`);
+            const feedbackDiv = document.getElementById(`feedback${questionNum}`);
+            
+            if (!selected) {
+                feedbackDiv.textContent = 'Please select an answer.';
+                feedbackDiv.className = 'quiz-feedback show incorrect';
+                return;
+            }
+            
+            if (selected.value === correct) {
+                feedbackDiv.textContent = '✓ ' + feedback;
+                feedbackDiv.className = 'quiz-feedback show correct';
+            } else {
+                feedbackDiv.textContent = '✗ Incorrect. ' + feedback;
+                feedbackDiv.className = 'quiz-feedback show incorrect';
+            }
+        }
+
+        function submitQuiz() {
+            let correct = 0;
+            const totalQuestions = 10;
+            
+            for (let i = 1; i <= totalQuestions; i++) {
+                const feedback = document.getElementById(`feedback${i}`);
+                if (feedback.classList.contains('correct')) {
+                    correct++;
+                }
+            }
+            
+            const percentage = (correct / totalQuestions) * 100;
+            const resultDiv = document.getElementById('quiz-result');
+            
+            if (percentage >= 80) {
+                resultDiv.textContent = `🎉 Excellent! You scored ${correct}/${totalQuestions} (${percentage.toFixed(0)}%). You have a solid understanding of structs and classes!`;
+                resultDiv.style.color = '#00ff00';
+                localStorage.setItem('cpp-basics-classes-quiz-passed', 'true');
+            } else if (percentage >= 60) {
+                resultDiv.textContent = `Good effort! You scored ${correct}/${totalQuestions} (${percentage.toFixed(0)}%). Review the materials and try again.`;
+                resultDiv.style.color = '#ffaa00';
+            } else {
+                resultDiv.textContent = `Keep practicing! You scored ${correct}/${totalQuestions} (${percentage.toFixed(0)}%). Review the concepts and take the quiz again.`;
+                resultDiv.style.color = '#ff4444';
+            }
+            resultDiv.style.display = 'block';
+        }
+
+        // Check if quiz was previously passed
+        if (localStorage.getItem('cpp-basics-classes-quiz-passed') === 'true') {
+            document.querySelector('.quiz-section').style.opacity = '0.7';
+            const note = document.createElement('div');
+            note.style.cssText = 'background: #1a4a1a; border-left: 3px solid #00ff00; padding: 10px; margin-bottom: 15px; border-radius: 3px;';
+            note.textContent = '✓ You have previously passed this quiz (≥80%)';
+            document.querySelector('.quiz-section').insertBefore(note, document.querySelector('.quiz-section').firstChild);
+        }
+    </script>
 </body>
 </html>
