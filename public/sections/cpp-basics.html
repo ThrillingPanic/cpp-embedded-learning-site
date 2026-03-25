@@ -40,7 +40,10 @@
                 const isCompleted = localStorage.getItem('topic_' + topicId) === 'true';
                 if (isCompleted) {
                     card.classList.add('completed');
-                    card.querySelector('input[type="checkbox"]').checked = true;
+                    const checkbox = card.querySelector('input[type="checkbox"]');
+                    if (checkbox) {
+                        checkbox.checked = true;
+                    }
                 }
             });
         });
@@ -84,13 +87,12 @@
                 <div class="topic-card" id="topic-1" data-topic-id="topic-1">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
-                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-1')">
                             <span class="difficulty difficulty-beginner">F.1</span>
                         </div>
                     </div>
                     <h3>Variables & Data Types</h3>
                     <p><strong>Why it matters:</strong> Embedded systems must choose the RIGHT data type. Use the wrong one and you waste precious memory or lose data.</p>
-                    <p><strong>Key topics:</strong> Fixed-width types, memory layout, scope, const/volatile modifiers</p>
+                    <p><strong>Key topics:</strong> Fixed-width types, memory layout, scope, const/volatile modifiers, I/O operations</p>
                     <a href="fundamentals/cpp-basics-variables.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
                 </div>
 
