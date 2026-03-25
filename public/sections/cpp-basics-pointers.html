@@ -193,23 +193,20 @@ fill_array(buffer, 5, 0);
             <p>A pointer can point to another pointer.</p>
 
             <pre><code>uint8_t value = 42;
-uint8_t *ptr = &value;      // Pointer to value
-uint8_t **pptr = &ptr;      // Pointer to pointer
+uint8_t *ptr = &value;
+uint8_t **pptr = &ptr;
 
-// Access value
-uint8_t result = **pptr;    // 42
+uint8_t result = **pptr;
 
-// Modify through pointer-to-pointer
-**pptr = 100;               // value is now 100
+**pptr = 100;
 
-// Common in embedded: array of function pointers
 typedef void (*HANDLER_T)(uint8_t);
-HANDLER_T handlers[5];      // Array of function pointers
+HANDLER_T handlers[5];
 
-HANDLER_T *phandlers = handlers;  // Pointer to array
+HANDLER_T *phandlers = handlers;
 
-phandlers[0] = my_function;  // Set handler
-(*phandlers[0])(5);          // Call it
+phandlers[0] = my_function;
+(*phandlers[0])(5);
             </code></pre>
         </section>
 
@@ -326,7 +323,7 @@ const uint8_t * const ptr3 = &value;
             </code></pre>
 const uint8_t SIN_TABLE[256] = {0, 1, 2, ...};
 const uint8_t *p = SIN_TABLE;
-uint8_t sine = *p;  // Read OK
+uint8_t sine = *p;
 // *p = 5;  // ERROR - table is constant
             </code></pre>
 
@@ -337,19 +334,13 @@ uint8_t sine = *p;  // Read OK
             <h3>Type Casting Pointers</h3>
             <p>Convert between pointer types with care!</p>
 
-            <pre><code>// Casting for hardware
-uint32_t *reg = (uint32_t *)0x40020000;  // Register address
+            <pre><code>uint32_t *reg = (uint32_t *)0x40020000;
 
-// Casting between types
 uint8_t *p8;
-uint16_t *p16 = (uint16_t *)p8;  // Dangerous if alignment wrong
+uint16_t *p16 = (uint16_t *)p8;
 
-// Better practice: use volatile and const correctly
 volatile uint32_t *io_reg = (volatile uint32_t *)0x40000000;
 *io_reg = 0x12345678;
-
-// Avoid casts where possible
-// Use typdefs for clarity
 typedef struct {
     uint8_t control;
     uint8_t status;
@@ -475,22 +466,19 @@ void button_interrupt() {
 uint16_t word_val = 1000;
 uint32_t dword_val = 100000;
 
-// Generic pointer that can hold any address
 void *generic = &byte_val;
 
-// Must cast before using
 uint8_t *p8 = (uint8_t *)generic;
-uint8_t val = *p8;  // 42
+uint8_t val = *p8;
 
-// Change what it points to
 generic = &word_val;
 uint16_t *p16 = (uint16_t *)generic;
-val = *p16;  // 1000
+val = *p16;
 
 // Common in embedded: array of different types
 struct Packet {
     uint8_t type;
-    void *data;         // Can point to any data structure
+    void *data;
 };
 
 // Use case: event handler with variable payload types
@@ -560,8 +548,8 @@ void UART_IRQHandler() {
 
             <pre><code>#define BUFFER_SIZE 128
 uint8_t buffer[BUFFER_SIZE];
-uint8_t *head = buffer;      // Where to write next
-uint8_t *tail = buffer;      // Where to read next
+uint8_t *head = buffer;
+uint8_t *tail = buffer;
 uint8_t *end = buffer + BUFFER_SIZE - 1;
 
 
@@ -632,8 +620,8 @@ void buggy_function() {
 void safe_function() {
     uint8_t *ptr = NULL;  // Initialized to NULL
     uint8_t value = 5;
-    ptr = &value;         // Now has valid address
-    *ptr = 42;            // Safe
+    ptr = &value;
+    *ptr = 42;
 }
             </code></pre>
 
@@ -756,8 +744,8 @@ typedef struct {
 SPI_Registers_t *spi = (SPI_Registers_t *)0x40003000;
 
 // Use structure members to access registers
-spi->CONTROL = 0x0001;    // Enable SPI
-spi->CONFIG = 0x00FF;     // Set clock, mode, etc
+spi->CONTROL = 0x0001;
+spi->CONFIG = 0x00FF;
 uint32_t status = spi->STATUS;
 uint32_t data = spi->DATA;
 

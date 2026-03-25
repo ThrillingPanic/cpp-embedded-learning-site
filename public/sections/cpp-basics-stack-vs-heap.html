@@ -77,16 +77,15 @@
             <h3>How the Stack Works</h3>
             <pre><code>uint8_t global_data[10];  // Global - exists forever
 
-void function_a(int x) {           // function_a is called
-    uint8_t local_a = 42;          // Pushed on stack
-    function_b(x + 1);             // Call function_b
-    // local_a automatically freed when returning
+void function_a(int x) {
+    uint8_t local_a = 42;
+    function_b(x + 1);
 }
 
 void function_b(int y) {
-    uint32_t local_b = 100;        // Pushed on stack (on top of local_a)
-    uint16_t local_c = 200;        // Pushed on stack (on top of local_b)
-    return;                        // local_c and local_b automatically freed
+    uint32_t local_b = 100;
+    uint16_t local_c = 200;
+    return;
 }
 
 // Memory diagram during execution:
@@ -140,21 +139,19 @@ void function_b(int y) {
 
 // Safe function (small locals)
 void read_sensor() {
-    uint8_t sensor_id = 1;      // 1 byte
-    uint16_t reading = 0;       // 2 bytes
-    // Total: 3 bytes on stack (SAFE)
+    uint8_t sensor_id = 1;
+    uint16_t reading = 0;
 }
 
 // Dangerous function (large local array)
 void parse_data() {
-    uint8_t buffer[4096];       // 4KB on stack! (DANGEROUS!)
-    // This might cause stack overflow
+    uint8_t buffer[4096];
+}
 }
 
 // Correct approach for large buffers
-uint8_t global_buffer[4096];    // Global/static (doesn't use stack)
+uint8_t global_buffer[4096];
 void parse_data() {
-    // Use global_buffer instead
     global_buffer[0] = read_byte();
 }</code></pre>
 
@@ -173,9 +170,9 @@ void parse_data() {
 
             <h3>Heap Allocation Example</h3>
             <pre><code>// Allocate on heap (slow, but flexible)
-uint32_t *data = new uint32_t[100];  // 400 bytes allocated on heap
-data[50] = 12345;                   // Use the data
-delete[] data;                      // Manual deallocation (easy to forget!)
+uint32_t *data = new uint32_t[100];
+data[50] = 12345;
+delete[] data;
 
 // Problems:
 // 1. If you forget delete, memory leaks
@@ -224,10 +221,10 @@ delete[] data;                      // Manual deallocation (easy to forget!)
 // Total space: 192KB
 
 void recursive_function(int depth) {
-    uint8_t buffer[1024];  // 1KB per call!
+    uint8_t buffer[1024];
     if (depth < 200) {
-        recursive_function(depth + 1);  // 200 * 1KB = 200KB!
-        // Stack pointer creeps downward...
+        recursive_function(depth + 1);
+    }
     }
 }
 
@@ -241,10 +238,14 @@ extern uint32_t _heap_start;
 extern uint32_t _heap_end;
 
 uint32_t get_free_memory() {
-    // Approximate: difference between heap and current stack pointer
-    extern uint32_t __get_MSP(void);  // ARM intrinsic
-    uint32_t sp = __get_MSP();         // Current stack pointer
-    uint32_t heap_ptr = (uint32_t)(&_heap_end);  // Heap top
+    extern uint32_t __get_MSP(void);
+    uint32_t sp = __get_MSP();
+    uint32_t heap_ptr = (uint32_t)(&_heap_end);
+    
+    if (sp > heap_ptr) {
+        return sp - heap_ptr;
+    }
+    return 0;
     
     if (sp > heap_ptr) {
         return sp - heap_ptr;  // Free space
@@ -262,18 +263,11 @@ uint32_t get_free_memory() {
             <p>In mission-critical embedded systems, dynamic allocation is often forbidden:</p>
             <pre><code>// ❌ STYLE 1: Embedded system without proper memory management
 void process_data(uint8_t *raw_data) {
-    // Allocate RTDB based on data
-    uint8_t *processed = new uint8_t[some_size];  // DON'T DO THIS
-    // ... process ...
-    delete[] processed;  // What if function returns early? Leak!
-    // What if exception? Leak!
 }
 
 // ✅ STYLE 2: Proper embedded approach (no allocation)
-uint8_t processed[MAX_BUFFER];  // Static size
+uint8_t processed[MAX_BUFFER];
 void process_data(uint8_t *raw_data) {
-    // Use pre-allocated buffer
-    // No error-prone new/delete
 }</code></pre>
 
             <h3>When Allocation is Unavoidable</h3>
@@ -405,10 +399,6 @@ RingBuffer uart_rx;  // Receives data endlessly without growing</code></pre>
             <pre><code>// Place a known value on stack, check if overwritten
 void check_stack_overflow() {
     uint32_t canary = 0xDEADBEEF;
-    // ... rest of function ...
-    if (canary != 0xDEADBEEF) {
-        // Stack was corrupted!
-        error_handler();
     }
 }</code></pre>
 
@@ -416,14 +406,13 @@ void check_stack_overflow() {
             <pre><code>// Allocate more memory than needed, fill boundaries with sentinel
 uint8_t *safe_allocate(int size) {
     uint8_t *ptr = (uint8_t*)malloc(size + 2);
-    ptr[0] = 0xAA;         // Boundary sentinel
-    ptr[size + 1] = 0xBB;  // Another sentinel
-    return &ptr[1];        // Return pointer to actual data
+    ptr[0] = 0xAA;
+    ptr[size + 1] = 0xBB;
+    return &ptr[1];
 }
 
 void check_buffer_overflow(uint8_t *ptr) {
     if (ptr[-1] != 0xAA || ptr[expected_size] != 0xBB) {
-        // Buffer overflow detected!
         error_handler();
     }
 }</code></pre>

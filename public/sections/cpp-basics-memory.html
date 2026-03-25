@@ -89,9 +89,9 @@
             <p>Where local variables live. Automatic allocation and deallocation.</p>
 
             <pre><code>void my_function() {
-    uint8_t local_var = 5;     // Stack - allocated here
-    int16_t sensor_reading;    // Stack
-    uint32_t buffer[100];      // Stack - 400 bytes!
+    uint8_t local_var = 5;
+    int16_t sensor_reading;
+    uint32_t buffer[100];
     
 }  // All variables deallocated automatically
 
@@ -109,113 +109,63 @@
             </code></pre>
 
             <h4>Stack Limitations</h4>
-            <pre><code>// DANGEROUS - Large array on stack
-void process_image() {
-    uint8_t image[256 * 256];  // 65,536 bytes!
-    // If your MCU has only 64 KB RAM, this is 100% of memory!
-    // Stack overflow incoming...
+            <pre><code>void process_image() {
+    uint8_t image[256 * 256];
 }
 
-// On Arduino Uno (2 KB RAM), this destroys the heap
-// And any dynamic allocation
-
-// BETTER - Use static allocation or global
-uint8_t image[256 * 256];  // Global - in flash or special section
-
+uint8_t image[256 * 256];
 void process_image() {
-    // Use global array
 }
 
-// OR - allocate at startup, use throughout program
 uint8_t *image;
-
 void init() {
-    image = malloc(256 * 256);  // Once at start
+    image = malloc(256 * 256);
 }
 
 void process_image() {
-    // Use image - allocated in heap
 }
             </code></pre>
 
             <h4>Typical Stack Limits</h4>
-            <pre><code>// Arduino Uno: 2 KB RAM total, maybe 1.5 KB stack
-// Arduino Nano: 2 KB RAM total
-// STM32F4: 192 KB RAM - more comfortable
-// STM32H7: 512 KB RAM - luxury!
-
-// A function using 100 bytes: fine
-// A function using 1 KB on a 2 KB system: problematic
-// A function using 10 KB on a system with 32 KB RAM: borderline
-
-// Best practice: monitor stack usage
-void monitor() {
-    static uint16_t min_free = 65535;
-    uint16_t free = get_free_stack_space();
-    if (free < min_free) {
-        min_free = free;
-        uart_print("Min stack free: ");
-        uart_print_int(min_free);
-    }
-}
-            </code></pre>
-        </section>
-
-        <section>
-            <h3>The Heap</h3>
-            <p>Dynamic memory allocation. Allocate and deallocate as needed.</p>
-
-            <pre><code>// Allocate memory at runtime
-uint8_t *buffer = malloc(1024);  // Request 1024 bytes
+            <pre><code>
+un// Allocate memory at runtime
+uint8_t *buffer = malloc(1024);
 if (buffer == NULL) {
-    // Allocation failed - not enough memory!
     return ERROR;
 }
 
-// Use it
 buffer[0] = 42;
 
-// Free when done
 free(buffer);
-buffer = NULL;  // Good practice - prevents use-after-free
+buffer = NULL;
 
-// C++ style (more safe)
 uint8_t *data = new uint8_t[256];
-// Use data...
-delete[] data;  // Must use delete[] for arrays
+delete[] data;
 data = NULL;
 
-// C++ constructors are called:
 struct Sensor {
     Sensor() {
-        init_i2c();  // Constructor called
+        init_i2c();
     }
 };
 
-Sensor *sensor = new Sensor();  // Object created, constructor runs
-delete sensor;  // Destructor runs (~Sensor), cleans up
+Sensor *sensor = new Sensor();
+delete sensor;
             </code></pre>
 
             <h4>Heap Problems</h4>
-            <pre><code>// Memory leak - allocate but never free
-void bad_function() {
+            <pre><code>void bad_function() {
     uint8_t *buffer = malloc(1024);
-    // Use buffer...
-    return;  // Forgot free! Memory leaked
+    return;
 }
 
-// After 100 calls, you've lost 102 KB
-// Eventually system runs out of memory and crashes
-
-// Use-after-free - access freed memory
 uint8_t *ptr = malloc(10);
 free(ptr);
-ptr[0] = 5;  // Crash! Memory already freed
+ptr[0] = 5;
 
-// Double-free - free same memory twice
 uint8_t *ptr = malloc(10);
 free(ptr);
-free(ptr);  // Crash!
+free(ptr);
 
 // Heap fragmentation
 // Allocate and free many different sizes
@@ -227,8 +177,7 @@ free(ptr);  // Crash!
             </code></pre>
 
             <h4>Safe Patterns</h4>
-            <pre><code>// Allocate once at startup
-uint8_t *uart_rx_buffer;
+            <pre><code>uint8_t *uart_rx_buffer;
 uint8_t *uart_tx_buffer;
 
 void init() {
@@ -239,7 +188,6 @@ void init() {
     }
 }
 
-// Use throughout program
 void main_loop() {
     while (1) {
         if (new_data_available()) {
@@ -249,13 +197,11 @@ void main_loop() {
     }
 }
 
-// Free only at shutdown (embedded: never)
 void cleanup() {
     free(uart_rx_buffer);
     free(uart_tx_buffer);
 }
 
-// Pre-allocate fixed pools
 #define NUM_PACKETS 10
 #define PACKET_SIZE 128
 
@@ -274,7 +220,7 @@ Packet *allocate_packet() {
             return &packet_pool[i];
         }
     }
-    return NULL;  // No free packets
+    return NULL;
 }
 
 void free_packet(Packet *pkt) {
@@ -288,17 +234,14 @@ void free_packet(Packet *pkt) {
             <h3>Static vs Automatic</h3>
             <p>When variables are created and destroyed.</p>
 
-            <pre><code>// Automatic - created on entry, destroyed on exit
-{
+            <pre><code>{
     uint8_t temp = 5;
-}  // temp destroyed here
+}
 
-// Static - created once, persists
 {
     static uint8_t temp = 5;
-}  // temp still exists after block ends
+}
 
-// Global static - created at program start
 static uint8_t global_counter = 0;
 
 void increment() {
@@ -306,21 +249,19 @@ void increment() {
     uart_print_int(global_counter);
 }
 
-increment();  // Prints 1
-increment();  // Prints 2
-increment();  // Prints 3
-// global_counter persists between calls
+increment();
+increment();
+increment();
 
-// Local static - useful for state in functions
 uint8_t get_unique_id() {
     static uint8_t id = 0;
     id++;
     return id;
 }
 
-get_unique_id();  // Returns 1
-get_unique_id();  // Returns 2
-get_unique_id();  // Returns 3
+get_unique_id();
+get_unique_id();
+get_unique_id();
             </code></pre>
         </section>
 
@@ -371,9 +312,8 @@ const uint8_t MAX_RETRIES = 5;
 
 // Const parameter - function won't modify
 void parse_command(const uint8_t *command, uint8_t length) {
-    // Compiler prevents: command[0] = 5;
     for (uint8_t i = 0; i < length; i++) {
-        process_byte(command[i]);  // Reading OK
+        process_byte(command[i]);
     }
 }
 
@@ -408,13 +348,11 @@ void function1() {
 // Function scope - exists only during function execution
 void function2() {
     uint8_t local_var = 10;
-    global_var++;  // Can access global
+    global_var++;
     
     if (condition) {
-        uint8_t block_var = 20;  // Created here
-    }  // block_var destroyed here - can't access below
-    
-    // block_var doesn't exist here
+        uint8_t block_var = 20;
+    }
 }
 
 // Static scope - persists between calls
@@ -550,7 +488,6 @@ void *tracked_malloc(uint16_t size) {
 }
 
 void tracked_free(void *ptr) {
-    // Ideally track size, but basic malloc doesn't...
     free(ptr);
 }
 
@@ -645,8 +582,6 @@ uint8_t stack_buffer[100];  // Fixed size, automatic cleanup
 
 void use_stack_buffer() {
     stack_buffer[0] = 42;
-    // When function returns, memory automatically freed
-    // Fast, safe, but fixed size
 }
 
 // For comparison (don't do this in actual Arduino):
@@ -662,7 +597,6 @@ void setup() {
     Serial.print(sizeof(stack_buffer));
     Serial.println(" bytes");
     
-    // Check memory info (Arduino-specific)
     Serial.print("Free memory: ");
     Serial.println(freeMemory());
 }
@@ -718,10 +652,10 @@ void setup() {
 }
 
 void loop() {
-    incrementGlobal();  // Prints: 1, then 2, then 3...
+    incrementGlobal();
     delay(500);
     
-    resetLocal();       // Prints: 1, then 1, then 1...
+    resetLocal();
     delay(500);
 }
 
@@ -766,18 +700,15 @@ void loop() {
 const uint8_t lookup[] PROGMEM = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
     10, 11, 12, 13, 14, 15
-    // ... normally would be all 256 values
 };
 
 uint8_t readFromFlash(uint8_t index) {
-    // pgm_read_byte reads from PROGMEM
     return pgm_read_byte(&lookup[index]);
 }
 
 void setup() {
     Serial.begin(9600);
     
-    // Show memory usage
     Serial.print("Free RAM: ");
     Serial.println(freeMemory());
 }

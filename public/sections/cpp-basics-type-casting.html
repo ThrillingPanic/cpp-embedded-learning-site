@@ -74,15 +74,10 @@ int8_t broken = sensor;  // Becomes 4 (truncation)
             <h3>Signed/Unsigned Mixing (Very Dangerous!)</h3>
             <p>Mixing signed and unsigned is a classic bug:</p>
             <pre><code>int8_t temp = -10;
-uint8_t positive = temp;  // Becomes 246 (bitwise reinterpret)!
-// -10 in 8-bit signed = 0xF6 = 246 unsigned
-// Not what you intended!
+uint8_t positive = temp;
 
-// Common mistake in sensor code:
 int16_t sensor_reading = -50;
-if (sensor_reading < 200) {  // This might NOT work as expected!
-    // In some contexts, signed/unsigned comparison is implementation-defined
-}</code></pre>
+if (sensor_reading < 200) {</code></pre>
 
             <div class="warning-box">
                 <strong>Embedded Rule:</strong> Never implicitly convert between signed and unsigned. Always cast explicitly so future readers understand your intent.
@@ -92,15 +87,13 @@ if (sensor_reading < 200) {  // This might NOT work as expected!
             <p>Traditional C-style casting with parentheses. Simple but dangerous because it forces any conversion:</p>
 
             <pre><code>uint16_t adc = 300;
-uint8_t small = (uint8_t)adc;  // Truncate to 44
-// You made the choice explicit
+uint8_t small = (uint8_t)adc;
 
 float voltage = 3.3;
-uint16_t digital = (uint16_t)voltage;  // Becomes 3 (truncates decimal)
+uint16_t digital = (uint16_t)voltage;
 
-// Dangerous: cast away const
 const uint32_t *hardware_reg = (const uint32_t *)0x40000000;
-uint32_t *mutable_ptr = (uint32_t *)hardware_reg;  // Removes const!</code></pre>
+uint32_t *mutable_ptr = (uint32_t *)hardware_reg;</code></pre>
 
             <p><strong>Problems with C-style casts:</strong></p>
             <ul>
@@ -149,14 +142,12 @@ void *buffer = reinterpret_cast<void*>(0x08000000);  // Flash memory address</co
 
             <h3>const_cast - Add/Remove const</h3>
             <p>Remove const from a pointer or reference (usually a bad idea, but sometimes necessary):</p>
-            <pre><code>// Interfacing with legacy C code that doesn't use const
-void old_c_function(uint32_t *data);  // Doesn't promise to preserve data
+            <pre><code>void old_c_function(uint32_t *data);
 const uint32_t hw_register = 0x12345678;
-old_c_function(const_cast<uint32_t*>(&hw_register));  // Sketchy but necessary
+old_c_function(const_cast<uint32_t*>(&hw_register));
 
-// More practical: reading a volatile hardware register into a const
 volatile uint32_t *sensor_port = reinterpret_cast<volatile uint32_t*>(0x40021000);
-const uint32_t snapshot = *sensor_port;  // Take const snapshot for processing</code></pre>
+const uint32_t snapshot = *sensor_port;</code></pre>
 
             <h3>dynamic_cast - Runtime Type Checking</h3>
             <p>Safely cast pointers/references in inheritance hierarchies. Returns nullptr on failure:</p>
@@ -240,9 +231,7 @@ SensorStatus status = static_cast<SensorStatus>(status_byte);
 // Safer approach: validate the conversion
 if (status_byte <= 0x03) {
     SensorStatus status = static_cast<SensorStatus>(status_byte);
-    // Handle known status
 } else {
-    // Unknown status—handle error
 }</code></pre>
 
             <h2 class="section-header">5. Casting Pitfalls & Solutions</h2>

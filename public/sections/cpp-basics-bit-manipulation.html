@@ -45,31 +45,25 @@
 
             <h3>AND (&) - Select Specific Bits</h3>
             <p>AND produces 1 only if BOTH bits are 1. Use it to "mask out" (zero) unwanted bits:</p>
-            <pre><code>uint8_t status = 0b11010110;  // Status register
-uint8_t mask = 0b00001111;    // We care about lower 4 bits only
-uint8_t lower_nibble = status & mask;  // Result: 0b00000110 = 6
+            <pre><code>uint8_t status = 0b11010110;
+uint8_t mask = 0b00001111;
+uint8_t lower_nibble = status & mask;
 
-// Practical: Check if bit 3 is set
 if (status & (1 << 3)) {
-    // Bit 3 is 1
 }
 
-// Extract lower 4 bits of a 16-bit value
 uint16_t sensor = 0x1A5C;
-uint8_t low_byte = sensor & 0xFF;  // Get lower 8 bits</code></pre>
+uint8_t low_byte = sensor & 0xFF;</code></pre>
 
             <h3>OR (|) - Set Specific Bits</h3>
             <p>OR produces 1 if EITHER bit is 1. Use it to "turn on" specific bits:</p>
-            <pre><code>uint8_t control = 0b00000000;  // Start with nothing
-control |= (1 << 0);           // Set bit 0: 0b00000001
-control |= (1 << 3);           // Set bit 3: 0b00001001
-// Now control = 0x09 with bits 0 and 3 set
+            <pre><code>uint8_t control = 0b00000000;
+control |= (1 << 0);
+control |= (1 << 3);
 
-// Enable multiple features at once
 uint32_t gpio_config = 0;
-gpio_config |= 0x0001;  // Enable output
-gpio_config |= 0x0010;  // Enable pull-up
-// Result: both features enabled</code></pre>
+gpio_config |= 0x0001;
+gpio_config |= 0x0010;</code></pre>
 
             <h3>XOR (^) - Toggle/Compare Bits</h3>
             <p>XOR produces 1 if bits DIFFER. Use it to toggle (flip) specific bits:</p>
@@ -85,66 +79,53 @@ while(1) {
 
             <h3>NOT (~) - Invert All Bits</h3>
             <p>NOT flips every bit (0→1, 1→0). Use carefully—understand widths!</p>
-            <pre><code>uint8_t mask = 0x0F;           // 0b00001111
-uint8_t inverted = ~mask;      // 0b11110000 (in 8 bits)
+            <pre><code>uint8_t mask = 0x0F;
+uint8_t inverted = ~mask;
 
-// More often: use with other operators
 uint8_t config = 0xFF;
-config &= ~(1 << 3);           // Clear bit 3 (turn off feature)</code></pre>
+config &= ~(1 << 3);</code></pre>
 
             <h3>Left Shift (<<) - Multiply by Powers of 2</h3>
             <p>Shift bits left N positions. Each shift multiplies by 2:</p>
             <pre><code>uint8_t value = 3;
-uint8_t shifted = value << 2;  // 3 * 2^2 = 3 * 4 = 12
-// 3 = 0b00000011, shifted left 2 = 0b00001100 = 12
+uint8_t shifted = value << 2;
 
-// Create bit masks
-uint32_t bit_5_mask = 1 << 5;  // 0x00000020 = 32
-uint32_t bit_15_mask = 1 << 15; // 0x00008000 = 32768
+uint32_t bit_5_mask = 1 << 5;
+uint32_t bit_15_mask = 1 << 15;
 
-// Pack bytes into a 32-bit word
-uint32_t packed = (uint8_t)0x12 << 24 |  // Most significant byte
+uint32_t packed = (uint8_t)0x12 << 24 |
                   (uint8_t)0x34 << 16 |
                   (uint8_t)0x56 << 8 |
-                  (uint8_t)0x78;        // Least significant byte
-// Result: 0x12345678</code></pre>
+                  (uint8_t)0x78;</code></pre>
 
             <h3>Right Shift (>>) - Divide by Powers of 2</h3>
             <p>Shift bits right N positions. For unsigned, fills with 0. For signed, depends on implementation (usually sign-extends):</p>
             <pre><code>uint16_t value = 1024;
-uint16_t divided = value >> 2;  // 1024 / 2^2 = 1024 / 4 = 256
+uint16_t divided = value >> 2;
 
-// Extract bytes from a packed 32-bit word
 uint32_t packed = 0x12345678;
-uint8_t byte0 = (packed >> 24) & 0xFF;  // 0x12
-uint8_t byte1 = (packed >> 16) & 0xFF;  // 0x34
-uint8_t byte2 = (packed >> 8) & 0xFF;   // 0x56
-uint8_t byte3 = packed & 0xFF;          // 0x78
+uint8_t byte0 = (packed >> 24) & 0xFF;
+uint8_t byte1 = (packed >> 16) & 0xFF;
+uint8_t byte2 = (packed >> 8) & 0xFF;
+uint8_t byte3 = packed & 0xFF;
 
-// Right shift with signed number (watch the sign bit!)
-int8_t negative = -4;  // 0b11111100 in two's complement
-int8_t shifted = negative >> 1;  // Result is -2 (sign extends)</code></pre>
+int8_t negative = -4;
+int8_t shifted = negative >> 1;</code></pre>
 
             <h2 class="section-header">2. Common Bit Manipulation Patterns</h2>
 
             <h3>Pattern 1: Check if Bit N is Set</h3>
-            <pre><code>// Generic macro for checking a bit
-#define BIT_IS_SET(value, bit) (((value) >> (bit)) & 1)
+            <pre><code>#define BIT_IS_SET(value, bit) (((value) >> (bit)) & 1)
 
 uint8_t status = 0b10110101;
-if (BIT_IS_SET(status, 2)) {  // Check bit 2
-    // Bit 2 is set (it is! 1)
+if (BIT_IS_SET(status, 2)) {
 }
 
-// Or without macro:
 if ((status & (1 << 2)) != 0) {
-    // Bit 2 is set
 }
 
-// For hardware registers (e.g., checking if interrupt fired)
 volatile uint32_t *interrupt_status = (volatile uint32_t*)0x40000008;
 if (*interrupt_status & (1 << 5)) {
-    // Interrupt 5 fired!
 }</code></pre>
 
             <h3>Pattern 2: Set Bit N</h3>
@@ -202,61 +183,43 @@ uint8_t control_reg = 0b10110101;
 uint8_t priority = EXTRACT_BITS(control_reg, 5, 3);  // Get priority (bits 5,6,7)</code></pre>
 
             <h3>Pattern 6: Set N-Bit Field</h3>
-            <pre><code>// Set bits 4-7 to value 0b1010
-uint8_t value = 0b00101101;           // Original
-value &= 0x0F;                        // Clear bits 4-7
-value |= (0x0A << 4);                 // Set bits 4-7 to 0x0A
-// Result: 0b10100101
+            <pre><code>uint8_t value = 0b00101101;
+value &= 0x0F;
+value |= (0x0A << 4);
 
-// Or in one line:
 value = (value & 0x0F) | (0x0A << 4);
 
-// Macro for setting a field
 #define SET_BITS(value, start, count, new_val) \
     ((value) = ((value) & ~(((1 << (count)) - 1) << (start))) | ((new_val) << (start)))
 
-// Set priority field (bits 5-7) to 3
 SET_BITS(control_reg, 5, 3, 3);</code></pre>
 
             <h3>Pattern 7: Check if Power of 2</h3>
-            <pre><code>// A number is power of 2 if it has only 1 bit set
-// n & (n-1) equals 0 only for powers of 2
-bool is_power_of_2(uint32_t n) {
+            <pre><code>bool is_power_of_2(uint32_t n) {
     return (n > 0) && ((n & (n - 1)) == 0);
-}
-
-// Examples:
-// 1 (0b0001): 1 & 0 = 0 ✓ power of 2
-// 2 (0b0010): 2 & 1 = 0 ✓ power of 2
-// 3 (0b0011): 3 & 2 = 2 ✗ not power of 2
-// 4 (0b0100): 4 & 3 = 0 ✓ power of 2
-// 5 (0b0101): 5 & 4 = 4 ✗ not power of 2</code></pre>
+}</code></pre>
 
             <h3>Pattern 8: Count Set Bits (Bit Population)</h3>
-            <pre><code>// Count how many bits are set to 1
-int count_set_bits(uint8_t value) {
+            <pre><code>int count_set_bits(uint8_t value) {
     int count = 0;
     while (value) {
-        count += value & 1;  // Check lowest bit
-        value >>= 1;         // Shift right to check next bit
+        count += value & 1;
+        value >>= 1;
     }
     return count;
 }
 
-// Faster: uses Brian Kernighan's algorithm
 int fast_count_bits(uint8_t value) {
     int count = 0;
     while (value) {
-        value &= (value - 1);  // Clear lowest set bit
+        value &= (value - 1);
         count++;
     }
     return count;
 }
 
-// GCC built-in (if available)
-int bit_count = __builtin_popcount(value);  // Returns number of 1 bits
+int bit_count = __builtin_popcount(value);
 
-// Example: count enabled interrupts
 uint32_t enabled_mask = 0x00001F03;
 int active_interrupts = __builtin_popcount(enabled_mask);  // Returns 6</code></pre>
 
@@ -298,51 +261,39 @@ if (ready && !busy) {
 }</code></pre>
 
             <h3>Pattern: Data Serialization</h3>
-            <pre><code>// Pack sensor readings into bytes for transmission
-struct SensorData {
-    uint16_t temp;      // 0-100°C (can fit in 7 bits: 0-127)
-    uint8_t humidity;   // 0-100% (can fit in 7 bits: 0-127)
-    bool alert;         // 1 bit
+            <pre><code>struct SensorData {
+    uint16_t temp;
+    uint8_t humidity;
+    bool alert;
 };
 
-// Encode into 2 bytes instead of 4 (saves bandwidth!)
 uint8_t encode_sensor_data(SensorData *data) {
     uint16_t packed = 0;
     
-    // Pack temperature in bits 0-6 (7 bits)
     packed |= (data->temp << 0);
     
-    // Pack humidity in bits 7-13 (7 bits)
     packed |= (data->humidity << 7);
     
-    // Pack alert in bit 14 (1 bit)
     packed |= ((data->alert ? 1 : 0) << 14);
     
-    return packed;  // 15 bits used, 1 spare
+    return packed;
 }
 
-// Decode back
 SensorData decode_sensor_data(uint16_t packed) {
     SensorData data;
-    data.temp = (packed >> 0) & 0x7F;     // Extract bits 0-6
-    data.humidity = (packed >> 7) & 0x7F;  // Extract bits 7-13
-    data.alert = (packed >> 14) & 0x01;    // Extract bit 14
+    data.temp = (packed >> 0) & 0x7F;
+    data.humidity = (packed >> 7) & 0x7F;
+    data.alert = (packed >> 14) & 0x01;
     return data;
 }</code></pre>
 
             <h2 class="section-header">Performance Optimization</h2>
             <p>Bitwise operations are <strong>incredibly fast</strong>—usually single CPU cycles. Compare:</p>
-            <pre><code>// Method 1: Conditional (slow, branch prediction miss = stall)
-if (status == 1) {
-    // Approximately 2-5 cycles (depending on pipeline)
+            <pre><code>if (status == 1) {
 }
 
-// Method 2: Bitwise (fast, no branching)
 if (status & 0x01) {
-    // 1 cycle (no branch)
-}
-
-// On deeply embedded systems, this matters!</code></pre>
+}</code></pre>
 
             <div class="success-box">
                 <strong>✅ Bit Mastery Levels:</strong>

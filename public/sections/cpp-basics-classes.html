@@ -46,7 +46,7 @@
             </ul>
             
             <p><strong>Instead of creating separate variables:</strong></p>
-            <pre style="color: #ff6b6b; background: #3d1f1f; padding: 10px; border-radius: 4px;">uint8_t car_color;       // Bad
+            <pre style="color: #ff6b6b; background: #3d1f1f; padding: 10px; border-radius: 4px;">uint8_t car_color;
 uint16_t car_speed;
 int16_t car_temp;
 void car_accelerate() { } // So confusing! Nothing grouped
@@ -73,22 +73,18 @@ struct Point {
     int16_t y;
 };
 
-// Create an instance
 Point p;
 p.x = 10;
 p.y = 20;
 
-// Initialize at creation
 Point origin = {0, 0};
 
-// Pointers to structs
 Point *ptr = &p;
-ptr->x = 5;  // Same as (*ptr).x = 5
+ptr->x = 5;
             </code></pre>
 
             <h4>Practical Examples</h4>
-            <pre><code>// Sensor data structure
-struct SensorReading {
+            <pre><code>struct SensorReading {
     uint16_t raw_value;
     int16_t temperature_celsius;
     uint8_t error_code;
@@ -101,7 +97,6 @@ reading.temperature_celsius = 25;
 reading.error_code = 0;
 reading.timestamp = get_ms();
 
-// RGB Color
 struct Color {
     uint8_t red;
     uint8_t green;
@@ -111,34 +106,30 @@ struct Color {
 Color white = {255, 255, 255};
 Color black = {0, 0, 0};
 
-// Motor control
 struct MotorState {
-    uint8_t speed;      // 0-255
-    uint8_t direction;  // 0=forward, 1=backward
-    uint8_t enabled;    // 0=off, 1=on
+    uint8_t speed;
+    uint8_t direction;
+    uint8_t enabled;
 };
             </code></pre>
         </section>
 
         <section>
             <h3>Struct Functions (Methods)</h3>
-            <p>Structs can contain functions that operate on their data.</p>
+            <p>Structs can contain functions that operate on their data. These are member functions, also called methods.</p>
 
-            <pre><code>// Distance calculation
-struct Point {
+            <pre><code>struct Point {
     int16_t x;
     int16_t y;
     
-    // Function inside struct
     uint32_t distance_from_origin() {
-        return (x*x) + (y*y);  // No sqrt for embedded!
+        return (x*x) + (y*y);
     }
 };
 
 Point p = {3, 4};
-uint32_t dist_squared = p.distance_from_origin();  // 25
+uint32_t dist_squared = p.distance_from_origin();
 
-// Motor struct with functions
 struct Motor {
     uint8_t pwm_pin;
     uint8_t direction_pin;
@@ -169,6 +160,7 @@ left_motor.forward();
             </code></pre>
 
             <h4>Using this Pointer</h4>
+            <p>Inside member functions, the <code>this</code> pointer refers to the current object instance. It's automatically available and lets you access the object's data explicitly.</p>
             <pre><code>struct CircularBuffer {
     uint8_t data[256];
     uint8_t write_index;
@@ -176,7 +168,6 @@ left_motor.forward();
     uint8_t count;
     
     void put(uint8_t value) {
-        // this->data is same as CircularBuffer instance
         if (this->count < 256) {
             this->data[this->write_index] = value;
             this->write_index = (this->write_index + 1) % 256;
@@ -211,16 +202,15 @@ uint8_t val = buffer.get();
 
             <pre><code>// Struct - members are public by default
 struct PublicStruct {
-    uint8_t value;  // Anyone can access
+    uint8_t value;
 };
 
 PublicStruct ps;
-ps.value = 5;  // OK
+ps.value = 5;
 
-// Class - members are private by default
 class PrivateClass {
 private:
-    uint8_t value;  // Only member functions can access
+    uint8_t value;
     
 public:
     void set_value(uint8_t v) {
@@ -233,8 +223,7 @@ public:
 };
 
 PrivateClass pc;
-// pc.value = 5;  // ERROR - private
-pc.set_value(5);  // OK - public method
+pc.set_value(5);
             </code></pre>
 
             <h4>When to Use Each</h4>
@@ -271,12 +260,10 @@ public:
             <h3>Constructors and Initialization</h3>
             <p>Constructors automatically initialize struct/class members.</p>
 
-            <pre><code>// Constructor - called when creating instance
-struct Timer {
+            <pre><code>struct Timer {
     uint32_t start_time;
     uint32_t duration;
     
-    // Constructor
     Timer(uint32_t duration_ms) {
         start_time = get_ms();
         duration = duration_ms;
@@ -287,12 +274,11 @@ struct Timer {
     }
 };
 
-Timer button_timer(500);  // 500ms timeout
+Timer button_timer(500);
 while (!button_timer.is_expired()) {
-    // Wait up to 500ms
+    // processing
 }
 
-// Multiple constructors
 struct Range {
     int16_t min;
     int16_t max;
@@ -308,8 +294,8 @@ struct Range {
     }
 };
 
-Range r1;           // min=0, max=100
-Range r2(-50, 50);  // min=-50, max=50
+Range r1;
+Range r2(-50, 50);
             </code></pre>
         </section>
 
@@ -317,8 +303,7 @@ Range r2(-50, 50);  // min=-50, max=50
             <h3>Device Driver Example</h3>
             <p>Practical patterns for hardware abstraction.</p>
 
-            <pre><code>// UART driver
-class UART {
+            <pre><code>class UART {
 private:
     uint32_t baud_rate;
     uint8_t tx_buffer[256];
@@ -350,7 +335,6 @@ public:
 UART serial(9600);
 serial.send_string("Hello World\n");
 
-// GPIO driver
 class GPIO {
 private:
     uint8_t pin;
@@ -536,10 +520,9 @@ struct System {
 // sizeof(Compact) = 3 bytes
 
 struct WithPadding {
-    uint8_t a;      // 1 byte
-    uint16_t b;     // 2 bytes, but aligns to 2-byte boundary!
-                    // 1 byte padding after 'a'
-    uint8_t c;      // 1 byte
+    uint8_t a;
+    uint16_t b;
+    uint8_t c;
 };
 // sizeof(WithPadding) = 6 bytes (not 4!)
 
@@ -598,13 +581,9 @@ void process(Data &data) {
 
 // WRONG - Expensive struct copy
 void process_sensor(SensorReading reading) {
-    // Entire struct copied - slow!
-}
 
 // RIGHT - Use pointer or const reference
 void process_sensor(const SensorReading *reading) {
-    // Only pointer copied
-}
             </code></pre>
         </section>
 
@@ -631,16 +610,13 @@ void process_sensor(const SensorReading *reading) {
                     <pre><code>struct LED {
     uint8_t pin;
     uint8_t brightness;
-    
-    // Constructor - runs when object is created
-    LED(uint8_t p, uint8_t b) {
         pin = p;
         brightness = b;
         pinMode(pin, OUTPUT);
     }
-    
-    // Methods that belong to this LED
-    void turnOn() {
+struct LED {
+public:
+    uint8_t pin;
         digitalWrite(pin, HIGH);
     }
     
@@ -696,9 +672,9 @@ void loop() {
                 <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
                     <pre><code>struct Motor {
     uint8_t pin;
-    uint8_t current_speed;    // 0-255
+    uint8_t current_speed;
     uint8_t max_speed;
-    uint8_t is_running;       // 0=off, 1=on
+    uint8_t is_running;
     
     Motor(uint8_t p, uint8_t max_s) {
         pin = p;
@@ -721,7 +697,7 @@ void loop() {
     
     void setSpeed(uint8_t speed) {
         if (speed > max_speed) {
-            speed = max_speed;  // Cap at maximum
+            speed = max_speed;
         }
         current_speed = speed;
         if (is_running) {
