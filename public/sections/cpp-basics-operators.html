@@ -97,37 +97,29 @@ uint8_t average = (5 + 6 + 7) / 3;  // 18 / 3 = 6 (correct by luck)
 uint8_t average = (5 + 5 + 5) / 3;  // 15 / 3 = 5 (correct)
 uint8_t average = (5 + 5 + 4) / 3;  // 14 / 3 = 4 (should be 4.67, truncated to 4)</code></pre>
 
-            <p><strong>How to fix precision loss:</strong> Multiply by a scaling factor before dividing:</p>
+            <p><strong>How to fix precision loss:</strong> Multiply by a scaling factor before dividing. By scaling up first (multiplying by 5000), we keep the decimal precision. Then dividing gives us the correct result. If you divide first, you lose the fractions immediately.</p>
 
-            <pre><code>// Convert sensor voltage with precision
-uint16_t adc_reading = 512;           // Raw 10-bit ADC (0-1023)
+            <pre><code>uint16_t adc_reading = 512;
 uint16_t voltage_mv = (adc_reading * 5000) / 1024;
-// (512 * 5000) / 1024 = 2,560,000 / 1024 = 2500 mV = 2.5V
-// Precision maintained
 
-// Without multiplying first, we'd lose precision
-uint8_t voltage_mv = adc_reading / 1024 * 5000;
-// (512 / 1024) * 5000 = 0 * 5000 = 0 (WRONG! Lost all data!)</code></pre>
+uint8_t voltage_wrong = adc_reading / 1024 * 5000;</code></pre>
+
+            <p>The first approach (scaling first) gives 2500 mV = 2.5V. The second approach (dividing first) gives 0 because 512/1024 = 0 in integer math, Then 0 * 5000 = 0. Always multiply before dividing to preserve precision.
 
             <h3>Order of Operations</h3>
-            <p>Just like in math class, C++ follows a specific order: Multiplication and Division happen before Addition and Subtraction. Use parentheses to make intent clear:</p>
+            <p>Just like in math class, C++ follows a specific order: Multiplication and Division happen before Addition and Subtraction. Without parentheses, 10 + 5 * 2 = 20 (multiply first, then add). But (10 + 5) * 2 = 30 (add first, then multiply). In embedded code, always use parentheses to make intent crystal clear:</p>
 
             <pre><code>uint8_t a = 10;
-uint8_t result1 = a + 5 * 2;    // 20 (5*2 happens first, then +10)
-uint8_t result2 = (a + 5) * 2;  // 30 (a+5 happens first, then *2)
+uint8_t result1 = a + 5 * 2;
+uint8_t result2 = (a + 5) * 2;
 
-// Always use parentheses in embedded code for clarity
-uint8_t scaled = (sensor_value * 100) / 255;  // Crystal clear intent</code></pre>
+uint8_t scaled = (sensor_value * 100) / 255;</code></pre>
 
             <h3>Real-World Example: Temperature Sensor</h3>
-            <pre><code>// LM35 temperature sensor: 10mV per degree Celsius
-uint16_t adc_value = analogRead(TEMP_SENSOR_PIN);  // 0-1023
-uint16_t voltage_mv = (adc_value * 5000) / 1024;  // Scale to 0-5000 mV
-uint8_t temperature_celsius = voltage_mv / 10;     // 10mV per degree
-
-// Example: adc_value = 200
-// voltage_mv = (200 * 5000) / 1024 = 976 mV
-// temperature = 976 / 10 = 97°C</code></pre>
+            <p>An LM35 temperature sensor outputs 10mV per degree Celsius. Raw ADC gives 0-1023. We scale it to millivolts (0-5000), then divide by 10 to get temperature. If adc_value = 200, we get 976 mV = 97.6°C.</p>
+            <pre><code>uint16_t adc_value = analogRead(TEMP_SENSOR_PIN);
+uint16_t voltage_mv = (adc_value * 5000) / 1024;
+uint8_t temperature_celsius = voltage_mv / 10;</code></pre>
         </section>
 
         <section style="border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px;">
@@ -138,12 +130,14 @@ uint8_t temperature_celsius = voltage_mv / 10;     // 10mV per degree
             <pre><code>uint8_t temperature = 25;
 uint8_t setpoint = 30;
 
-temperature > setpoint    // Greater than: 25 > 30? FALSE (0)
-temperature >= 25         // Greater than or equal: 25 >= 25? TRUE (1)
-temperature < setpoint    // Less than: 25 < 30? TRUE (1)
-temperature <= 30         // Less than or equal: 25 <= 30? TRUE (1)
-temperature == 25         // Equal: 25 == 25? TRUE (1)
-temperature != setpoint   // Not equal: 25 != 30? TRUE (1)</code></pre>
+temperature > setpoint
+temperature >= 25
+temperature < setpoint
+temperature <= 30
+temperature == 25
+temperature != setpoint</code></pre>
+
+            <p>Each comparison returns true (1) or false (0). The first three comparisons above return FALSE, FALSE, TRUE, TRUE, TRUE, and TRUE respectively.
 
             <p><strong>Critical distinction:</strong> Don't confuse == (comparison, asks a question: "are these equal?") with = (assignment, states a fact: "make this equal to that"):</p>
 
@@ -199,16 +193,15 @@ if (voltage < safe_min || voltage > safe_max) {
             <h3>Comparison Result Values</h3>
             <p>A comparison returns 1 (true) or 0 (false), which are integers. You can store and use these values:</p>
 
-            <pre><code>uint8_t is_hot = (temperature > 30);     // 1 if hot, 0 if not
-uint8_t is_critical = (pressure > 100);  // 1 if critical, 0 if not
+            <pre><code>uint8_t is_hot = (temperature > 30);
+uint8_t is_critical = (pressure > 100);
 
 if (is_hot && is_critical) {
     activateEmergencyShutdown();
 }
 
-// Direct usage in functions
 void alert(uint8_t condition) {
-    if (condition) {  // Checks if condition is 1 (true)
+    if (condition) {
         playBeep();
     }
 }</code></pre>
@@ -232,20 +225,16 @@ void alert(uint8_t condition) {
 uint8_t humidity = 45;
 uint8_t system_enabled = 1;
 
-// Heat only if: cold AND system is on AND there's power
 if (temperature < 22 && system_enabled && voltage > 10) {
     activateHeater();
-    // All three conditions must be true
 }
 
-// Practical: Motor start conditions
 uint8_t motor_on = 0;
 uint8_t button_pressed = 1;
-uint8_t overtemp = 0;  // 0 = not overtemped, 1 = overtemped
+uint8_t overtemp = 0;
 uint8_t brake_engaged = 0;
 
 if (button_pressed && !overtemp && !brake_engaged) {
-    // Start motor only if: button is pressed AND not overheating AND brake is off
     motor_on = 1;
 }</code></pre>
 
@@ -372,120 +361,92 @@ if ((!a) || (b && c)) {
             <p>Manipulate individual bits in a byte or word. Essential for controlling hardware registers and flags.</p>
 
             <h4>Understanding Binary</h4>
-            <pre><code>uint8_t value = 0b10110101;  // Binary representation
-//                ||||||||
-//                |||||||└─ Bit 0 (LSB - Least Significant Bit)
-//                ||||||└── Bit 1
-//                |||||└─── Bit 2
-//                ||||└──── Bit 3
-//                |||└───── Bit 4
-//                ||└────── Bit 5
-//                |└─────── Bit 6
-//                └──────── Bit 7 (MSB - Most Significant Bit)
-
-// Same value in hex
-uint8_t hex_value = 0xB5;
-            </code></pre>
+            <p>Each bit in a byte represents a power of 2. Bit 0 (rightmost) is the least significant bit (LSB), and bit 7 is the most significant bit (MSB). You can write binary values with the 0b prefix. The same value can also be represented in hexadecimal with the 0x prefix.</p>
+            <pre><code>uint8_t value = 0b10110101;
+uint8_t hex_value = 0xB5;</code></pre>
 
             <h4>Bitwise AND (&)</h4>
-            <p>Sets result bit to 1 only if both input bits are 1.</p>
+            <p>Sets result bit to 1 only if both input bits are 1. This is useful for checking if a specific bit is set, or for extracting certain bits from a value.</p>
             <pre><code>uint8_t a = 0b11110000;
 uint8_t b = 0b10101010;
-uint8_t c = a & b;  // 0b10100000
+uint8_t c = a & b;
 
-// Use case: Check if a specific bit is set
 uint8_t status = 0b00100000;
-if (status & 0b00100000) {  // Check bit 5
-    // Bit 5 is set!
+if (status & 0b00100000) {
+    // Bit 5 is set
 }
 
-// More readable with macros
 #define CHECK_BIT(value, bit) ((value) & (1 << (bit)))
 if (CHECK_BIT(status, 5)) {
     // Bit 5 is set
-}
-            </code></pre>
+}</code></pre>
 
             <h4>Bitwise OR (|)</h4>
-            <p>Sets result bit to 1 if either input bit is 1.</p>
+            <p>Sets result bit to 1 if either input bit is 1. This is useful for setting specific bits to 1 while leaving others unchanged.</p>
             <pre><code>uint8_t a = 0b11110000;
 uint8_t b = 0b00001111;
-uint8_t c = a | b;  // 0b11111111 (all 1s)
+uint8_t c = a | b;
 
-// Use case: Set specific bits to 1
 uint8_t port = 0b00000000;
-port |= 0b00000001;  // Set bit 0 to 1, keep others unchanged
-port |= (1 << 5);    // Set bit 5 to 1
+port |= 0b00000001;
+port |= (1 << 5);
 
-// Practical: Enable multiple GPIO features
 #define GPIO_OUTPUT 0x01
 #define GPIO_INPUT  0x02
 #define GPIO_INTERRUPT 0x04
 
 uint8_t gpio_config = 0;
-gpio_config |= GPIO_OUTPUT;    // Enable output
-gpio_config |= GPIO_INTERRUPT; // Enable interrupts (now 0x05)
-            </code></pre>
+gpio_config |= GPIO_OUTPUT;
+gpio_config |= GPIO_INTERRUPT;</code></pre>
 
             <h4>Bitwise XOR (^)</h4>
-            <p>Sets result bit to 1 only if input bits are different.</p>
+            <p>Sets result bit to 1 only if input bits are different. This is useful for toggling specific bits between 0 and 1.</p>
             <pre><code>uint8_t a = 0b11110000;
 uint8_t b = 0b10101010;
-uint8_t c = a ^ b;  // 0b01011010
+uint8_t c = a ^ b;
 
-// Use case: Toggle specific bits
 uint8_t led_status = 0b00000001;
-led_status ^= 0b00000001;  // Toggle bit 0
+led_status ^= 0b00000001;
 
-// Practical: Flash an LED
 #define LED_PIN_MASK 0x20
 void toggle_led() {
     static uint8_t port_value = 0;
-    port_value ^= LED_PIN_MASK;  // Toggle LED bit
+    port_value ^= LED_PIN_MASK;
     write_port(port_value);
-}
-            </code></pre>
+}</code></pre>
 
             <h4>Bitwise NOT (~)</h4>
-            <p>Flips all bits (0 becomes 1, 1 becomes 0).</p>
+            <p>Flips all bits (0 becomes 1, 1 becomes 0). This is useful for clearing specific bits by using it with AND.</p>
             <pre><code>uint8_t a = 0b11110000;
-uint8_t b = ~a;  // 0b00001111
+uint8_t b = ~a;
 
-// Use case: Clear specific bits
 uint8_t status = 0b11111111;
-status &= ~0b00000011;  // Clear bits 0 and 1
-// Result: 0b11111100
+status &= ~0b00000011;
 
-// Practical: Disable interrupt while configuring
 #define INTERRUPT_ENABLE 0x80
 uint8_t control = 0xFF;
-control &= ~INTERRUPT_ENABLE;  // Disable interrupts
-            </code></pre>
+control &= ~INTERRUPT_ENABLE;</code></pre>
 
             <h4>Bit Shift Operators (<< and >>)</h4>
-            <p>Move bits left or right.</p>
+            <p>Shift bits left or right. Left shift multiplies by powers of 2, right shift divides. This is useful for setting specific bits, extracting bits, or scaling values.</p>
             <pre><code>uint8_t value = 0b00000001;
-uint8_t left = value << 3;   // 0b00001000 (multiply by 8)
-uint8_t right = left >> 2;   // 0b00000010 (divide by 4)
+uint8_t left = value << 3;
+uint8_t right = left >> 2;
 
-// Use case: Set a specific bit
 uint8_t set_bit_n(uint8_t value, uint8_t bit) {
-    return value | (1 << bit);  // 1 << bit creates mask for that bit
+    return value | (1 << bit);
 }
 
-// Use case: Extract specific bits
-uint8_t port_bits = (port_value >> 4) & 0x0F;  // Get bits 4-7
+uint8_t port_bits = (port_value >> 4) & 0x0F;
 
-// Practical: PWM value scaling
-uint8_t brightness = 75;  // 0-100 scale
+uint8_t brightness = 75;
 uint8_t pwm_value = (brightness * 255) / 100;
 
-// Or using bit shift (if power of 2)
 uint16_t adc_12bit = 2048;
-uint8_t adc_8bit = adc_12bit >> 4;  // Divide by 16
-            </code></pre>
+uint8_t adc_8bit = adc_12bit >> 4;</code></pre>
 
             <h4>Complete Register Manipulation Example</h4>
+            <p>This example shows all the bitwise operators working together to manipulate a GPIO configuration register. We use OR to set features, AND with NOT to clear features, XOR to toggle features, and AND with a mask to check if a feature is enabled.</p>
             <pre><code>#define GPIO_OUTPUT_ENABLE  0x01
 #define GPIO_INPUT_ENABLE   0x02
 #define GPIO_INTERRUPT_EN   0x04
@@ -493,57 +454,44 @@ uint8_t adc_8bit = adc_12bit >> 4;  // Divide by 16
 
 uint8_t gpio_config = 0;
 
-// Set multiple features
-gpio_config |= GPIO_OUTPUT_ENABLE;   // Set bit (OR)
+gpio_config |= GPIO_OUTPUT_ENABLE;
 gpio_config |= GPIO_INTERRUPT_EN;
 
-// Check if feature is enabled
 if (gpio_config & GPIO_OUTPUT_ENABLE) {
     // Output is enabled
 }
 
-// Disable a feature
-gpio_config &= ~GPIO_PULLUP_EN;  // Clear bit (AND with NOT)
+gpio_config &= ~GPIO_PULLUP_EN;
 
-// Toggle a feature
-gpio_config ^= GPIO_INTERRUPT_EN;  // Flip bit (XOR)
+gpio_config ^= GPIO_INTERRUPT_EN;
 
-// Clear all features
 gpio_config = 0;
             </code></pre>
         </section>
 
         <section>
             <h3>Assignment Operators</h3>
-            <p>Shortcuts for modifying variables.</p>
-
+            <p>Compound assignment operators combine an arithmetic operation with assignment, making code more concise. They work with all basic operators: arithmetic, bitwise, and shifts.</p>
             <pre><code>uint8_t x = 10;
 
-x += 5;   // x = x + 5;    → 15
-x -= 3;   // x = x - 3;    → 12
-x *= 2;   // x = x * 2;    → 24
-x /= 4;   // x = x / 4;    → 6
-x %= 5;   // x = x % 5;    → 1
-x |= 0x80; // x = x | 0x80;
-x &= 0x0F; // x = x & 0x0F;
-x ^= 0x01; // x = x ^ 0x01;
-x <<= 2;  // x = x << 2;
-x >>= 1;  // x = x >> 1;
-            </code></pre>
+x += 5;
+x -= 3;
+x *= 2;
+x /= 4;
+x %= 5;
+x |= 0x80;
+x &= 0x0F;
+x ^= 0x01;
+x <<= 2;
+x >>= 1;</code></pre>
         </section>
 
         <section>
             <h3>Ternary Operator</h3>
-            <p>Compact if-else in expression form.</p>
-
+            <p>The ternary operator is a compact way to write simple if-else statements as expressions. The syntax is: <code>condition ? value_if_true : value_if_false</code>. It's most useful for simple decisions like setting a variable based on a single test.</p>
             <pre><code>uint8_t temperature = 28;
 uint8_t fan_speed = (temperature > 30) ? 255 : 100;
-// If temp > 30, fan_speed = 255, else fan_speed = 100
 
-// Nested ternary (avoid - hard to read)
-uint8_t status = (temp > 35) ? 3 : (temp > 25) ? 2 : 1;
-
-// Better as regular if-else
 uint8_t status;
 if (temp > 35) {
     status = 3;
@@ -551,8 +499,7 @@ if (temp > 35) {
     status = 2;
 } else {
     status = 1;
-}
-            </code></pre>
+}</code></pre>
         </section>
 
         <section>
@@ -594,15 +541,38 @@ if (status == 1) {
 }
 
 // WRONG - Bitwise instead of logical
-if (temp > 30 & humidity > 60) {  // Uses bitwise AND on booleans!
+if (temp > 30 & humidity > 60) {
+    // Bad: uses bitwise AND on booleans instead of logical
 }
 
 // RIGHT - Logical AND
 if (temp > 30 && humidity > 60) {
-    // Both conditions
+    // Both conditions must be true
 }
             </code></pre>
-        </section>
+
+            <div style="background: #1a2033; padding: 15px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 3px;">
+                <strong>🎯 Quick Try (2 min):</strong>
+                <p>Fix these operator mistakes:</p>
+                <pre><code>// 1. What's wrong here?
+if (led_on = 1) {
+    // Turn off LED
+}
+
+// 2. Which is more efficient, and why?
+if (sensor > 100 || expensive_sensor_check()) {
+    // Do something
+}
+vs
+if (expensive_sensor_check() || sensor > 100) {
+    // Do something
+}
+
+// 3. Convert this to bitwise operations:
+if (flags == 0) flags = 1;  // Set bit 0</code></pre>
+                <p><strong>Answers:</strong> (1) Assignment instead of comparison - should be ==. (2) First is better - short-circuit skips expensive check. (3) flags |= 1;</p>
+            </div>
+            </pre>
 
         <section>
             <h2>Summary</h2>

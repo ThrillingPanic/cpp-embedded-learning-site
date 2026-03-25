@@ -148,18 +148,22 @@ if (mystery > 100) {
             <div class="warning-box">
                 <strong>⚠️ Uninitialized Memory is Your Biggest Enemy</strong>
                 <p>Many embedded systems bugs come from uninitialized variables. Data that should be predictable suddenly isn't. Behaviors are random. It's nearly impossible to debug. Always initialize variables, every single time:</p>
-                <pre><code>// DON'T do this:
-uint8_t sensor_value;
-if (sensor_value > 100) {
-    // Unpredictable behavior!
-}
-
-// DO this instead:
-uint8_t sensor_value = 0;  // Known value
+                <pre><code>uint8_t sensor_value = 0;  // Known value
 if (sensor_value > 100) {
     // Predictable and safe
 }</code></pre>
                 <p><strong>Rule:</strong> Every variable declaration must include an initialization. No exceptions.</p>
+            </div>
+
+            <div style="background: #1a2033; padding: 15px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 3px;">
+                <strong>🎯 Quick Try (2 min):</strong>
+                <p>Declare variables for an embedded temperature monitoring system:</p>
+                <pre><code>// Current temperature in Celsius (-40 to +125°C)
+// LED brightness (0-255)
+// Number of active sensors (0-10)
+// System uptime in milliseconds</code></pre>
+                <p>For each data point, choose the right <strong>type</strong> and give it a good <strong>name</strong>. Initialize with a starting value (0 or a sensible default).</p>
+                <p><strong>What to notice:</strong> For each piece of data, ask: "What's the range?" Temperature needs signed (negative possible), but LED brightness is always positive. Milliseconds need more space than sensor count.</p>
             </div>
         </section>
 
@@ -307,6 +311,18 @@ uint8_t brightness = 255;      // For LED brightness, only positive needed
 int8_t temperature_offset = -5; // Temperature CAN be negative</code></pre>
 
             <p><strong>Rule of thumb:</strong> If you can't possibly have negative values (LED brightness, pin numbers, array lengths, sensor readings from 0-1023), use unsigned. Only use signed if negative values make sense for your application.</p>
+
+            <div style="background: #1a2033; padding: 15px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 3px;">
+                <strong>🎯 Quick Try (1 min):</strong>
+                <p>Match each data to the right type:</p>
+                <pre><code>Data to Store              Right Type?
+1. Motor speed (0-255)      ?
+2. Temperature (-40 to 125°C)  ?
+3. Device ID (0-65535)      ?
+4. Uptime milliseconds      ?
+5. Pin number (0-13)        ?</code></pre>
+                <p><strong>Answers:</strong> uint8_t, int8_t, uint16_t, uint32_t, uint8_t. Notice how choosing incorrectly wastes memory or limits range?</p>
+            </div>
         </section>
 
         <!-- SCOPE -->
@@ -380,7 +396,26 @@ void another_function() {
                 Local variables are automatically freed when the function returns. This saves memory! Always prefer local variables over globals. Your future self will thank you when debugging.
             </div>
 
-            <h3>Block Scope: The Most Restrictive</h3>
+            <div style="background: #1a2033; padding: 15px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 3px;">
+                <strong>🎯 Quick Try (2 min):</strong>
+                <p>Refactor this to use local variables instead of globals:</p>
+                <pre><code>// BEFORE (bad globals)
+uint8_t sensor1_value = 0;
+uint8_t sensor2_value = 0;
+uint8_t average_result = 0;
+
+void calculate_average() {
+    sensor1_value = analogRead(A0);
+    sensor2_value = analogRead(A1);
+    average_result = (sensor1_value + sensor2_value) / 2;
+}
+
+void print_result() {
+    Serial.println(average_result);
+}</code></pre>
+                <p><strong>What to notice:</strong> These globals persist forever. Rewrite using local variables and function parameters. Hint: calculate_average() should return the result, and print_result() should accept it as a parameter.</p>
+            </div>
+        </section>
             <p>You can create scopes even inside a function using curly braces <code>{ }</code>. Variables declared in a block exist only in that block. This is useful for temporary calculations:</p>
 
             <pre><code>void loop() {

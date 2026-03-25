@@ -121,77 +121,65 @@ void loop() {
             <p><strong>How it flows:</strong> First, check if condition is true. If yes, execute body. If no, skip to after the loop. Once the body completes, go back to the beginning and check condition again. Keep repeating until condition becomes false.</p>
 
             <h3>The Most Common while Loop: Counting</h3>
-            <p>The simplest while loop counts from 0 to 9, executing the body 10 times:</p>
+            <p>The simplest while loop counts from 0 to 9, executing the body 10 times. This demonstrates the critical requirement that the loop condition must eventually become false. Before the loop starts, you initialize a counter to 0. Inside the loop, you increment that counter. Each time the counter increases, the condition is re-evaluated. Once the counter reaches 10, the condition <code>count < 10</code> becomes false, and the loop exits.</p>
             <pre><code>uint8_t count = 0;
 
 while (count < 10) {
-    // This block executes when count is 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
     Serial.print(count);
     Serial.println(" ");
-    
-    count++;  // CRITICAL! Increment count each iteration
-    // If you forget this line, loop never exits (infinite loop)
+    count++;
 }
 
-// After count reaches 10, condition "count < 10" is false
-// Loop exits and program continues here
 Serial.println("Counting complete!");</code></pre>
 
             <h3>Waiting for Events (Polling)</h3>
-            <p><strong>A common embedded pattern:</strong> Wait for something to happen. This is called "polling"—constantly checking a condition until it changes.</p>
+            <p><strong>A common embedded pattern:</strong> Wait for something to happen. This is called "polling"—constantly checking a condition until it changes. The loop checks if a button is pressed. Once the condition becomes true (button_pressed is set to 1), the loop condition <code>!button_pressed</code> becomes false, and the loop exits.</p>
 
-            <pre><code>// Example: Wait for button press
-uint8_t button_pressed = 0;
+            <pre><code>uint8_t button_pressed = 0;
 
 while (!button_pressed) {
-    // Keep checking if button is pressed
     if (digitalRead(BUTTON_PIN) == HIGH) {
-        button_pressed = 1;  // Change condition to false
+        button_pressed = 1;
     }
-    delay(10);  // Don't check too fast (saves power, reduces noise)
+    delay(10);
 }
 
-// Button was pressed! Condition is now false, loop exits
 Serial.println("Button detected!");</code></pre>
 
-            <p><strong>Another example: Wait for sensor to stabilize</strong></p>
-            <pre><code>// Read many samples until sensor reading stops changing
-uint16_t last_reading = 0;
+            <p><strong>Another example: Wait for sensor to stabilize.</strong> When a sensor is first powered on or activated, its readings may fluctuate. This code reads repeatedly until the same value appears 5 times in a row, indicating the sensor has stabilized.</p>
+            <pre><code>uint16_t last_reading = 0;
 uint16_t current_reading;
 uint8_t stable_count = 0;
 
 while (stable_count < 5) {
-    // Keep reading until we get 5 identical readings in a row
     current_reading = analogRead(SENSOR_PIN);
     
     if (current_reading == last_reading) {
-        stable_count++;  // Same as last time
+        stable_count++;
     } else {
-        stable_count = 0;  // Different, reset counter
+        stable_count = 0;
     }
     
     last_reading = current_reading;
-    delay(50);  // Wait 50ms between readings
+    delay(50);
 }
 
-// Sensor has stabilized (same reading 5 times)
 Serial.print("Stable reading: ");
 Serial.println(current_reading);</code></pre>
 
             <h3>Reading Data Until Complete Message</h3>
-            <p><strong>Serial communication pattern:</strong> Read bytes one at a time until you receive all bytes of a message.</p>
+            <p><strong>Serial communication pattern:</strong> Read bytes one at a time until you receive all bytes of a message. The special value 255 serves as an end-of-message marker. When that byte arrives, we exit the loop immediately using the <code>break</code> statement.</p>
 
             <pre><code>uint8_t buffer[256];
 uint8_t bytes_received = 0;
-uint8_t END_MARKER = 255;  // Special byte indicating end of message
+uint8_t END_MARKER = 255;
 
-while (bytes_received < 256) {  // Also prevents buffer overflow
+while (bytes_received < 256) {
     if (serial_data_available()) {
         uint8_t byte_received = serial_read_byte();
         
         if (byte_received == END_MARKER) {
-            // End of message detected!
-            break;  // Exit loop immediately
+            break;
         }
         
         buffer[bytes_received] = byte_received;
@@ -199,34 +187,24 @@ while (bytes_received < 256) {  // Also prevents buffer overflow
     }
 }
 
-// Message complete
 Serial.print("Received ");
 Serial.print(bytes_received);
 Serial.println(" bytes");
 process_message(buffer, bytes_received);</code></pre>
 
             <h3>The Infinite Loop: Forever!!!!</h3>
-            <p><strong>The MOST COMMON while loop in embedded systems is the infinite loop.</strong> Your main program must run forever until power is cut. This is typically done with:</p>
+            <p><strong>The MOST COMMON while loop in embedded systems is the infinite loop.</strong> Your main program must run forever until power is cut. The condition <code>1</code> is always true, so the loop never exits naturally. This is the standard pattern for the main control loop of an embedded device.</p>
 
             <pre><code>while (1) {
-    // This code repeats FOREVER
-    // The condition "1" is always true (never false)
-    // The loop never exits naturally
-    
     read_all_sensors();
     process_all_data();
     update_all_outputs();
-    
-    // Then loops back to "read_all_sensors()" and does it all again
-    // And again... and again... forever
 }</code></pre>
 
-            <p><strong>More realistic embedded infinite loop:</strong></p>
+            <p><strong>More realistic embedded infinite loop:</strong> This version allows for controlled shutdown. A flag variable controls whether the loop continues, allowing the program to exit gracefully when needed.</p>
             <pre><code>uint8_t system_running = 1;
 
 while (system_running) {
-    // Main device loop
-    
     read_temperature_sensor();
     read_pressure_sensor();
     read_button_inputs();
@@ -234,15 +212,11 @@ while (system_running) {
     update_display();
     control_heater();
     
-    // Check if user requested shutdown
     if (power_button_pressed_long()) {
-        system_running = 0;  // Set to false, exit loop
+        system_running = 0;
     }
-    
-    // If system_running is still 1, loop continues
 }
 
-// Cleanup code - only runs after loop exits
 power_down_hardware();
 save_settings_to_eeprom();
 Serial.println("System shutdown complete");</code></pre>
@@ -253,27 +227,13 @@ Serial.println("System shutdown complete");</code></pre>
                 
                 <p>The absolute MOST COMMON bug with while loops is that you forget to change the condition inside the loop. If the condition never becomes false, the loop never exits, and your program hangs forever.</p>
 
-                <pre><code>// BROKEN CODE - infinite loop!
-uint8_t count = 0;
+                <pre><code>uint8_t count = 0;
 while (count < 10) {
     Serial.println("Hello!");
-    // OOPS - forgot to increment count
-    // count is still 0
-    // 0 < 10 is always true
-    // "Hello!" prints infinitely
-    // Program is stuck here forever
+    count++;
 }
 
-Serial.println("Done");  // THIS NEVER PRINTS!</code></pre>
-
-                <pre><code>// CORRECT CODE
-uint8_t count = 0;
-while (count < 10) {
-    Serial.println("Hello!");
-    count++;  // This makes the condition eventually false
-}
-
-Serial.println("Done");  // Now this prints</code></pre>
+Serial.println("Done");</code></pre>
 
                 <p><strong>How to prevent this:</strong> Before writing a while loop, ask yourself: "What must happen inside this loop to eventually make the condition false?" Then MAKE SURE that thing actually happens in your code. Common patterns:</p>
                 <ul>
@@ -287,17 +247,8 @@ Serial.println("Done");  // Now this prints</code></pre>
             <div class="warning-box">
                 <strong>⚠️ Logic Error: Testing the Wrong Condition</strong>
 
-                <pre><code>// BROKEN - condition is always true
-uint8_t data = 0;
-while (data = 1) {  // OOPS! = is assignment, not comparison
-    // This sets data to 1, not testing if it equals 1
-    // Since the assignment returns 1 (true), loop runs forever
-    Serial.println("Running!");
-}
-
-// CORRECT
-uint8_t data = 0;
-while (data == 1) {  // == is comparison
+                <pre><code>uint8_t data = 0;
+while (data == 1) {
     Serial.println("Running!");
 }</code></pre>
 
@@ -305,22 +256,20 @@ while (data == 1) {  // == is comparison
             </div>
 
             <h3>Exiting a while Loop Early With break</h3>
-            <p>Sometimes you want to exit a loop before the condition becomes false. Use the <code>break</code> statement:</p>
+            <p>Sometimes you want to exit a loop before the condition becomes false. Use the <code>break</code> statement to jump immediately out of the loop, skipping any remaining code in the loop body.</p>
 
-            <pre><code>// Search an array for a value
-uint16_t target_value = 42;
-uint8_t found_index = 255;  // 255 means "not found"
+            <pre><code>uint16_t target_value = 42;
+uint8_t found_index = 255;
 
 uint8_t i = 0;
 while (i < 100) {
     if (array[i] == target_value) {
         found_index = i;
-        break;  // Exit loop immediately, don't check rest
+        break;
     }
     i++;
 }
 
-// Loop exited either because i reached 100 or because break was hit
 if (found_index != 255) {
     Serial.print("Found at index: ");
     Serial.println(found_index);
@@ -333,30 +282,24 @@ if (found_index != 255) {
 
             <p><strong>Syntax:</strong></p>
             <pre><code>do {
-    // This code ALWAYS executes at least once
-} while (condition);  // Note: semicolon is required!
-
-// The condition is checked AFTER the body runs</code></pre>
+} while (condition);</code></pre>
 
             <p><strong>Comparison with while:</strong></p>
-            <pre><code>// while loop: check FIRST
-while (count < 10) {
+            <pre><code>while (count < 10) {
     Serial.println(count);
     count++;
 }
 
-// do-while loop: execute FIRST, check LATER
 uint8_t count = 0;
 do {
     Serial.println(count);
     count++;
-} while (count < 10);  // Semicolon required!</code></pre>
+} while (count < 10);</code></pre>
 
             <h3>Why This Matters: The Condition Starts False</h3>
             <p><strong>Example: while loop with false condition</strong></p>
             <pre><code>uint8_t count = 100;
 
-// This body never executes because condition is false immediately
 while (count < 10) {
     Serial.println("This never prints");
     count++;
@@ -367,11 +310,10 @@ Serial.println("Skipped the loop");</code></pre>
             <p><strong>Same code with do-while:</strong></p>
             <pre><code>uint8_t count = 100;
 
-// The body MUST execute at least once
 do {
     Serial.println("This prints once!");
     count++;
-} while (count < 10);  // Now condition is false, exit
+} while (count < 10);
 
 Serial.println("Loop completed");</code></pre>
 
@@ -387,14 +329,12 @@ do {
     
     if (user_value >= 1 && user_value <= 10) {
         Serial.println("Valid!");
-        valid_input = 1;  // Set condition to false
+        valid_input = 1;
     } else {
         Serial.println("Invalid! Try again.");
-        // Loop continues, asks again
     }
 } while (!valid_input);
 
-// Only reaches here with valid input
 process_value(user_value);</code></pre>
 
             <h3>Practical Use Case: Device Menu System</h3>
@@ -403,7 +343,6 @@ process_value(user_value);</code></pre>
 uint8_t user_wants_to_exit = 0;
 
 do {
-    // Display menu
     Serial.println("\n=== DEVICE MENU ===");
     Serial.println("1: Set Temperature");
     Serial.println("2: Set Timer");
@@ -413,7 +352,6 @@ do {
     
     menu_choice = read_from_serial();
     
-    // Process choice
     switch (menu_choice) {
         case 1:
             set_temperature();
@@ -425,15 +363,13 @@ do {
             view_status();
             break;
         case 0:
-            user_wants_to_exit = 1;  // Set condition to false
+            user_wants_to_exit = 1;
             Serial.println("Exiting menu...");
             break;
         default:
             Serial.println("Invalid choice!");
             break;
     }
-    
-    // Loop continues unless user chose 0
 } while (!user_wants_to_exit);
 
 Serial.println("Menu closed");</code></pre>
@@ -450,21 +386,19 @@ do {
     Serial.print(retry_count + 1);
     Serial.println("...");
     
-    success = send_data_packet(data);  // Returns 1 if success, 0 if failed
+    success = send_data_packet(data);
     
     if (!success) {
         retry_count++;
         if (retry_count < MAX_RETRIES) {
             Serial.println("Failed. Retrying...");
-            delay(100);  // Wait before retry
+            delay(100);
         } else {
             Serial.println("All retries exhausted.");
         }
     } else {
         Serial.println("Sent successfully!");
     }
-    
-    // Repeat if: not successful AND haven't exceeded max retries
 } while (!success && retry_count < MAX_RETRIES);
 
 if (success) {
@@ -486,69 +420,48 @@ if (success) {
             <p><strong>When to use for:</strong> Use a for loop when you know EXACTLY how many times the body should execute. It's designed specifically for counting. The for loop is more concise than an equivalent while loop and makes your intention crystal clear: "Execute this code a specific number of times."</p>
 
             <p><strong>Basic syntax comparison:</strong></p>
-            <pre><code>// With while loop (3 separate parts)
-uint8_t i = 0;                    // 1. Initialization
-while (i < 10) {                  // 2. Condition
+            <pre><code>uint8_t i = 0;
+while (i < 10) {
     Serial.println(i);
-    i++;                          // 3. Increment
+    i++;
 }
 
-// With for loop (all 3 parts in one line)
 for (uint8_t i = 0; i < 10; i++) {
     Serial.println(i);
 }</code></pre>
 
             <h3>Understanding the for Loop Structure</h3>
-            <p><strong>The for loop has three parts, all in the parentheses:</strong></p>
+            <p><strong>The for loop has three parts, all in the parentheses:</strong> initialization, condition check, and increment. The initialization runs once before the loop starts. The condition is checked before each iteration. The increment runs after each iteration.</p>
             <pre><code>for (initialization; condition; increment) {
-    // loop body
-}
+}</code></pre>
 
-// Part 1: initialization - runs once, before loop starts
-// Part 2: condition - checked before EACH iteration
-// Part 3: increment - runs after EACH iteration</code></pre>
-
-            <p><strong>How it flows:</strong></p>
+            <p><strong>How it flows:</strong> The initialization sets up the counter. Then the loop checks if the condition is true. If so, it executes the body. After the body completes, the increment runs, and then the condition is checked again. This repeats until the condition becomes false.</p>
             <pre><code>for (uint8_t i = 0; i < 3; i++) {
     Serial.println(i);
-}
-// Execution order:
-// 1. Execute: uint8_t i = 0
-// 2. Check: is 0 < 3? YES, enter body
-// 3. Print: 0
-// 4. Execute: i++ (i becomes 1)
-// 5. Check: is 1 < 3? YES, enter body
-// 6. Print: 1
-// 7. Execute: i++  (i becomes 2)
-// 8. Check: is 2 < 3? YES, enter body
-// 9. Print: 2
-// 10. Execute: i++ (i becomes 3)
-// 11. Check: is 3 < 3? NO, exit loop</code></pre>
+}</code></pre>
 
             <h3>Common for Loop Patterns</h3>
 
             <h4>Pattern 1: Counting Forward (0 to 9)</h4>
             <pre><code>for (uint8_t i = 0; i < 10; i++) {
-    Serial.println(i);  // Prints 0, 1, 2, ..., 9
+    Serial.println(i);
 }</code></pre>
 
             <h4>Pattern 2: Counting Forward Starting at 1 (1 to 10)</h4>
             <pre><code>for (uint8_t i = 1; i <= 10; i++) {
-    Serial.println(i);  // Prints 1, 2, 3, ..., 10
+    Serial.println(i);
 }</code></pre>
 
             <h4>Pattern 3: Counting Backward (10 down to 1)</h4>
             <pre><code>for (uint8_t i = 10; i > 0; i--) {
-    Serial.println(i);  // Prints 10, 9, 8, ..., 1
+    Serial.println(i);
 }</code></pre>
 
             <h4>Pattern 4: Counting by Steps (Every Other Number)</h4>
-            <pre><code>// Every even number: 0, 2, 4, 6, 8...
-for (uint8_t i = 0; i < 20; i += 2) {
+            <pre><code>for (uint8_t i = 0; i < 20; i += 2) {
     Serial.println(i);
 }
 
-// Every third number: 0, 3, 6, 9, 12...
 for (uint8_t i = 0; i < 20; i += 3) {
     Serial.println(i);
 }</code></pre>
@@ -558,7 +471,6 @@ for (uint8_t i = 0; i < 20; i += 3) {
 
             <pre><code>uint8_t sensor_readings[10] = {12, 45, 23, 67, 34, 89, 11, 50, 22, 99};
 
-// Task 1: Print all readings
 for (uint8_t i = 0; i < 10; i++) {
     Serial.print("Sensor ");
     Serial.print(i);
@@ -583,67 +495,50 @@ for (uint8_t i = 0; i < 10; i++) {
     }
 }
 Serial.print("Maximum: ");
-Serial.println(max_value);  // Prints 99</code></pre>
+Serial.println(max_value);</code></pre>
 
             <h4>Task 4: Find the Index of a Specific Value</h4>
             <pre><code>uint8_t target = 67;
-uint8_t found_index = 255;  // 255 means "not found"
+uint8_t found_index = 255;
 
 for (uint8_t i = 0; i < 10; i++) {
     if (sensor_readings[i] == target) {
         found_index = i;
-        break;  // Exit loop once found
+        break;
     }
 }
 
 if (found_index != 255) {
     Serial.print("Found at index: ");
-    Serial.println(found_index);  // Prints 3
+    Serial.println(found_index);
 } else {
     Serial.println("Not found");
 }</code></pre>
 
             <h3>The Infinite for Loop</h3>
-            <p><strong>You can leave any of the three parts empty to create special loops:</strong></p>
+            <p><strong>You can leave any of the three parts empty to create special loops:</strong> An infinite for loop has all three parts empty, creating a loop that runs forever unless exited with a <code>break</code> statement. This is equivalent to <code>while(1)</code>.</p>
 
-            <pre><code>// Infinite for loop (very common in embedded)
-for (;;) {
+            <pre><code>for (;;) {
     read_sensors();
     process_data();
-    // Only exits with break statement
-}
-
-// Equivalent to: while(1) { ... }
-// Both are commonly used in embedded main loops</code></pre>
+}</code></pre>
 
             <h3>For Loop With Complex Initialization and Increment</h3>
-            <p><strong>The increment part doesn't have to be i++. It can be any statement:</strong></p>
+            <p><strong>The increment part doesn't have to be i++. It can be any statement. You can even initialize and increment multiple variables in a single for loop.</strong></p>
 
-            <pre><code>// Initialize multiple variables
-for (uint8_t i = 0, j = 100; i < 10; i++, j--) {
+            <pre><code>for (uint8_t i = 0, j = 100; i < 10; i++, j--) {
     Serial.print(i);
     Serial.print(" ");
     Serial.println(j);
-}
-// Prints:
-// 0 100
-// 1 99
-// 2 98
-// etc.</code></pre>
+}</code></pre>
 
             <h3>Critical Mistakes with for Loops</h3>
             <div class="warning-box">
                 <strong>⚠️ Off-by-One Errors</strong>
                 <p><strong>Problem:</strong> Loop doesn't execute the correct number of times.</p>
 
-                <pre><code>// WRONG - only goes 0-8, misses index 9
-for (uint8_t i = 0; i < 10; i++) {  // But array has 10 elements (0-9)
-    // If accessing array[i], this is wrong
-}
-
-// CORRECT - covers all indices 0-9
-for (uint8_t i = 0; i < 10; i++) {
-    array[i] = value;  // Correctly accesses all 10 elements
+                <pre><code>for (uint8_t i = 0; i < 10; i++) {
+    array[i] = value;
 }</code></pre>
 
                 <p><strong>How to prevent:</strong> If looping through 10 items, the condition should be <code>i < 10</code> or <code>i <= 9</code>. Both work—just be consistent.</p>
@@ -653,17 +548,9 @@ for (uint8_t i = 0; i < 10; i++) {
                 <strong>⚠️ Modifying Loop Variable Inside Body</strong>
                 <p><strong>Problem:</strong> You change i inside the loop, overriding the increment at the bottom.</p>
 
-                <pre><code>// Confusing and error-prone!
-for (uint8_t i = 0; i < 10; i++) {
+                <pre><code>for (uint8_t i = 0; i < 10; i++) {
     if (array[i] == target) {
-        i = 20;  // Jump forward
-    }
-}
-
-// Better: use break instead
-for (uint8_t i = 0; i < 10; i++) {
-    if (array[i] == target) {
-        break;  // Exit loop cleanly
+        break;
     }
 }</code></pre>
             </div>
@@ -694,16 +581,14 @@ for (uint8_t i = 0; i < 10; i++) {
             <p><strong>Important concept:</strong> If outer loop runs N times and inner loop runs M times, the inner body executes N × M times total.</p>
 
             <h3>Practical Embedded Example: Processing 2D Arrays</h3>
-            <p><strong>Scenario:</strong> You have a sensor grid (like a thermal camera) that reads temperature at different positions.</p>
+            <p><strong>Scenario:</strong> You have a sensor grid (like a thermal camera) that reads temperature at different positions. Nested loops allow you to iterate through all rows and columns.</p>
 
-            <pre><code>// 3x4 temperature array: 3 rows, 4 columns
-uint16_t temperature_grid[3][4] = {
+            <pre><code>uint16_t temperature_grid[3][4] = {
     {200, 210, 215, 205},
     {220, 225, 230, 222},
     {215, 220, 225, 218}
 };
 
-// Process all temperature readings
 uint16_t total_temp = 0;
 for (uint8_t row = 0; row < 3; row++) {
     for (uint8_t col = 0; col < 4; col++) {
@@ -714,7 +599,6 @@ for (uint8_t row = 0; row < 3; row++) {
         Serial.print(col);
         Serial.print("): ");
         Serial.println(temp);
-        
         total_temp += temp;
     }
 }
@@ -724,20 +608,17 @@ Serial.print("Average temperature: ");
 Serial.println(average);</code></pre>
 
             <h3>Image Processing Example</h3>
-            <p><strong>Real embedded use case: Processing a camera image to detect bright spots</strong></p>
+            <p><strong>Real embedded use case: Processing a camera image to detect bright spots.</strong> This example iterates through every pixel in a 100x100 image and counts how many are brighter than a threshold.</p>
 
-            <pre><code>uint8_t image[100][100];  // 100x100 grayscale image from camera
+            <pre><code>uint8_t image[100][100];
 
-// Find all bright pixels (value > 200)
 uint16_t bright_pixel_count = 0;
 
 for (uint8_t y = 0; y < 100; y++) {
     for (uint8_t x = 0; x < 100; x++) {
         uint8_t pixel = image[y][x];
-        
         if (pixel > 200) {
             bright_pixel_count++;
-            // Maybe record position or draw marker
         }
     }
 }
@@ -747,23 +628,11 @@ Serial.print(bright_pixel_count);
 Serial.println(" bright pixels");</code></pre>
 
             <h3>Performance Consideration: Nested Loop Overhead</h3>
-            <p><strong>Nested loops can be slow!</strong> The inner loop executes many times. If you do expensive calculations inside nested loops, performance suffers.</p>
+            <p><strong>Nested loops can be slow!</strong> The inner loop executes many times. If you do expensive calculations inside nested loops, performance suffers. Move calculations outside the loop if possible.</p>
 
-            <pre><code>// SLOW - calculation runs 10,000 times
-for (uint8_t row = 0; row < 100; row++) {
+            <pre><code>for (uint8_t row = 0; row < 100; row++) {
     for (uint8_t col = 0; col < 100; col++) {
-        // This expensive calculation (converting units) runs 10,000 times
-        uint16_t converted = (temperature_grid[row][col] * 9 / 5) + 32;
-        process_temp(converted);
-    }
-}
-
-// FASTER - calculate conversion factor once
-uint16_t conversion_factor = 9;  // Pre-calculate if possible
-for (uint8_t row = 0; row < 100; row++) {
-    for (uint8_t col = 0; col < 100; col++) {
-        // Simpler calculation, runs 10,000 times but faster
-        uint16_t converted = temperature_grid[row][col] * conversion_factor;
+        uint16_t converted = temperature_grid[row][col] * 9 / 5 + 32;
         process_temp(converted);
     }
 }</code></pre>
@@ -771,18 +640,15 @@ for (uint8_t row = 0; row < 100; row++) {
             <h3>Triple Nested Loops (3D Data)</h3>
             <p><strong>Rarely needed but possible:</strong> Processing 3D data (like a cube of sensor values).</p>
 
-            <pre><code>// 3D cube: 5x5x5 = 125 values
-uint8_t sensor_cube[5][5][5];
+            <pre><code>uint8_t sensor_cube[5][5][5];
 
 for (uint8_t x = 0; x < 5; x++) {
     for (uint8_t y = 0; y < 5; y++) {
         for (uint8_t z = 0; z < 5; z++) {
             uint8_t value = sensor_cube[x][y][z];
-            // Process this value
         }
     }
-}
-// Inner body executes 5*5*5 = 125 times!</code></pre>
+}</code></pre>
 
             <div class="warning-box">
                 <strong>⚠️ Performance Warning: Avoid Deep Nesting</strong>
@@ -795,16 +661,15 @@ for (uint8_t x = 0; x < 5; x++) {
             <p><strong>Sometimes you need to control the loop in special ways:</strong> Exit early, or skip to the next iteration. C++ provides two statements for this.</p>
 
             <h3>break: Exit Loop Early</h3>
-            <p><strong>The break statement immediately exits the current loop.</strong> Execution jumps to the first statement after the loop. break is useful when you find what you're looking for and don't need to continue.</p>
+            <p><strong>The break statement immediately exits the current loop.</strong> Execution jumps to the first statement after the loop. This is useful when you find what you're looking for and don't need to continue searching.</p>
 
-            <pre><code>// Example: Search for a target value
-uint8_t target = 67;
+            <pre><code>uint8_t target = 67;
 uint8_t found_index = 255;
 
 for (uint8_t i = 0; i < 100; i++) {
     if (array[i] == target) {
         found_index = i;
-        break;  // Exit loop immediately, don't check remaining 99 elements
+        break;
     }
 }
 
@@ -820,13 +685,13 @@ while (1) {
     if (serial_data_available()) {
         byte_received = serial_read();
         process_byte(byte_received);
-        timeout_count = 0;  // Reset timeout
+        timeout_count = 0;
     }
     
     timeout_count++;
     if (timeout_count > MAX_TIMEOUT) {
         Serial.println("Communication timeout!");
-        break;  // Exit the loop
+        break;
     }
 }</code></pre>
 
@@ -837,9 +702,9 @@ uint8_t bytes_received = 0;
 for (uint8_t i = 0; i < 256; i++) {
     uint8_t byte = serial_read();
     
-    if (byte == 0xFF) {  // End marker
+    if (byte == 0xFF) {
         bytes_received = i;
-        break;  // Exit loop, we have the complete message
+        break;
     }
     
     buffer[i] = byte;
@@ -848,77 +713,69 @@ for (uint8_t i = 0; i < 256; i++) {
 process_message(buffer, bytes_received);</code></pre>
 
             <h3>break in Nested Loops</h3>
-            <p><strong>Important:</strong> break only exits the IMMEDIATE loop, not all loops.</p>
+            <p><strong>Important:</strong> break only exits the IMMEDIATE loop, not all loops. If you need to exit from nested loops, use a flag variable.</p>
 
             <pre><code>for (uint8_t row = 0; row < 10; row++) {
     for (uint8_t col = 0; col < 10; col++) {
         if (array[row][col] == target) {
             Serial.println("Found!");
-            break;  // Exits inner loop only
+            break;
         }
     }
-    // Outer loop continues here
 }
 
-// If you need to exit both loops, use a flag:
 uint8_t found = 0;
 for (uint8_t row = 0; row < 10; row++) {
     for (uint8_t col = 0; col < 10; col++) {
         if (array[row][col] == target) {
             found = 1;
-            break;  // Exit inner loop
+            break;
         }
     }
-    if (found) break;  // Exit outer loop too
+    if (found) break;
 }</code></pre>
 
             <h3>continue: Skip to Next Iteration</h3>
-            <p><strong>The continue statement skips the rest of the current iteration and jumps to the next one.</strong> Useful for skipping invalid data or unwanted conditions.</p>
+            <p><strong>The continue statement skips the rest of the current iteration and jumps to the next one.</strong> Useful for skipping invalid data or unwanted conditions. When continue is executed, the loop condition is checked immediately and the next iteration begins.</p>
 
-            <pre><code>// Example: Process only valid sensor readings (skip readings < 10)
-for (uint8_t i = 0; i < 100; i++) {
+            <pre><code>for (uint8_t i = 0; i < 100; i++) {
     uint16_t reading = sensor_array[i];
     
     if (reading < 10) {
-        continue;  // Skip this invalid reading, move to next i
+        continue;
     }
     
-    // This code only runs for valid readings (>= 10)
     process_reading(reading);
     Serial.println(reading);
 }</code></pre>
 
-            <p><strong>Another example: Skip certain hours for processing</strong></p>
-            <pre><code>// Process temperature data for all hours except nighttime (0-5)
-for (uint8_t hour = 0; hour < 24; hour++) {
+            <p><strong>Another example: Skip certain hours for processing.</strong> When working with time-based data, you might want to skip certain time ranges.</p>
+            <pre><code>for (uint8_t hour = 0; hour < 24; hour++) {
     if (hour >= 0 && hour < 6) {
-        continue;  // Skip nighttime hours
+        continue;
     }
     
-    // Process daytime hours only (6-23)
     uint8_t temp = get_temperature_for_hour(hour);
     Serial.println(temp);
 }</code></pre>
 
             <h3>Pattern: Skipping Invalid Data</h3>
-            <p><strong>Very common in embedded: filter out bad sensor readings</strong></p>
+            <p><strong>Very common in embedded: filter out bad sensor readings.</strong> Skip values that indicate errors or are out of range.</p>
 
-            <pre><code>// Read 10 sensor values, skip any that are exactly 0 (error code)
-uint16_t valid_values[10];
+            <pre><code>uint16_t valid_values[10];
 uint8_t valid_count = 0;
 
 for (uint8_t i = 0; i < total_readings; i++) {
     uint16_t value = get_sensor_reading(i);
     
     if (value == 0) {
-        continue;  // Skip this bad reading
+        continue;
     }
     
     if (value > 4000) {
-        continue;  // Skip values that are too high
+        continue;
     }
     
-    // Only good readings reach here
     valid_values[valid_count] = value;
     valid_count++;
 }
@@ -928,21 +785,18 @@ Serial.print(valid_count);
 Serial.println(" valid readings");</code></pre>
 
             <h3>Difference Between break and continue</h3>
-            <pre><code>// Example data
-uint8_t values[] = {5, 0, 15, 0, 25, 0, 35};
+            <pre><code>uint8_t values[] = {5, 0, 15, 0, 25, 0, 35};
 
-// Using continue (skip zeros)
 Serial.println("Using continue:");
 for (uint8_t i = 0; i < 7; i++) {
     if (values[i] == 0) continue;
-    Serial.println(values[i]);  // Prints: 5, 15, 25, 35
+    Serial.println(values[i]);
 }
 
-// Using break (stop at first zero)
 Serial.println("Using break:");
 for (uint8_t i = 0; i < 7; i++) {
     if (values[i] == 0) break;
-    Serial.println(values[i]);  // Prints: 5 (then stops)
+    Serial.println(values[i]);
 }</code></pre>
 
             <div class="concept-box">
@@ -990,12 +844,12 @@ void power_button_interrupt() {
             </code></pre>
 
             <h4>Why not infinite loops with RTOS?</h4>
-            <pre><code>// With RTOS, tasks should return (not infinite loop)
-void sensor_task(void *param) {
+            <p>When using a Real-Time Operating System (RTOS), each task should not have its own infinite loop. Instead, tasks should be designed to return, allowing the scheduler to run other tasks. The scheduler itself contains the infinite loop.</p>
+            <pre><code>void sensor_task(void *param) {
     while (!shutdown_requested) {
         read_sensor();
         process_data();
-        task_delay(100);  // Give other tasks time
+        task_delay(100);
     }
 }
 
@@ -1011,43 +865,28 @@ void communication_task(void *param) {
 void main() {
     create_task(sensor_task);
     create_task(communication_task);
-    start_scheduler();  // Never returns
-}
-            </code></pre>
+    start_scheduler();
+}</code></pre>
         </section>
 
         <section>
             <h3>Loop Optimization Techniques</h3>
-            <p>In resource-constrained embedded systems, loop efficiency matters.</p>
+            <p>In resource-constrained embedded systems, loop efficiency matters. Avoid expensive calculations in loop conditions and keep loop bodies as simple as possible. Countdown loops (comparing to 0) are sometimes faster than counting upward, and pre-calculating values outside loops avoids repeated work.</p>
 
-            <pre><code>// Slow: Calculate array length every iteration
-uint8_t my_array[100];
-uint8_t length = get_array_length();
-for (uint8_t i = 0; i < length; i++) {
-    process(my_array[i]);
-}
-
-// Better: Usually array length is known
+            <pre><code>uint8_t my_array[100];
 for (uint8_t i = 0; i < 100; i++) {
     process(my_array[i]);
 }
 
-// Avoid expensive operations in loop condition
 for (uint16_t i = 0; i < strlen(buffer); i++) {
-    // strlen() called EVERY iteration - slow!
 }
 
-// Better: Calculate once
 uint16_t len = strlen(buffer);
 for (uint16_t i = 0; i < len; i++) {
-    // Much faster
 }
 
-// Countdown loops are often faster
 for (uint8_t i = 100; i > 0; i--) {
-    // Comparing to 0 is faster than comparing to 100
-}
-            </code></pre>
+}</code></pre>
         </section>
 
         <section>
@@ -1060,32 +899,22 @@ for (uint8_t i = 100; i > 0; i--) {
                 <li><strong>Unintended loop scope:</strong> Variable declared inside loops</li>
             </ul>
 
-            <pre><code>// WRONG - Off-by-one
-uint8_t array[10];
-for (uint8_t i = 0; i <= 10; i++) {  // i goes 0-10, but array is 0-9!
-    array[i] = i;  // Writes past array boundary!
-}
-
-// RIGHT
+            <pre><code>uint8_t array[10];
 for (uint8_t i = 0; i < 10; i++) {
     array[i] = i;
 }
 
-// WRONG - Modifying loop variable
 for (uint8_t i = 0; i < 10; i++) {
     if (i == 5) {
-        i = 0;  // Resets counter - infinite loop!
+        i = 0;
     }
 }
 
-// WRONG - break only affects innermost loop
 for (uint8_t i = 0; i < 10; i++) {
     for (uint8_t j = 0; j < 10; j++) {
-        if (error) break;  // Breaks inner loop only
+        if (error) break;
     }
-    // Outer loop continues
-}
-            </code></pre>
+}</code></pre>
         </section>
 
         <section>
@@ -1135,18 +964,12 @@ for (uint8_t i = 0; i < 10; i++) {
 
 uint8_t blink_count = 5;
 
-// Blink 5 times
 for (uint8_t i = 0; i < blink_count; i++) {
-    digitalWrite(LED_PIN, HIGH);    // Turn on
-    delay(500);                     // Wait half second
-    digitalWrite(LED_PIN, LOW);     // Turn off
-    delay(500);                     // Wait half second
-}
-// After loop completes, LED has blinked 5 times
-
-// Each iteration: i goes 0, 1, 2, 3, 4
-// When i reaches 5, the condition i < 5 is false, loop stops</code></pre>
-                    
+    digitalWrite(LED_PIN, HIGH);
+    delay(500);
+    digitalWrite(LED_PIN, LOW);
+    delay(500);
+}</code></pre>
                     <p><strong>Why this works:</strong> Without a loop, you'd write the same code 5 times! Loops handle repetition automatically. The variable i counts up, and the loop checks if i is still less than blink_count.</p>
                 </div>
             </div>
@@ -1233,7 +1056,6 @@ for (uint8_t i = 0; i < 10; i++) {
 
 // After loop: valid_count has the number of non-zero readings
 // Readings of 0 were skipped (not counted in valid_count)</code></pre>
-                    
                     <p><strong>Why this works:</strong> Continue skips the rest of the current iteration and jumps to the next one. It's perfect for filtering out bad data—instead of nesting everything deeply, you reject bad data early and keep going.</p>
                 </div>
             </div>

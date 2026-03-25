@@ -314,6 +314,21 @@ switch (command) {
         uart_send("Unknown command\n");
 }
             </code></pre>
+
+            <div style="background: #1a2033; padding: 15px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 3px;">
+                <strong>🎯 Quick Try (2 min):</strong>
+                <p>What would happen if you forgot `break;` after the 'S' case?</p>
+                <pre><code>switch (command) {
+    case 'S':
+        start_measurement();  // No break here!
+        uart_send("Started\n");
+    case 'P':
+        pause_measurement();  // This would also run!
+        uart_send("Paused\n");
+        break;
+}</code></pre>
+                <p><strong>Answer:</strong> Fall-through! 'S' would execute start, then pause, then exit. Both happen for one 'S' command. Always include break unless you intentionally want fall-through.</p>
+            </div>
         </section>
 
         <section>
