@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embedded Systems</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Embedded Systems</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <section>
+            <h2>Embedded Systems Fundamentals</h2>
+            <p>This comprehensive section covers the essential concepts of embedded systems architecture, including microcontroller architectures, memory organization, interrupt handling, and real-time considerations. Understanding these fundamentals is crucial for writing efficient and reliable embedded code.</p>
+            <p><strong>Learning Path:</strong> Start with Microcontroller Architecture to understand the hardware foundation, then progress through memory management, interrupts, and real-time design patterns.</p>
+        </section>
+
+        <section>
+            <h2>Core Topics</h2>
+            <p>Select a topic to dive deep into embedded systems concepts:</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">1. Microcontroller Architecture</h3>
+                    <p>Explore ARM Cortex-M processors, AVR, PIC architectures. Learn CPU organization, instruction sets, and how microcontrollers execute programs with minimal overhead.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>ARM Cortex-M cores (M0, M3, M4, M7)</li>
+                            <li>CPU pipeline and instruction execution</li>
+                            <li>Clock domains and frequency scaling</li>
+                            <li>Processor modes (Thread, Handler)</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">2. Memory Organization</h3>
+                    <p>Understand memory maps, address spaces, and memory types. Learn how Flash, RAM, and special memory regions are organized and accessed.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Memory hierarchy (Flash, SRAM, EEPROM)</li>
+                            <li>Memory maps and address layout</li>
+                            <li>Stack and heap placement</li>
+                            <li>Harvard vs Von Neumann architectures</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">3. Interrupt Handling</h3>
+                    <p>Master interrupt request (IRQ) handling, exception types, and ISR design. Learn priority-based interrupt management and context switching.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Exception types and vector tables</li>
+                            <li>ISR (Interrupt Service Routine) design</li>
+                            <li>Interrupt priority and nesting</li>
+                            <li>Context switching and register preservation</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">4. Register Access & HAL</h3>
+                    <p>Learn direct hardware register manipulation and best practices for creating Hardware Abstraction Layers (HALs). Safe access patterns and bit manipulation.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Volatile keyword and memory barriers</li>
+                            <li>Register read/write patterns</li>
+                            <li>HAL design patterns</li>
+                            <li>Hardware abstraction vs performance</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">5. Clock & Power Management</h3>
+                    <p>Manage clock sources, prescalers, and frequency scaling. Understand power domains, sleep modes, and energy-efficient design patterns.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Clock sources (HSI, HSE, PLL)</li>
+                            <li>Clock tree and prescalers</li>
+                            <li>Sleep modes (Sleep, Stop, Standby)</li>
+                            <li>Power domain management</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">6. Debugging & Development Tools</h3>
+                    <p>Use JTAG/SWD debuggers, examine memory, set breakpoints, and profile code. Hardware debugging techniques and analysis tools.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>JTAG and SWD protocols</li>
+                            <li>GDB and debugging techniques</li>
+                            <li>Memory inspection and watchpoints</li>
+                            <li>Performance profiling</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">7. Bootloaders & Firmware</h3>
+                    <p>Design bootloaders, manage firmware updates, and understand the boot process. Learn firmware security and update strategies.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Boot process and reset handling</li>
+                            <li>Bootloader design patterns</li>
+                            <li>Firmware update mechanisms</li>
+                            <li>Image integrity and security</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">8. Real-Time Design</h3>
+                    <p>Design deterministic systems with predictable timing, latency analysis, and timing guarantees. Handle real-time constraints in bare-metal development.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Deterministic timing analysis</li>
+                            <li>Interrupt latency measurement</li>
+                            <li>Resource scheduling</li>
+                            <li>Real-time constraints enforcement</li>
+                        </ul>
+                    </details>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #2d343f 0%, #1a2332 100%); padding: 20px; border-left: 4px solid #ff6b6b; border-radius: 4px;">
+                    <h3 style="margin-top: 0; color: #ff6b6b;">9. Hardware-to-Software Bridge</h3>
+                    <p>Understand the interaction between C++ code and hardware. Learn linker scripts, initialization, and how software interfaces with hardware resources.</p>
+                    <details style="margin-top: 10px; cursor: pointer;">
+                        <summary style="color: #00d4ff; font-weight: bold;">Key Topics →</summary>
+                        <ul style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                            <li>Linker scripts and memory layout</li>
+                            <li>Startup code and initialization</li>
+                            <li>Section placement strategies</li>
+                            <li>Hardware-software verification</li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Recommended Learning Progression</h2>
+            <ol>
+                <li><strong>Microcontroller Architecture:</strong> First, understand the hardware you're programming</li>
+                <li><strong>Memory Organization:</strong> Grasp how memory is laid out and accessed</li>
+                <li><strong>Interrupt Handling:</strong> Learn how to respond to hardware events</li>
+                <li><strong>Register Access & HAL:</strong> Develop clean interfaces to hardware</li>
+                <li><strong>Clock & Power Management:</strong> Optimize performance and power consumption</li>
+                <li><strong>Debugging & Development Tools:</strong> Learn to analyze and troubleshoot issues</li>
+                <li><strong>Bootloaders & Firmware:</strong> Understand the complete system lifecycle</li>
+                <li><strong>Real-Time Design:</strong> Design systems with deterministic timing</li>
+                <li><strong>Hardware-to-Software Bridge:</strong> Master the connection between layers</li>
+            </ol>
+        </section>
+
+        <section>
+            <h2>Practical Applications</h2>
+            <p>The knowledge from this section is immediately applicable to:</p>
+            <ul>
+                <li><strong>Microcontroller Development:</strong> STM32, Nordic nRF, TI CC series, etc.</li>
+                <li><strong>IoT Devices:</strong> Sensors, actuators, and communication nodes</li>
+                <li><strong>Robotics:</strong> Motor control, sensor fusion, real-time control</li>
+                <li><strong>Automotive Systems:</strong> ECU development with safety-critical requirements</li>
+                <li><strong>Industrial Control:</strong> Factory automation and process control</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Exercises</h2>
+            <p>Reinforce your understanding with practical exercises:</p>
+            <ul>
+                <li><a href="../exercise.html?file=exercises/embedded-systems/exercise-1.md">Exercise 1: Understanding Microcontroller Memory Maps</a> - Analyze memory organization on real devices</li>
+                <li><a href="../exercise.html?file=exercises/embedded-systems/exercise-2.md">Exercise 2: Writing an Interrupt Service Routine</a> - Implement real-time event handling</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 C++ Embedded Learning Site</p>
+    </footer>
+</body>
+</html>

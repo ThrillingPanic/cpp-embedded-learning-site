@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operators - C++ Basics</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Operators</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="lesson-nav">
+            <h2>What You'll Learn</h2>
+            <div style="background: #1a2332; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #00d4ff;">
+                <ul style="margin: 8px 0;">
+                    <li>What operators are and why code needs them</li>
+                    <li>Arithmetic operators for math-based calculations</li>
+                    <li>Comparison operators for making decisions</li>
+                    <li>Logical operators for combining conditions</li>
+                    <li>Bitwise operators—the secret weapon of embedded systems</li>
+                    <li>How to control hardware registers with individual bit manipulation</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>Understanding Operators: The Tools of Programming</h2>
+            <p><strong>What is an operator?</strong> An operator is a symbol that performs an action on data. Think of it like the buttons on a calculator. Each button does something specific: the + button adds, the × button multiplies. Programming operators work exactly the same way.</p>
+            
+            <p>Operators are how your program transforms and compares data. Without operators, you'd have data but couldn't do anything with it. You couldn't add sensor values, compare temperature readings, or control individual hardware pins.</p>
+            
+            <p><strong>Why do we need so many operators?</strong> Different tasks require different tools. In embedded systems, you need operators for:</p>
+            <ul>
+                <li><strong>Mathematical operations:</strong> Converting sensor readings, calculating scaled values, measuring time differences</li>
+                <li><strong>Decision making:</strong> Checking if temperature exceeds a limit, if a sensor has been triggered, if a safety condition is violated</li>
+                <li><strong>Hardware control:</strong> Setting individual switches on a microcontroller, turning specific LED pins on or off, configuring hardware registers</li>
+            </ul>
+            
+            <p><strong>The most powerful skill:</strong> Bitwise operators let you manipulate individual bits, which means you can control individual hardware switches. This is how embedded systems actually talk to the outside world—not by changing entire bytes, but by flipping single bits in hardware registers. Mastering bitwise operations is the difference between a novice and a professional embedded developer.</p>
+            
+            <a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Hub</a>
+        </section>
+
+        <section style="border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px;">
+            <h2>Arithmetic Operators: Basic Math</h2>
+            <p>Arithmetic operators do exactly what you learned in school. They perform mathematical operations on numbers. Understanding when and how to use them efficiently is crucial in embedded systems where mathematical precision can mean the difference between safety and failure.</p>
+
+            <p><strong>The five basic operators:</strong></p>
+            <ul>
+                <li><strong>+ (addition):</strong> Adds two numbers together: 5 + 3 = 8</li>
+                <li><strong>- (subtraction):</strong> Subtracts one number from another: 5 - 3 = 2</li>
+                <li><strong>* (multiplication):</strong> Multiplies two numbers: 5 * 3 = 15</li>
+                <li><strong>/ (division):</strong> Divides one number by another: 15 / 3 = 5</li>
+                <li><strong>% (modulo/remainder):</strong> Gives the remainder after division: 15 % 4 = 3 (because 15÷4 leaves remainder 3)</li>
+            </ul>
+
+            <h3>Increment and Decrement Operators</h3>
+            <p><code>++</code> and <code>--</code> are shortcuts that add or subtract 1 from a variable. These are used constantly in embedded systems—counters, array indices, loop variables all use these operators.</p>
+
+            <pre><code>uint8_t counter = 5;
+
+counter++;       // 6 (post-increment: use current value, then increment)
+++counter;       // 7 (pre-increment: increment, then use new value)
+counter--;       // 6 (post-decrement: use current value, then decrement)
+--counter;       // 5 (pre-decrement: decrement, then use new value)
+
+// Common usage in loops
+for (uint8_t i = 0; i < 10; i++) {
+    // i++ happens after each iteration
+}</code></pre>
+
+            <h3>Critical Issue: Integer Division</h3>
+            <p>This is where many programmers make mistakes. In C++, when you divide two integers, the result is truncated (chopped) to an integer—the decimal part is thrown away.</p>
+
+            <pre><code>uint8_t result = 10 / 3;    // Result is 3, NOT 3.333!
+// The decimal portion (0.333) is discarded completely
+
+// This causes precision loss:
+uint8_t average = (5 + 6 + 7) / 3;  // 18 / 3 = 6 (correct by luck)
+uint8_t average = (5 + 5 + 5) / 3;  // 15 / 3 = 5 (correct)
+uint8_t average = (5 + 5 + 4) / 3;  // 14 / 3 = 4 (should be 4.67, truncated to 4)</code></pre>
+
+            <p><strong>How to fix precision loss:</strong> Multiply by a scaling factor before dividing:</p>
+
+            <pre><code>// Convert sensor voltage with precision
+uint16_t adc_reading = 512;           // Raw 10-bit ADC (0-1023)
+uint16_t voltage_mv = (adc_reading * 5000) / 1024;
+// (512 * 5000) / 1024 = 2,560,000 / 1024 = 2500 mV = 2.5V
+// Precision maintained
+
+// Without multiplying first, we'd lose precision
+uint8_t voltage_mv = adc_reading / 1024 * 5000;
+// (512 / 1024) * 5000 = 0 * 5000 = 0 (WRONG! Lost all data!)</code></pre>
+
+            <h3>Order of Operations</h3>
+            <p>Just like in math class, C++ follows a specific order: Multiplication and Division happen before Addition and Subtraction. Use parentheses to make intent clear:</p>
+
+            <pre><code>uint8_t a = 10;
+uint8_t result1 = a + 5 * 2;    // 20 (5*2 happens first, then +10)
+uint8_t result2 = (a + 5) * 2;  // 30 (a+5 happens first, then *2)
+
+// Always use parentheses in embedded code for clarity
+uint8_t scaled = (sensor_value * 100) / 255;  // Crystal clear intent</code></pre>
+
+            <h3>Real-World Example: Temperature Sensor</h3>
+            <pre><code>// LM35 temperature sensor: 10mV per degree Celsius
+uint16_t adc_value = analogRead(TEMP_SENSOR_PIN);  // 0-1023
+uint16_t voltage_mv = (adc_value * 5000) / 1024;  // Scale to 0-5000 mV
+uint8_t temperature_celsius = voltage_mv / 10;     // 10mV per degree
+
+// Example: adc_value = 200
+// voltage_mv = (200 * 5000) / 1024 = 976 mV
+// temperature = 976 / 10 = 97°C</code></pre>
+        </section>
+
+        <section style="border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px;">
+            <h2>Comparison Operators: Making Decisions</h2>
+            <p>Comparison operators are how your program makes decisions. They compare two values and return true (1) or false (0). This is the foundation of conditional logic—if temperature is too high, turn on cooling; if pressure is too low, raise an alarm.</p>
+
+            <p><strong>The six basic comparison operators:</strong></p>
+            <pre><code>uint8_t temperature = 25;
+uint8_t setpoint = 30;
+
+temperature > setpoint    // Greater than: 25 > 30? FALSE (0)
+temperature >= 25         // Greater than or equal: 25 >= 25? TRUE (1)
+temperature < setpoint    // Less than: 25 < 30? TRUE (1)
+temperature <= 30         // Less than or equal: 25 <= 30? TRUE (1)
+temperature == 25         // Equal: 25 == 25? TRUE (1)
+temperature != setpoint   // Not equal: 25 != 30? TRUE (1)</code></pre>
+
+            <p><strong>Critical distinction:</strong> Don't confuse == (comparison, asks a question: "are these equal?") with = (assignment, states a fact: "make this equal to that"):</p>
+
+            <pre><code>// WRONG - assigns instead of comparing
+if (temperature = 30) {  // This SETS temperature to 30, always true!
+    // This always executes!
+}
+
+// CORRECT - compares values
+if (temperature == 30) { // This ASKS: is temperature equal to 30?
+    // Only executes if temperature actually equals 30
+}</code></pre>
+
+            <h3>Practical Safety Example: Thermostat</h3>
+            <pre><code>#define TARGET_TEMP 25
+#define TEMP_HYSTERESIS 2  // Allow ±2°C band
+
+uint8_t current_temp = 24;
+uint8_t lower_bound = TARGET_TEMP - TEMP_HYSTERESIS;  // 23°C
+uint8_t upper_bound = TARGET_TEMP + TEMP_HYSTERESIS;  // 27°C
+
+if (current_temp < lower_bound) {
+    // Too cold: turn on heater
+    activateHeater();
+} else if (current_temp > upper_bound) {
+    // Too hot: turn on cooler
+    activateCooler();
+} else {
+    // In acceptable range: do nothing
+    deactivateAll();
+}</code></pre>
+
+            <h3>Chaining Comparisons with Logical Operators</h3>
+            <p>Real embedded systems need to check multiple conditions simultaneously. Use logical operators to combine comparisons:</p>
+
+            <pre><code>uint16_t voltage = 3300;  // in millivolts
+uint16_t safe_min = 2500;
+uint16_t safe_max = 3600;
+
+// Check if voltage is in safe range
+if (voltage > safe_min && voltage < safe_max) {
+    // All good: system is operating normally
+    statusLED = GREEN;
+}
+
+// Check if voltage is out of range
+if (voltage < safe_min || voltage > safe_max) {
+    // Danger: shutdown immediately!
+    emergencyShutdown();
+    statusLED = RED;
+}</code></pre>
+
+            <h3>Comparison Result Values</h3>
+            <p>A comparison returns 1 (true) or 0 (false), which are integers. You can store and use these values:</p>
+
+            <pre><code>uint8_t is_hot = (temperature > 30);     // 1 if hot, 0 if not
+uint8_t is_critical = (pressure > 100);  // 1 if critical, 0 if not
+
+if (is_hot && is_critical) {
+    activateEmergencyShutdown();
+}
+
+// Direct usage in functions
+void alert(uint8_t condition) {
+    if (condition) {  // Checks if condition is 1 (true)
+        playBeep();
+    }
+}</code></pre>
+        </section>
+
+        <section style="border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px;">
+            <h2>Logical Operators: Combining Conditions</h2>
+            <p>Logical operators combine multiple conditions to create complex decision logic. Real-world systems rarely depend on a single condition—you need to check multiple sensors, multiple states, multiple safety constraints simultaneously. Logical operators are how you express "this AND that" or "either this OR that."</p>
+
+            <p><strong>The three essential logical operators:</strong></p>
+            <ul>
+                <li><strong>& (AND):</strong> Both conditions must be true</li>
+                <li><strong>| (OR):</strong> At least one condition must be true</li>
+                <li><strong>! (NOT):</strong> Inverts a condition (true becomes false, false becomes true)</li>
+            </ul>
+
+            <h3>AND Operator ( && ): ALL Conditions Must Be True</h3>
+            <p>Use AND when you need multiple conditions to all be satisfied before taking action. For example, only activate heating if it's cold AND the system is enabled AND it's not already overheating.</p>
+
+            <pre><code>uint8_t temperature = 20;
+uint8_t humidity = 45;
+uint8_t system_enabled = 1;
+
+// Heat only if: cold AND system is on AND there's power
+if (temperature < 22 && system_enabled && voltage > 10) {
+    activateHeater();
+    // All three conditions must be true
+}
+
+// Practical: Motor start conditions
+uint8_t motor_on = 0;
+uint8_t button_pressed = 1;
+uint8_t overtemp = 0;  // 0 = not overtemped, 1 = overtemped
+uint8_t brake_engaged = 0;
+
+if (button_pressed && !overtemp && !brake_engaged) {
+    // Start motor only if: button is pressed AND not overheating AND brake is off
+    motor_on = 1;
+}</code></pre>
+
+            <h3>OR Operator ( || ): ANY Condition Can Be True</h3>
+            <p>Use OR when you need to act if any of several conditions is true. For example, raise an alarm if temperature is too high OR humidity is too high OR pressure is too low.</p>
+
+            <pre><code>uint8_t temp = 45;
+uint8_t humidity = 95;
+uint8_t pressure = 80;  // Should be 100+
+
+// Alarm if ANY condition is dangerous
+if (temp > 40 || humidity > 90 || pressure < 100) {
+    activateAlarm();
+    // At least one condition is true
+}
+
+// Real-world: Machine shutdown conditions
+uint8_t motor_speed = 300;
+uint8_t load_current = 25;
+uint8_t bearing_vibration = 8;
+
+if (motor_speed > 280 || load_current > 20 || bearing_vibration > 7) {
+    // Emergency stop: ANY parameter exceeds safe limit
+    emergencyStop();
+}</code></pre>
+
+            <h3>NOT Operator ( ! ): Inverts Logic</h3>
+            <p>NOT reverses a condition. If something is true, !something is false, and vice versa. Use NOT to make logic more readable.</p>
+
+            <pre><code>uint8_t system_ready = 1;
+uint8_t maintenance_mode = 0;
+
+// Start system if ready AND NOT in maintenance
+if (system_ready && !maintenance_mode) {
+    startSystem();
+}
+
+// More readable than: if (system_ready && maintenance_mode == 0)
+
+// Check if button is NOT pressed
+if (!button_pressed) {
+    // Button is not being pressed
+}
+
+// Double negation is confusing - avoid!
+if (!!button_pressed) {  // Don't do this!
+}</code></pre>
+
+            <h3>Complex Logic: Combining Multiple Operators</h3>
+            <p>Real embedded systems need sophisticated decision logic. Combine AND and OR strategically, with parentheses for clarity:</p>
+
+            <pre><code>// Cooling system logic
+uint8_t temp = 35;
+uint8_t humidity = 75;
+uint8_t fan_enabled = 1;
+uint8_t emergency_override = 0;
+
+// Activate fan if: (hot OR humid) AND (enabled) AND NOT in emergency override
+if ((temp > 30 || humidity > 70) && fan_enabled && !emergency_override) {
+    activateFan();
+}
+
+// Medical example: IV pump
+uint8_t power_ok = 1;
+uint8_t user_start = 1;
+uint8_t battery_low = 0;
+uint8_t occlusion_detected = 1;
+
+// Start pumping if: (power is good OR battery has charge) 
+//                AND (user pressed start OR automatic mode)
+//                AND NOT occluded
+if ((power_ok || !battery_low) && (user_start) && !occlusion_detected) {
+    startPump();
+}</code></pre>
+
+            <h3>Short-Circuit Evaluation: Optimization Trick</h3>
+            <p>The compiler stops evaluating a logical expression as soon as the result is determined. This is crucial for performance in embedded systems.</p>
+
+            <pre><code>// AND: If first is false, second never runs (result is false)
+if (false && expensive_function()) {
+    // expensive_function() is COMPLETELY SKIPPED!
+    // No need to evaluate further - AND result is already false
+}
+
+// OR: If first is true, second never runs (result is true)
+if (true || expensive_function()) {
+    // expensive_function() is COMPLETELY SKIPPED!
+    // No need to evaluate further - OR result is already true
+}
+
+// Practical: Safe array access
+#define MAX_SIZE 100
+uint8_t array[MAX_SIZE];
+uint8_t index = 150;
+
+// SAFE - checks array bounds first
+if (index < MAX_SIZE && array[index] == 5) {
+    // array access only happens if index is valid
+}
+
+// DANGEROUS - would access out-of-bounds memory!
+if (array[index] == 5 && index < MAX_SIZE) {
+    // Compiler might evaluate array[index] first!
+}</code></pre>
+
+            <h3>Operator Precedence: NOT > AND > OR</h3>
+            <p>Logical operators have a hierarchy. NOT binds tightest, then AND, then OR. Always use parentheses for clarity:</p>
+
+            <pre><code>uint8_t a = 1, b = 0, c = 1;
+
+// Evaluated as: (!a) || (b && c)
+if (!a || b && c) {
+    // Confusing!
+}
+
+// Much clearer:
+if ((!a) || (b && c)) {
+    // Now the intent is obvious
+}</code></pre>
+        </section>
+
+        <section>
+            <h3>Bitwise Operators (Critical for Embedded!)</h3>
+            <p>Manipulate individual bits in a byte or word. Essential for controlling hardware registers and flags.</p>
+
+            <h4>Understanding Binary</h4>
+            <pre><code>uint8_t value = 0b10110101;  // Binary representation
+//                ||||||||
+//                |||||||└─ Bit 0 (LSB - Least Significant Bit)
+//                ||||||└── Bit 1
+//                |||||└─── Bit 2
+//                ||||└──── Bit 3
+//                |||└───── Bit 4
+//                ||└────── Bit 5
+//                |└─────── Bit 6
+//                └──────── Bit 7 (MSB - Most Significant Bit)
+
+// Same value in hex
+uint8_t hex_value = 0xB5;
+            </code></pre>
+
+            <h4>Bitwise AND (&)</h4>
+            <p>Sets result bit to 1 only if both input bits are 1.</p>
+            <pre><code>uint8_t a = 0b11110000;
+uint8_t b = 0b10101010;
+uint8_t c = a & b;  // 0b10100000
+
+// Use case: Check if a specific bit is set
+uint8_t status = 0b00100000;
+if (status & 0b00100000) {  // Check bit 5
+    // Bit 5 is set!
+}
+
+// More readable with macros
+#define CHECK_BIT(value, bit) ((value) & (1 << (bit)))
+if (CHECK_BIT(status, 5)) {
+    // Bit 5 is set
+}
+            </code></pre>
+
+            <h4>Bitwise OR (|)</h4>
+            <p>Sets result bit to 1 if either input bit is 1.</p>
+            <pre><code>uint8_t a = 0b11110000;
+uint8_t b = 0b00001111;
+uint8_t c = a | b;  // 0b11111111 (all 1s)
+
+// Use case: Set specific bits to 1
+uint8_t port = 0b00000000;
+port |= 0b00000001;  // Set bit 0 to 1, keep others unchanged
+port |= (1 << 5);    // Set bit 5 to 1
+
+// Practical: Enable multiple GPIO features
+#define GPIO_OUTPUT 0x01
+#define GPIO_INPUT  0x02
+#define GPIO_INTERRUPT 0x04
+
+uint8_t gpio_config = 0;
+gpio_config |= GPIO_OUTPUT;    // Enable output
+gpio_config |= GPIO_INTERRUPT; // Enable interrupts (now 0x05)
+            </code></pre>
+
+            <h4>Bitwise XOR (^)</h4>
+            <p>Sets result bit to 1 only if input bits are different.</p>
+            <pre><code>uint8_t a = 0b11110000;
+uint8_t b = 0b10101010;
+uint8_t c = a ^ b;  // 0b01011010
+
+// Use case: Toggle specific bits
+uint8_t led_status = 0b00000001;
+led_status ^= 0b00000001;  // Toggle bit 0
+
+// Practical: Flash an LED
+#define LED_PIN_MASK 0x20
+void toggle_led() {
+    static uint8_t port_value = 0;
+    port_value ^= LED_PIN_MASK;  // Toggle LED bit
+    write_port(port_value);
+}
+            </code></pre>
+
+            <h4>Bitwise NOT (~)</h4>
+            <p>Flips all bits (0 becomes 1, 1 becomes 0).</p>
+            <pre><code>uint8_t a = 0b11110000;
+uint8_t b = ~a;  // 0b00001111
+
+// Use case: Clear specific bits
+uint8_t status = 0b11111111;
+status &= ~0b00000011;  // Clear bits 0 and 1
+// Result: 0b11111100
+
+// Practical: Disable interrupt while configuring
+#define INTERRUPT_ENABLE 0x80
+uint8_t control = 0xFF;
+control &= ~INTERRUPT_ENABLE;  // Disable interrupts
+            </code></pre>
+
+            <h4>Bit Shift Operators (<< and >>)</h4>
+            <p>Move bits left or right.</p>
+            <pre><code>uint8_t value = 0b00000001;
+uint8_t left = value << 3;   // 0b00001000 (multiply by 8)
+uint8_t right = left >> 2;   // 0b00000010 (divide by 4)
+
+// Use case: Set a specific bit
+uint8_t set_bit_n(uint8_t value, uint8_t bit) {
+    return value | (1 << bit);  // 1 << bit creates mask for that bit
+}
+
+// Use case: Extract specific bits
+uint8_t port_bits = (port_value >> 4) & 0x0F;  // Get bits 4-7
+
+// Practical: PWM value scaling
+uint8_t brightness = 75;  // 0-100 scale
+uint8_t pwm_value = (brightness * 255) / 100;
+
+// Or using bit shift (if power of 2)
+uint16_t adc_12bit = 2048;
+uint8_t adc_8bit = adc_12bit >> 4;  // Divide by 16
+            </code></pre>
+
+            <h4>Complete Register Manipulation Example</h4>
+            <pre><code>#define GPIO_OUTPUT_ENABLE  0x01
+#define GPIO_INPUT_ENABLE   0x02
+#define GPIO_INTERRUPT_EN   0x04
+#define GPIO_PULLUP_EN      0x08
+
+uint8_t gpio_config = 0;
+
+// Set multiple features
+gpio_config |= GPIO_OUTPUT_ENABLE;   // Set bit (OR)
+gpio_config |= GPIO_INTERRUPT_EN;
+
+// Check if feature is enabled
+if (gpio_config & GPIO_OUTPUT_ENABLE) {
+    // Output is enabled
+}
+
+// Disable a feature
+gpio_config &= ~GPIO_PULLUP_EN;  // Clear bit (AND with NOT)
+
+// Toggle a feature
+gpio_config ^= GPIO_INTERRUPT_EN;  // Flip bit (XOR)
+
+// Clear all features
+gpio_config = 0;
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Assignment Operators</h3>
+            <p>Shortcuts for modifying variables.</p>
+
+            <pre><code>uint8_t x = 10;
+
+x += 5;   // x = x + 5;    → 15
+x -= 3;   // x = x - 3;    → 12
+x *= 2;   // x = x * 2;    → 24
+x /= 4;   // x = x / 4;    → 6
+x %= 5;   // x = x % 5;    → 1
+x |= 0x80; // x = x | 0x80;
+x &= 0x0F; // x = x & 0x0F;
+x ^= 0x01; // x = x ^ 0x01;
+x <<= 2;  // x = x << 2;
+x >>= 1;  // x = x >> 1;
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Ternary Operator</h3>
+            <p>Compact if-else in expression form.</p>
+
+            <pre><code>uint8_t temperature = 28;
+uint8_t fan_speed = (temperature > 30) ? 255 : 100;
+// If temp > 30, fan_speed = 255, else fan_speed = 100
+
+// Nested ternary (avoid - hard to read)
+uint8_t status = (temp > 35) ? 3 : (temp > 25) ? 2 : 1;
+
+// Better as regular if-else
+uint8_t status;
+if (temp > 35) {
+    status = 3;
+} else if (temp > 25) {
+    status = 2;
+} else {
+    status = 1;
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Operator Precedence</h3>
+            <p>When multiple operators are used, precedence determines order. Use parentheses to be clear!</p>
+
+            <pre><code>// Ambiguous - which happens first?
+uint8_t result = 5 + 3 * 2;  // 11 (multiply before add)
+
+// Clear with parentheses
+uint8_t result = 5 + (3 * 2);  // 11
+uint8_t result = (5 + 3) * 2;  // 16
+
+// In embedded code, always use parentheses
+uint8_t scaled = (adc_value * 100) / 1024;
+uint8_t bit_check = (port & 0x80) != 0;  // Clear grouping
+            </code></pre>
+
+            <p><strong>General precedence:</strong> Multiply/Divide before Add/Subtract, Bitwise operators, then Comparison, then Logical.</p>
+        </section>
+
+        <section>
+            <h3>Common Mistakes</h3>
+            <ul>
+                <li><strong>Operator confusion:</strong> <code>=</code> (assignment) vs <code>==</code> (comparison)</li>
+                <li><strong>Bitwise vs Logical:</strong> <code>&</code> (bitwise AND) vs <code>&&</code> (logical AND)</li>
+                <li><strong>Division truncation:</strong> <code>10/3 = 3</code> not 3.33</li>
+                <li><strong>Overflow:</strong> <code>uint8_t a = 255; a++;</code> wraps to 0</li>
+            </ul>
+
+            <pre><code>// WRONG - Assignment in condition!
+if (status = 1) {
+    // status is now 1, and condition is true (always!)
+}
+
+// RIGHT - Comparison
+if (status == 1) {
+    // Check if status equals 1
+}
+
+// WRONG - Bitwise instead of logical
+if (temp > 30 & humidity > 60) {  // Uses bitwise AND on booleans!
+}
+
+// RIGHT - Logical AND
+if (temp > 30 && humidity > 60) {
+    // Both conditions
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>Summary</h2>
+            <ul>
+                <li>Arithmetic: +, -, *, /, % for math</li>
+                <li>Comparison: >, <, >=, <=, ==, != for conditionals</li>
+                <li>Logical: &&, ||, ! for complex conditions</li>
+                <li>Bitwise: &, |, ^, ~, <<, >> for hardware registers</li>
+                <li>Always use parentheses for clarity</li>
+                <li>Be aware of integer overflow and truncation</li>
+                <li>Use bitwise operators confidently—they're essential in embedded</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Mini-Projects to Strengthen Your Skills</h2>
+            
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 1: PWM Brightness Calculation</h3>
+                <p><strong>Objective:</strong> Calculate LED brightness using arithmetic operators. You'll take a percentage (0-100) and convert it to PWM value (0-255).</p>
+
+                <p><strong>What you'll learn:</strong> How arithmetic operators help convert between different value ranges.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a uint8_t variable for brightness_percent (0-100)</li>
+                    <li>Create a uint16_t variable for pwm_value</li>
+                    <li>Use multiplication and division to convert: pwm_value = (brightness_percent * 255) / 100</li>
+                    <li>Try different percentages: 0, 50, 100</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution1')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution1" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>// Input: brightness as percentage (0-100)
+uint8_t brightness_percent = 75;
+
+// Output: actual PWM value (0-255)
+uint16_t pwm_value = (brightness_percent * 255) / 100;
+// pwm_value = (75 * 255) / 100 = 191
+
+// Examples:
+// 0% → (0 * 255) / 100 = 0
+// 50% → (50 * 255) / 100 = 127
+// 100% → (100 * 255) / 100 = 255
+
+uint8_t final_pwm = (uint8_t)pwm_value;  // Convert back to 8-bit</code></pre>
+                    
+                    <p><strong>Why this works:</strong> We use uint16_t for the intermediate calculation because (75 * 255) = 19,125, which is too big for uint8_t (max 255). Then we divide by 100 to get the final value. This is a common embedded systems pattern.</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 2: Sensor Range Checking</h3>
+                <p><strong>Objective:</strong> Use comparison operators to check if sensor readings are within safe limits.</p>
+
+                <p><strong>What you'll learn:</strong> How comparison operators help validate sensor data before using it.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create variables for a temperature reading (25), and safe limits (0 and 50)</li>
+                    <li>Use > and < to check if temperature is above upper limit</li>
+                    <li>Use < and >= to check if temperature is within range</li>
+                    <li>Create a uint8_t status: 0 = safe, 1 = too hot, 2 = too cold</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution2')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>// Sensor reading and safety limits
+uint8_t current_temp = 25;
+const uint8_t MIN_SAFE = 0;
+const uint8_t MAX_SAFE = 50;
+
+// Status: 0=safe, 1=too hot, 2=too cold
+uint8_t status = 0;
+
+// Check if too hot
+if (current_temp > MAX_SAFE) {
+    status = 1;
+}
+
+// Check if too cold
+if (current_temp < MIN_SAFE) {
+    status = 2;
+}
+
+// current_temp = 25 → status = 0 (safe)
+// current_temp = 55 → status = 1 (too hot)
+// current_temp = -5 → status = 2 (too cold)</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Comparison operators (>, <, >=, <=) return true (1) or false (0). By using them, you can check if readings are valid before acting on them. This prevents damage from bad sensor data.</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 3: Hardware Register Control</h3>
+                <p><strong>Objective:</strong> Use bitwise operators to control individual bits in a hardware register (this simulates real embedded programming).</p>
+
+                <p><strong>What you'll learn:</strong> How bitwise operators directly control hardware pins and features.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a uint8_t variable to represent a register (start with 0)</li>
+                    <li>Use | (OR) with bit shifting to SET bit 0 (make it 1)</li>
+                    <li>Use & (AND) with ~ (NOT) to CLEAR bit 1 (make it 0)</li>
+                    <li>Use ^ (XOR) to TOGGLE bit 2</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution3')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution3" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>// Simulated hardware register
+uint8_t port_register = 0;  // Starts as 00000000
+
+// SET bit 0 (make it 1)
+// (1 << 0) creates 00000001, | ORs it in
+port_register |= (1 << 0);
+// port_register is now: 00000001
+
+// SET bit 2 (make it 1)
+port_register |= (1 << 2);
+// port_register is now: 00000101
+
+// CLEAR bit 1 (make it 0)
+// (1 << 1) creates 00000010, ~ inverts to 11111101, & clears it
+port_register &= ~(1 << 1);
+// port_register is still: 00000101 (bit 1 was already 0)
+
+// TOGGLE bit 0 (flip it)
+// ^ XOR flips bits where pattern is 1
+port_register ^= (1 << 0);
+// port_register is now: 00000100
+
+// Binary: 00000100
+// Hex: 0x04
+// Decimal: 4</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Each bit in a register controls a different hardware feature. Bit shifting (<<) lets you select which bit. Bitwise operators (|, &, ^) let you set, clear, and toggle them. This is exactly how embedded systems control GPIO pins, timers, and other hardware.</p>
+                </div>
+            </div>
+        </section>
+
+        <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
+            <h3>Ready for the next lesson?</h3>
+            <a href="cpp-basics-control-flow.html" style="display: inline-block; background: #00d4ff; color: #0a0f1b; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Next: Control Flow →</a>
+            <a href="cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to Basics</a>
+        </section>
+
+        <section>
+            <p><a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Overview</a></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 C++ Embedded Learning Site</p>
+    </footer>
+    <script src="../assets/js/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to C++ and Embedded Systems</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to C++ and Embedded Systems Learning</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">Real-Time Operating Systems</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <section>
+            <h2>Introduction to C++ and Embedded Systems</h2>
+            <p>This section provides a comprehensive overview of C++ and its critical role in embedded systems development. You'll learn the fundamental concepts that form the foundation of programming microcontrollers and embedded devices, and understand why C++ is the language of choice for performance-critical applications.</p>
+
+            <h3>What is C++?</h3>
+            <p>C++ is a powerful, general-purpose programming language that combines the efficiency of C with object-oriented programming features. Key characteristics include:</p>
+            <ul>
+                <li><strong>High Performance:</strong> Compiled language with minimal runtime overhead—crucial for embedded systems with limited resources</li>
+                <li><strong>Low-Level Access:</strong> Direct memory manipulation via pointers and bit operations</li>
+                <li><strong>Object-Oriented:</strong> Classes and inheritance enable modular, maintainable code</li>
+                <li><strong>Standard Template Library (STL):</strong> Provides reusable data structures and algorithms</li>
+                <li><strong>Hardware Abstraction:</strong> Can wrap hardware registers and peripherals in elegant C++ interfaces</li>
+            </ul>
+
+            <h3>What are Embedded Systems?</h3>
+            <p>Embedded systems are specialized computing devices designed to perform dedicated functions within larger mechanical or electrical systems. Examples include:</p>
+            <ul>
+                <li><strong>Microcontrollers (MCUs):</strong> Arduino, STM32, PIC - the brain of IoT devices</li>
+                <li><strong>Consumer Electronics:</strong> Smart TVs, printers, washing machines</li>
+                <li><strong>Automotive:</strong> Engine control units (ECUs), brake systems, infotainment</li>
+                <li><strong>Medical Devices:</strong> Pacemakers, glucose monitors, ventilators</li>
+                <li><strong>Industrial Control:</strong> PLCs, robotic arms, sensor networks</li>
+                <li><strong>Aerospace:</strong> Flight controllers, navigation systems</li>
+            </ul>
+
+            <h3>Why C++ for Embedded Systems?</h3>
+            <p>While C is widely used, C++ offers significant advantages for embedded development:</p>
+            <ul>
+                <li><strong>Efficiency:</strong> Zero-cost abstractions—pay only for what you use</li>
+                <li><strong>Safety:</strong> RAII (Resource Acquisition Is Initialization) prevents resource leaks</li>
+                <li><strong>Code Reuse:</strong> Templates and inheritance reduce duplication</li>
+                <li><strong>Maintainability:</strong> Encapsulation makes complex systems easier to manage</li>
+                <li><strong>Scalability:</strong> Works for simple 8-bit MCUs to complex 32/64-bit processors</li>
+                <li><strong>Industry Standard:</strong> Used in automotive (AUTOSAR), aerospace (DO-178C), and medical devices</li>
+            </ul>
+
+            <h3>Key Differences from General C++ Programming</h3>
+            <p>Embedded C++ development has unique constraints and considerations:</p>
+            <ul>
+                <li><strong>Memory Constraints:</strong> Typically kilobytes to megabytes (vs. gigabytes on desktops)</li>
+                <li><strong>Real-Time Requirements:</strong> Predictable timing and deterministic behavior</li>
+                <li><strong>No Dynamic Memory:</strong> Often avoid <code>new</code>/<code>delete</code> due to fragmentation risks</li>
+                <li><strong>Bare Metal:</strong> Direct hardware register access instead of OS abstractions</li>
+                <li><strong>Power Efficiency:</strong> Optimize for battery life and thermal management</li>
+                <li><strong>Reliability:</strong> System failures can have safety-critical consequences</li>
+            </ul>
+
+            <h3>Basic Concepts You'll Learn</h3>
+            <ul>
+                <li><strong>Data Types:</strong> Understanding variable sizes, signedness, and memory footprints</li>
+                <li><strong>Bit Manipulation:</strong> Setting, clearing, and testing individual bits for register control</li>
+                <li><strong>Pointers & References:</strong> Direct memory access and address-of operations</li>
+                <li><strong>Hardware Abstraction Layers (HALs):</strong> Creating reusable driver interfaces</li>
+                <li><strong>Interrupt Service Routines (ISRs):</strong> Responsive event handling</li>
+                <li><strong>Memory Management:</strong> Stack vs. heap, avoiding fragmentation</li>
+            </ul>
+
+            <h3>Course Overview</h3>
+            <p>This learning path is structured as follows:</p>
+            <ol>
+                <li><strong>Introduction (Current Section):</strong> Overview and foundational concepts</li>
+                <li><strong>C++ Basics:</strong> Syntax, data types, control flow, and functions</li>
+                <li><strong>Embedded Systems Fundamentals:</strong> MCU architecture, memory maps, interrupts</li>
+                <li><strong>Peripherals & Drivers:</strong> GPIO, UART, SPI, I2C communication</li>
+                <li><strong>Real-Time Operating Systems (RTOS):</strong> Task scheduling, synchronization, concurrency</li>
+            </ol>
+
+            <h3>Prerequisites</h3>
+            <p>Before starting, you should have:</p>
+            <ul>
+                <li>Basic understanding of programming concepts (variables, loops, conditionals)</li>
+                <li>Familiarity with binary and hexadecimal number systems (covered in exercises)</li>
+                <li>Access to a compiler (gcc, ARM compiler, or online IDE)</li>
+                <li>Optionally: a microcontroller development board (Arduino, STM32 Nucleo, etc.)</li>
+            </ul>
+
+            <h3>Hands-On Learning</h3>
+            <p>Each section includes practical exercises with:</p>
+            <ul>
+                <li>Code examples you can copy and compile</li>
+                <li>Step-by-step guides for implementing features</li>
+                <li>Explanations of embedded-specific patterns and best practices</li>
+                <li>Debugging tips and common pitfalls to avoid</li>
+            </ul>
+
+            <p><strong>Ready to dive in?</strong> Start with the exercises below or navigate to <strong>C++ Basics</strong> to begin learning the language fundamentals.</p>
+
+            <h3>Exercises</h3>
+            <p>To reinforce your understanding, please complete the following exercises:</p>
+            <ul>
+                <li><a href="../exercise.html?file=exercises/intro/exercise-1.md">Exercise 1: Basic Concepts</a> - Explore data types and control structures</li>
+                <li><a href="../exercise.html?file=exercises/intro/exercise-2.md">Exercise 2: Additional Practice</a> - Further reinforce your knowledge</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2023 C++ Embedded Learning Site</p>
+    </footer>
+</body>
+</html>

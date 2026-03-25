@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memory Management - C++ Basics</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        .lesson-nav { background: #151b28; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #00d4ff; }
+        .learning-objectives { background: #1a2332; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #00d4ff; }
+        .learning-objectives li { margin: 8px 0; }
+        .key-concepts { background: #2c5aa0; padding: 15px; margin: 15px 0; border-radius: 5px; font-weight: bold; }
+        .concept-box { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #ff9000; border-radius: 3px; }
+        .real-world { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
+        .warning-box { background: #3a1a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #ff4444; border-radius: 3px; }
+        .section-divider { border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px; }
+        .project { background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px; }
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Memory Management</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section>
+            <h2>Memory Management in C++</h2>
+            <p><strong>Why does memory matter?</strong> Memory is like a real warehouse where a company stores boxes (data). A warehouse has limited space, and if you're not careful about what you store and where, you'll run out of room.</p>
+            
+            <p><strong>Three types of memory your program uses:</strong></p>
+            <ul>
+                <li><strong>Stack:</strong> Super fast memory for temporary things. When a function ends, this memory is automatically cleaned up. Like a sticky note—write on it, use it, throw it away.</li>
+                <li><strong>Heap:</strong> Slower memory for things that live a long time. You decide when to create and destroy them. Like a filing cabinet—you organize it yourself.</li>
+                <li><strong>Flash (ROM):</strong> Your program code lives here. Also stores constants (things that never change). Like a book printed permanently.</li>
+            </ul>
+            
+            <p><strong>The core problem in embedded:</strong> Microcontrollers have TINY amounts of RAM (1KB, 2KB, maybe 32KB). Your laptop has gigabytes. That tiny amount is precious!</p>
+            
+            <p><strong>Common mistakes:</strong></p>
+            <ul>
+                <li>Creating huge arrays on the stack → Stack overflows and crashes everything</li>
+                <li>Allocating memory (heap) but never freeing it → Runs out of memory after a few hours</li>
+                <li>Using oversized data types → Wastes precious bytes</li>
+            </ul>
+            
+            <p><strong>Best practice:</strong> Know exactly how much memory your program needs. Design it carefully. Test it. Don't let it exceed your device's limits.</p>
+            
+            <a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics</a>
+        </section>
+
+        <section>
+            <h3>Memory Layout</h3>
+            <p>Typical embedded MCU memory layout:</p>
+
+            <pre><code>// Memory map (STM32 example, varies by device):
+// 0x08000000 - Flash (ROM) - Program code and const data
+// 0x08010000 - (varies)
+//
+// 0x20000000 - SRAM (RAM) - Stack and heap
+// 0x20010000 - (varies)
+//
+// 0x40000000 - Peripherals - Hardware registers
+// 0x50000000 - (varies)
+
+// Linker script determines exact layout
+// Usually set up during project creation
+
+// In code, you rarely think about absolute addresses except:
+// - Hardware registers (fixed addresses)
+// - Boot loaders
+// - Bootable firmware images
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>The Stack</h3>
+            <p>Where local variables live. Automatic allocation and deallocation.</p>
+
+            <pre><code>void my_function() {
+    uint8_t local_var = 5;     // Stack - allocated here
+    int16_t sensor_reading;    // Stack
+    uint32_t buffer[100];      // Stack - 400 bytes!
+    
+}  // All variables deallocated automatically
+
+// Stack layout (grows downward on most architectures):
+// Higher addresses (end of RAM)
+// ...
+// local_var (8-bit)
+// sensor_reading (16-bit)
+// buffer (400 bytes)
+// ...
+// Lower addresses (start of RAM)
+
+// Stack is FAST - just move pointer, no bookkeeping
+// Limited size - exceeding it causes crash (stack overflow)
+            </code></pre>
+
+            <h4>Stack Limitations</h4>
+            <pre><code>// DANGEROUS - Large array on stack
+void process_image() {
+    uint8_t image[256 * 256];  // 65,536 bytes!
+    // If your MCU has only 64 KB RAM, this is 100% of memory!
+    // Stack overflow incoming...
+}
+
+// On Arduino Uno (2 KB RAM), this destroys the heap
+// And any dynamic allocation
+
+// BETTER - Use static allocation or global
+uint8_t image[256 * 256];  // Global - in flash or special section
+
+void process_image() {
+    // Use global array
+}
+
+// OR - allocate at startup, use throughout program
+uint8_t *image;
+
+void init() {
+    image = malloc(256 * 256);  // Once at start
+}
+
+void process_image() {
+    // Use image - allocated in heap
+}
+            </code></pre>
+
+            <h4>Typical Stack Limits</h4>
+            <pre><code>// Arduino Uno: 2 KB RAM total, maybe 1.5 KB stack
+// Arduino Nano: 2 KB RAM total
+// STM32F4: 192 KB RAM - more comfortable
+// STM32H7: 512 KB RAM - luxury!
+
+// A function using 100 bytes: fine
+// A function using 1 KB on a 2 KB system: problematic
+// A function using 10 KB on a system with 32 KB RAM: borderline
+
+// Best practice: monitor stack usage
+void monitor() {
+    static uint16_t min_free = 65535;
+    uint16_t free = get_free_stack_space();
+    if (free < min_free) {
+        min_free = free;
+        uart_print("Min stack free: ");
+        uart_print_int(min_free);
+    }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>The Heap</h3>
+            <p>Dynamic memory allocation. Allocate and deallocate as needed.</p>
+
+            <pre><code>// Allocate memory at runtime
+uint8_t *buffer = malloc(1024);  // Request 1024 bytes
+if (buffer == NULL) {
+    // Allocation failed - not enough memory!
+    return ERROR;
+}
+
+// Use it
+buffer[0] = 42;
+
+// Free when done
+free(buffer);
+buffer = NULL;  // Good practice - prevents use-after-free
+
+// C++ style (more safe)
+uint8_t *data = new uint8_t[256];
+// Use data...
+delete[] data;  // Must use delete[] for arrays
+data = NULL;
+
+// C++ constructors are called:
+struct Sensor {
+    Sensor() {
+        init_i2c();  // Constructor called
+    }
+};
+
+Sensor *sensor = new Sensor();  // Object created, constructor runs
+delete sensor;  // Destructor runs (~Sensor), cleans up
+            </code></pre>
+
+            <h4>Heap Problems</h4>
+            <pre><code>// Memory leak - allocate but never free
+void bad_function() {
+    uint8_t *buffer = malloc(1024);
+    // Use buffer...
+    return;  // Forgot free! Memory leaked
+}
+
+// After 100 calls, you've lost 102 KB
+// Eventually system runs out of memory and crashes
+
+// Use-after-free - access freed memory
+uint8_t *ptr = malloc(10);
+free(ptr);
+ptr[0] = 5;  // Crash! Memory already freed
+
+// Double-free - free same memory twice
+uint8_t *ptr = malloc(10);
+free(ptr);
+free(ptr);  // Crash!
+
+// Heap fragmentation
+// Allocate and free many different sizes
+// Heap becomes fragmented - large allocations fail even though total free is high
+
+// Best for embedded: Minimize dynamic allocation
+// Know your memory needs upfront
+// Allocate at startup, use throughout, free at shutdown
+            </code></pre>
+
+            <h4>Safe Patterns</h4>
+            <pre><code>// Allocate once at startup
+uint8_t *uart_rx_buffer;
+uint8_t *uart_tx_buffer;
+
+void init() {
+    uart_rx_buffer = malloc(256);
+    uart_tx_buffer = malloc(256);
+    if (uart_rx_buffer == NULL || uart_tx_buffer == NULL) {
+        fatal_error();
+    }
+}
+
+// Use throughout program
+void main_loop() {
+    while (1) {
+        if (new_data_available()) {
+            uint8_t byte = uart_read_byte();
+            buffer_put(uart_rx_buffer, byte);
+        }
+    }
+}
+
+// Free only at shutdown (embedded: never)
+void cleanup() {
+    free(uart_rx_buffer);
+    free(uart_tx_buffer);
+}
+
+// Pre-allocate fixed pools
+#define NUM_PACKETS 10
+#define PACKET_SIZE 128
+
+struct Packet {
+    uint8_t data[PACKET_SIZE];
+    uint8_t length;
+};
+
+struct Packet packet_pool[NUM_PACKETS];
+uint8_t packet_in_use[NUM_PACKETS];
+
+Packet *allocate_packet() {
+    for (uint8_t i = 0; i < NUM_PACKETS; i++) {
+        if (!packet_in_use[i]) {
+            packet_in_use[i] = 1;
+            return &packet_pool[i];
+        }
+    }
+    return NULL;  // No free packets
+}
+
+void free_packet(Packet *pkt) {
+    uint8_t index = pkt - packet_pool;
+    packet_in_use[index] = 0;
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Static vs Automatic</h3>
+            <p>When variables are created and destroyed.</p>
+
+            <pre><code>// Automatic - created on entry, destroyed on exit
+{
+    uint8_t temp = 5;
+}  // temp destroyed here
+
+// Static - created once, persists
+{
+    static uint8_t temp = 5;
+}  // temp still exists after block ends
+
+// Global static - created at program start
+static uint8_t global_counter = 0;
+
+void increment() {
+    global_counter++;
+    uart_print_int(global_counter);
+}
+
+increment();  // Prints 1
+increment();  // Prints 2
+increment();  // Prints 3
+// global_counter persists between calls
+
+// Local static - useful for state in functions
+uint8_t get_unique_id() {
+    static uint8_t id = 0;
+    id++;
+    return id;
+}
+
+get_unique_id();  // Returns 1
+get_unique_id();  // Returns 2
+get_unique_id();  // Returns 3
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>ROM vs RAM</h3>
+            <p>Data can live in read-only flash (ROM) or writable RAM.</p>
+
+            <pre><code>// ROM (Flash) - can't change after programming
+const uint8_t DEFAULT_CONFIG[4] = {0x12, 0x34, 0x56, 0x78};
+const uint8_t MAC_ADDRESS[6] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
+
+// Lookup tables in ROM
+const uint8_t CRC_TABLE[256] = {...};
+
+// Strings in ROM
+const char *device_name = "MyDevice";
+
+// RAM - can change
+uint8_t system_state = IDLE;
+uint16_t sensor_readings[100];
+uint8_t configuration[4];
+
+// Why put in ROM?
+// - Saves RAM (flash is usually larger)
+// - Only matters for const data
+// - Can't update without re-flashing
+
+// Accessing ROM in embedded:
+// Most compilers transparently handle const data in ROM
+const uint8_t table[] = {1, 2, 3, ...};  // Lives in ROM by default
+
+#ifdef AVR
+// AVR (Arduino) special handling:
+#include <avr/pgmspace.h>
+const uint8_t PROGMEM table[] = {1, 2, 3, ...};  // Explicitly ROM
+uint8_t value = pgm_read_byte(&table[5]);  // Special read
+#endif
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>const Qualifier</h3>
+            <p>Promise not to modify data.</p>
+
+            <pre><code>// Constant value - compiler prevents change
+const uint8_t MAX_RETRIES = 5;
+// MAX_RETRIES = 10;  // ERROR
+
+// Const parameter - function won't modify
+void parse_command(const uint8_t *command, uint8_t length) {
+    // Compiler prevents: command[0] = 5;
+    for (uint8_t i = 0; i < length; i++) {
+        process_byte(command[i]);  // Reading OK
+    }
+}
+
+// Const struct member - can't change after construction
+struct Configuration {
+    const uint16_t device_id;  // Set in constructor, never changes
+    uint8_t mode;  // Can change
+};
+
+Configuration cfg = {0x1234, MODE_IDLE};
+// cfg.device_id = 0x5678;  // ERROR - const member
+
+// Benefits:
+// - Documents intent: "I won't change this"
+// - Compiler catches mistakes
+// - Enables optimizations
+// - Allows storage in ROM (if appropriate)
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Variable Scope and Lifetime</h3>
+            <p>When variables are created and destroyed.</p>
+
+            <pre><code>// Global scope - exists from program start to end
+uint8_t global_var = 0;
+
+void function1() {
+    global_var = 5;  // Can access
+}
+
+// Function scope - exists only during function execution
+void function2() {
+    uint8_t local_var = 10;
+    global_var++;  // Can access global
+    
+    if (condition) {
+        uint8_t block_var = 20;  // Created here
+    }  // block_var destroyed here - can't access below
+    
+    // block_var doesn't exist here
+}
+
+// Static scope - persists between calls
+void counter() {
+    static uint8_t count = 0;  // Initialized once
+    count++;
+    uart_print_int(count);
+}
+
+counter();  // Prints 1, count preserved
+counter();  // Prints 2
+counter();  // Prints 3
+
+// Best practice: Use tightest scope possible
+// Global variables make debugging hard
+// Function locals easier to understand
+
+// Instead of:
+uint8_t temp_result;
+void calculate() {
+    temp_result = complex_calc();
+}
+
+// Better:
+void calculate() {
+    uint8_t result = complex_calc();
+    process_result(result);
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Memory Efficient Patterns</h3>
+
+            <h4>Fixed-Size Ring Buffers</h4>
+            <pre><code>// No dynamic allocation, no fragmentation
+typedef struct {
+    uint8_t buffer[256];
+    uint8_t front;
+    uint8_t rear;
+    uint8_t count;
+} RingBuffer;
+
+RingBuffer create_buffer() {
+    RingBuffer buf = {{0}, 0, 0, 0};
+    return buf;
+}
+
+void push(RingBuffer *buf, uint8_t value) {
+    if (buf->count < 256) {
+        buf->buffer[buf->rear] = value;
+        buf->rear = (buf->rear + 1) % 256;
+        buf->count++;
+    }
+}
+
+uint8_t pop(RingBuffer *buf) {
+    if (buf->count > 0) {
+        uint8_t value = buf->buffer[buf->front];
+        buf->front = (buf->front + 1) % 256;
+        buf->count--;
+        return value;
+    }
+    return 0;
+}
+            </code></pre>
+
+            <h4>Object Pools</h4>
+            <pre><code>// Pre-allocate all objects at startup
+typedef struct {
+    uint16_t id;
+    uint8_t state;
+    uint16_t data;
+} Message;
+
+#define MAX_MESSAGES 10
+Message message_pool[MAX_MESSAGES];
+uint8_t message_used[MAX_MESSAGES];
+
+Message *alloc_message() {
+    for (uint8_t i = 0; i < MAX_MESSAGES; i++) {
+        if (!message_used[i]) {
+            message_used[i] = 1;
+            return &message_pool[i];
+        }
+    }
+    return NULL;  // Pool exhausted
+}
+
+void free_message(Message *msg) {
+    uint8_t idx = msg - message_pool;
+    if (idx < MAX_MESSAGES) {
+        message_used[idx] = 0;
+    }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Memory Debugging</h3>
+            <p>Track memory usage to prevent crashes.</p>
+
+            <pre><code>// Get free stack space (stack grows down)
+uint16_t get_free_stack() {
+    uint8_t local;
+    extern char _end;
+    extern char __stack;
+    
+    return (uint16_t)&__stack - (uint16_t)&local;
+}
+
+// Monitor over time
+void check_memory() {
+    static uint16_t min_stack = 0xFFFF;
+    uint16_t free = get_free_stack();
+    
+    if (free < min_stack) {
+        min_stack = free;
+        uart_print("New min stack: ");
+        uart_print_int(min_stack);
+    }
+}
+
+// Instrument malloc/free to track allocations
+static uint16_t allocated = 0;
+
+void *tracked_malloc(uint16_t size) {
+    void *ptr = malloc(size);
+    if (ptr) {
+        allocated += size;
+    }
+    return ptr;
+}
+
+void tracked_free(void *ptr) {
+    // Ideally track size, but basic malloc doesn't...
+    free(ptr);
+}
+
+void print_memory_stats() {
+    uart_print("Allocated: ");
+    uart_print_int(allocated);
+    uart_print(" bytes\n");
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Common Memory Mistakes</h3>
+            <ul>
+                <li><strong>Stack overflow:</strong> Too many/large local variables</li>
+                <li><strong>Out-of-bounds access:</strong> Writing past array/buffer end</li>
+                <li><strong>Memory leak:</strong> Allocating without freeing</li>
+                <li><strong>Use-after-free:</strong> Accessing freed memory</li>
+                <li><strong>Uninitialized variables:</strong> Reading before assigning</li>
+                <li><strong>Not NULL-checking pointers:</strong> Dereferencing NULL</li>
+            </ul>
+
+            <pre><code>// WRONG - Stack overflow
+void dangerous() {
+    uint8_t huge_array[10000];  // Too big for stack!
+}
+
+// RIGHT - Static or global
+uint8_t huge_array[10000];
+
+// WRONG - Memory leak
+void allocate_only() {
+    uint8_t *buffer = malloc(1024);
+    process(buffer);
+    return;  // Never freed!
+}
+
+// RIGHT
+void allocate_safely() {
+    uint8_t *buffer = malloc(1024);
+    process(buffer);
+    free(buffer);
+}
+
+// WRONG - Use after free
+uint8_t *ptr = malloc(10);
+free(ptr);
+uint8_t x = ptr[0];  // Crash!
+
+// RIGHT
+uint8_t *ptr = malloc(10);
+// Use ptr...
+free(ptr);
+ptr = NULL;  // Prevent accidental use
+// Don't access ptr after free
+
+// WRONG - Uninitialized
+uint8_t x;
+if (x > 10) {  // What's x? Unknown!
+}
+
+// RIGHT
+uint8_t x = 0;
+if (x > 10) {
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>Mini-Projects to Strengthen Your Skills</h2>
+            
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 1: Understanding Static vs Dynamic Allocation</h3>
+                <p><strong>Objective:</strong> Compare stack allocation (static) vs heap allocation (dynamic) for efficiency.</p>
+
+                <p><strong>What you'll learn:</strong> When to use each allocation method and why it matters in embedded systems.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a large array on stack: uint8_t buffer[1000]  (static)</li>
+                    <li>Check: does your microcontroller have enough RAM? (Probably yes for 1000 bytes)</li>
+                    <li>Next, conceptually think about malloc: uint8_t *ptr = malloc(1000)</li>
+                    <li>Compare: stack is automatic, heap requires management</li>
+                    <li>Note: for embedded, prefer stack allocation when size is known</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution1')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution1" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>// STACK ALLOCATION - Size known at compile time
+uint8_t stack_buffer[100];  // Fixed size, automatic cleanup
+
+void use_stack_buffer() {
+    stack_buffer[0] = 42;
+    // When function returns, memory automatically freed
+    // Fast, safe, but fixed size
+}
+
+// For comparison (don't do this in actual Arduino):
+// HEAP ALLOCATION - Size can be dynamic at runtime
+// uint8_t *heap_buffer = malloc(size);  // Points to heap
+// heap_buffer[0] = 42;
+// free(heap_buffer);  // Must manually free!
+
+void setup() {
+    Serial.begin(9600);
+    
+    Serial.print("Stack buffer size: ");
+    Serial.print(sizeof(stack_buffer));
+    Serial.println(" bytes");
+    
+    // Check memory info (Arduino-specific)
+    Serial.print("Free memory: ");
+    Serial.println(freeMemory());
+}
+
+void loop() {
+    use_stack_buffer();
+}
+
+// EMBEDDED BEST PRACTICE:
+// - Use stack for everything (automatic, predictable)
+// - Avoid malloc/free (fragmentation, unpredictability)
+// - Allocate once at startup if dynamic is really needed</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Stack allocation is automatic and fast—memory returns immediately when the scope ends. Heap allocation is manual and risky—you must track memory and free it. Embedded systems avoid the heap when possible.</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 2: Scope and Lifetime</h3>
+                <p><strong>Objective:</strong> Demonstrate variable scope and lifetime across different functions.</p>
+
+                <p><strong>What you'll learn:</strong> How scope limits variable visibility and when variables are created/destroyed.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a global variable: uint8_t global_count = 0</li>
+                    <li>In a function, create a local: uint8_t local_var = 5</li>
+                    <li>Call the function multiple times</li>
+                    <li>Note: global_count persists, local_var resets each time</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution2')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>// Global: lives entire program, takes up RAM forever
+uint8_t global_count = 0;
+
+void incrementGlobal() {
+    global_count++;  // Persists between calls
+    Serial.print("Global: ");
+    Serial.println(global_count);
+}
+
+void resetLocal() {
+    uint8_t local_var = 0;  // Fresh copy each call
+    local_var++;
+    Serial.print("Local: ");
+    Serial.println(local_var);  // Always prints 1!
+}
+
+void setup() {
+    Serial.begin(9600);
+}
+
+void loop() {
+    incrementGlobal();  // Prints: 1, then 2, then 3...
+    delay(500);
+    
+    resetLocal();       // Prints: 1, then 1, then 1...
+    delay(500);
+}
+
+// OUTPUT:
+// Global: 1
+// Local: 1
+// Global: 2
+// Local: 1
+// Global: 3
+// Local: 1
+
+// IMPORTANT:
+// - Global uses memory ALWAYS
+// - Local uses memory only while function runs
+// - Prefer local to save RAM!</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Global variables exist forever (taking up RAM). Local variables are created when the function is called and destroyed when it returns. For embedded systems with limited RAM, local variables are preferred.</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 3: ROM vs RAM - Storing Constants Efficiently</h3>
+                <p><strong>Objective:</strong> Use PROGMEM to store large data in flash (ROM) instead of RAM.</p>
+
+                <p><strong>What you'll learn:</strong> How to optimize RAM usage by storing constants in flash memory.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a lookup table in RAM: uint8_t sine_table[256] = {...}</li>
+                    <li>This uses 256 bytes of precious RAM</li>
+                    <li>Use PROGMEM: uint8_t sine_table[256] PROGMEM = {...}</li>
+                    <li>This stores in flash instead; read with pgm_read_byte()</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution3')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution3" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code">// BAD: Uses RAM (limited on microcontroller)
+// uint8_t lookup[256] = {0, 1, 2, 3, ..., 255};
+
+// GOOD: Uses Flash (abundant on microcontroller)
+const uint8_t lookup[] PROGMEM = {
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+    10, 11, 12, 13, 14, 15
+    // ... normally would be all 256 values
+};
+
+uint8_t readFromFlash(uint8_t index) {
+    // pgm_read_byte reads from PROGMEM
+    return pgm_read_byte(&lookup[index]);
+}
+
+void setup() {
+    Serial.begin(9600);
+    
+    // Show memory usage
+    Serial.print("Free RAM: ");
+    Serial.println(freeMemory());
+}
+
+void loop() {
+    for (uint8_t i = 0; i < 16; i++) {
+        uint8_t value = readFromFlash(i);
+        Serial.print(value);
+        Serial.print(" ");
+    }
+    Serial.println();
+    delay(1000);
+}
+
+// IMPORTANT POINTS:
+// - const PROGMEM = data in Flash (non-volatile)
+// - Regular arrays = data in RAM (volatile)
+// - Arduino has ~30KB RAM but usually 32KB Flash on Uno
+// - Use PROGMEM for lookup tables, strings, constants
+// - Access with pgm_read_byte() or F() macro</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Flash memory is where your program code lives—it's abundant but read-only. RAM is where variables live—it's scarce but writable. By putting constants in flash with PROGMEM, you save precious RAM for variables that actually change.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Summary</h2>
+            <ul>
+                <li>Stack: automatic allocation, limited size, fast</li>
+                <li>Heap: dynamic allocation, larger, slower, manual management required</li>
+                <li>Keep variables in tightest scope possible</li>
+                <li>Prefer static allocation in embedded systems</li>
+                <li>When using dynamic allocation, allocate at startup, use throughout</li>
+                <li>ROM (flash) stores const data; RAM stores variables</li>
+                <li>Check for stack overflow and memory leaks</li>
+                <li>Always initialize variables before use</li>
+                <li>Always NULL-check pointers before dereferencing</li>
+            </ul>
+        </section>
+
+        <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
+            <h3>You've completed C++ Basics!</h3>
+            <p>You now understand variables, operators, control flow, loops, arrays, functions, pointers, classes, and memory management. These fundamentals are essential for embedded systems programming.</p>
+            <a href="cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to C++ Basics</a>
+        </section>
+
+        <section>
+            <p><a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Overview</a></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 C++ Embedded Learning Site</p>
+    </footer>
+    <script src="../assets/js/script.js"></script>
+</body>
+</html>

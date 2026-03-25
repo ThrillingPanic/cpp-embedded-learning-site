@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stack vs Heap: Deep Dive - C++ Basics</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+        .section-header { border-bottom: 2px solid #00d4ff; padding-bottom: 12px; margin: 30px 0 20px 0; }
+        .warning-box { background: #3a2a1a; padding: 16px; border-left: 4px solid #ff9000; border-radius: 4px; margin: 20px 0; }
+        .success-box { background: #1a3a1a; padding: 16px; border-left: 4px solid #00ff00; border-radius: 4px; margin: 20px 0; }
+        .info-box { background: #1a2a3a; padding: 16px; border-left: 4px solid #00d4ff; border-radius: 4px; margin: 20px 0; }
+        .comparison-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .comparison-table td, .comparison-table th { padding: 12px; border: 1px solid #444; text-align: left; }
+        .comparison-table td strong { color: #00d4ff; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>C++ Basics</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <section>
+            <h1>Stack vs Heap: Deep Dive</h1>
+            <p><strong>Difficulty Level:</strong> Advanced (Critical for Embedded)</p>
+            <p>This is THE most important lesson for embedded systems safety. In desktop programming, you can afford to spill memory or be sloppy. In embedded systems, a single memory mistake can crash your device, corrupt sensor data, or worst—cause safety-critical failures. This deep dive will make you understand memory at the level of the hardware.</p>
+            
+            <h2 class="section-header">The Memory Hierarchy</h2>
+            <p>Before diving into stack vs heap, understand the memory landscape:</p>
+            <pre><code>┌─────────────────────────────────┐
+│      HIGH ADDRESSES             │
+│  ┌─────────────────────────┐   │
+│  │      STACK grows DOWN   │ ↓ │  
+│  └─────────────────────────┘   │
+│                                 │
+│  ┌─────────────────────────┐   │
+│  │      HEAP grows UP      │ ↑ │
+│  └─────────────────────────┘   │
+│                                 │
+│  (uninitialized data segment)   │
+│  (global/static data segment)   │
+│          (TEXT - CODE)          │
+└─────────────────────────────────┘
+        LOW ADDRESSES</code></pre>
+
+            <p>On a typical microcontroller (e.g., STM32F407 with 192KB RAM):</p>
+            <ul>
+                <li><strong>TEXT:</strong> Program code (stored in FLASH, not RAM)</li>
+                <li><strong>Global/Static:</strong> Variables that exist for lifetime of program (e.g., `static uint8_t buffer[256]`)</li>
+                <li><strong>HEAP:</strong> Dynamically allocated memory (grows upward)</li>
+                <li><strong>STACK:</strong> Function calls and local variables (grows downward)</li>
+                <li><strong>Unused:</strong> Free space between heap and stack (crash if they meet!)</li>
+            </ul>
+
+            <h2 class="section-header">The Stack: Fast, Automatic, Limited</h2>
+
+            <h3>What Lives on the Stack?</h3>
+            <ul>
+                <li><strong>Local variables</strong> (declared inside functions)</li>
+                <li><strong>Function parameters</strong></li>
+                <li><strong>Return addresses</strong> (where to jump back after function returns)</li>
+                <li><strong>Saved registers</strong> (CPU state preservation)</li>
+            </ul>
+
+            <h3>How the Stack Works</h3>
+            <pre><code>uint8_t global_data[10];  // Global - exists forever
+
+void function_a(int x) {           // function_a is called
+    uint8_t local_a = 42;          // Pushed on stack
+    function_b(x + 1);             // Call function_b
+    // local_a automatically freed when returning
+}
+
+void function_b(int y) {
+    uint32_t local_b = 100;        // Pushed on stack (on top of local_a)
+    uint16_t local_c = 200;        // Pushed on stack (on top of local_b)
+    return;                        // local_c and local_b automatically freed
+}
+
+// Memory diagram during execution:
+// 
+// STACK TOP (after function_b called):
+// [Return address to function_a]
+// [local_b = 100]
+// [local_c = 200]
+// [saved registers...]
+// [Return address for function_a]
+// [x parameter]
+// [local_a = 42]
+// STACK BASE</code></pre>
+
+            <h3>Stack Characteristics</h3>
+            <table class="comparison-table">
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td><strong>Allocation</strong></td>
+                    <td>Automatic (just declare variable)</td>
+                </tr>
+                <tr>
+                    <td><strong>Deallocation</strong></td>
+                    <td>Automatic (when function returns)</td>
+                </tr>
+                <tr>
+                    <td><strong>Speed</strong></td>
+                    <td>FASTEST - single instruction (SP += size)</td>
+                </tr>
+                <tr>
+                    <td><strong>Size</strong></td>
+                    <td>LIMITED (typically 1KB-4KB on microcontrollers)</td>
+                </tr>
+                <tr>
+                    <td><strong>Fragmentation</strong></td>
+                    <td>NO fragmentation ever</td>
+                </tr>
+                <tr>
+                    <td><strong>Responsibility</strong></td>
+                    <td>Compiler handles everything</td>
+                </tr>
+            </table>
+
+            <h3>Stack Example: Real Values</h3>
+            <pre><code>// STM32F407: 192KB total RAM
+// Typical stack size: 8KB
+// Typical heap size remaining: 184KB
+
+// Safe function (small locals)
+void read_sensor() {
+    uint8_t sensor_id = 1;      // 1 byte
+    uint16_t reading = 0;       // 2 bytes
+    // Total: 3 bytes on stack (SAFE)
+}
+
+// Dangerous function (large local array)
+void parse_data() {
+    uint8_t buffer[4096];       // 4KB on stack! (DANGEROUS!)
+    // This might cause stack overflow
+}
+
+// Correct approach for large buffers
+uint8_t global_buffer[4096];    // Global/static (doesn't use stack)
+void parse_data() {
+    // Use global_buffer instead
+    global_buffer[0] = read_byte();
+}</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ RULE #1:</strong> Never declare large arrays on the stack. Use global/static arrays instead. Large local arrays are the #1 cause of embedded system crashes.
+            </div>
+
+            <h2 class="section-header">The Heap: Flexible, Slow, Large</h2>
+
+            <h3>What Lives on the Heap?</h3>
+            <ul>
+                <li><strong>Dynamically allocated memory</strong> from `new`</li>
+                <li><strong>Anything requested at runtime</strong> (not known at compile time)</li>
+                <li><strong>Data structures** that grow/shrink during execution</li>
+            </ul>
+
+            <h3>Heap Allocation Example</h3>
+            <pre><code>// Allocate on heap (slow, but flexible)
+uint32_t *data = new uint32_t[100];  // 400 bytes allocated on heap
+data[50] = 12345;                   // Use the data
+delete[] data;                      // Manual deallocation (easy to forget!)
+
+// Problems:
+// 1. If you forget delete, memory leaks
+// 2. If you delete twice, crash
+// 3. If you use after delete, corruption</code></pre>
+
+            <h3>Heap Characteristics</h3>
+            <table class="comparison-table">
+                <tr>
+                    <th>Property</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td><strong>Allocation</strong></td>
+                    <td>Manual (must call `new`)</td>
+                </tr>
+                <tr>
+                    <td><strong>Deallocation</strong></td>
+                    <td>Manual (must call `delete`) - ERROR-PRONE!</td>
+                </tr>
+                <tr>
+                    <td><strong>Speed</strong></td>
+                    <td>SLOW - malloc/free involves complex bookkeeping</td>
+                </tr>
+                <tr>
+                    <td><strong>Size</strong></td>
+                    <td>LARGE (but shared with stack!)</td>
+                </tr>
+                <tr>
+                    <td><strong>Fragmentation</strong></td>
+                    <td>YES - repeated alloc/dealloc fragments memory</td>
+                </tr>
+                <tr>
+                    <td><strong>Responsibility</strong></td>
+                    <td>Programmer's responsibility (danger!)</td>
+                </tr>
+            </table>
+
+            <h2 class="section-header">Stack Overflow: The Silent Killer</h2>
+
+            <h3>When Stacks Collide</h3>
+            <p>Stack grows downward, heap grows upward. If they meet, memory corruption:</p>
+            <pre><code>// Scenario: STM32F407 with 192KB RAM
+// Stack starts at top (0x20030000)
+// Heap starts at bottom (0x20000000)
+// Total space: 192KB
+
+void recursive_function(int depth) {
+    uint8_t buffer[1024];  // 1KB per call!
+    if (depth < 200) {
+        recursive_function(depth + 1);  // 200 * 1KB = 200KB!
+        // Stack pointer creeps downward...
+    }
+}
+
+// Result: CRASH
+// Stack pointer eventually < heap pointer
+// Overwrite heap data or fall into wild memory</code></pre>
+
+            <h3>Detection: Check Free Memory</h3>
+            <pre><code>// Linker script defines these
+extern uint32_t _heap_start;
+extern uint32_t _heap_end;
+
+uint32_t get_free_memory() {
+    // Approximate: difference between heap and current stack pointer
+    extern uint32_t __get_MSP(void);  // ARM intrinsic
+    uint32_t sp = __get_MSP();         // Current stack pointer
+    uint32_t heap_ptr = (uint32_t)(&_heap_end);  // Heap top
+    
+    if (sp > heap_ptr) {
+        return sp - heap_ptr;  // Free space
+    }
+    return 0;  // Collision!
+}</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ CRITICAL:</strong> Stack overflow is silent and deadly. The microcontroller doesn't crash immediately—it silently corrupts memory. Weeks later, a sensor reads wrong. A motor runs wrong. The device is unreliable.
+            </div>
+
+            <h2 class="section-header">Avoiding Heap in Embedded Systems</h2>
+
+            <h3>Why Most Embedded Code AVOIDS `new` and `delete`</h3>
+            <p>In mission-critical embedded systems, dynamic allocation is often forbidden:</p>
+            <pre><code>// ❌ STYLE 1: Embedded system without proper memory management
+void process_data(uint8_t *raw_data) {
+    // Allocate RTDB based on data
+    uint8_t *processed = new uint8_t[some_size];  // DON'T DO THIS
+    // ... process ...
+    delete[] processed;  // What if function returns early? Leak!
+    // What if exception? Leak!
+}
+
+// ✅ STYLE 2: Proper embedded approach (no allocation)
+uint8_t processed[MAX_BUFFER];  // Static size
+void process_data(uint8_t *raw_data) {
+    // Use pre-allocated buffer
+    // No error-prone new/delete
+}</code></pre>
+
+            <h3>When Allocation is Unavoidable</h3>
+            <p>If you MUST allocate dynamically, use a <strong>pool allocator</strong> instead of raw malloc:</p>
+            <pre><code>// Pool allocator: pre-allocate blocks, reuse them
+class MemoryPool {
+    static const int BLOCK_SIZE = 256;
+    static const int NUM_BLOCKS = 10;
+    uint8_t blocks[NUM_BLOCKS][BLOCK_SIZE];
+    bool block_used[NUM_BLOCKS];
+    
+public:
+    void* allocate() {
+        for (int i = 0; i < NUM_BLOCKS; i++) {
+            if (!block_used[i]) {
+                block_used[i] = true;
+                return blocks[i];
+            }
+        }
+        return nullptr;  // No free blocks
+    }
+    
+    void free(void* ptr) {
+        for (int i = 0; i < NUM_BLOCKS; i++) {
+            if ((void*)blocks[i] == ptr) {
+                block_used[i] = false;
+                return;
+            }
+        }
+    }
+};
+
+// Usage
+MemoryPool pool;
+uint8_t *buffer = (uint8_t*)pool.allocate();
+if (buffer) {
+    // Use buffer
+    pool.free(buffer);
+}</code></pre>
+
+            <h2 class="section-header">Real Embedded Memory Models</h2>
+
+            <h3>Model 1: No Dynamic Allocation (Safest)</h3>
+            <pre><code>// Everything is static/global or stack-based
+#define NUM_SENSORS 4
+#define BUFFER_SIZE 256
+
+struct SensorData {
+    uint16_t temperature;
+    uint16_t humidity;
+} sensors[NUM_SENSORS];  // Fixed array of sensors
+
+uint8_t uart_buffer[BUFFER_SIZE];  // Fixed UART buffer
+
+void main_loop() {
+    for (int i = 0; i < NUM_SENSORS; i++) {
+        sensors[i].temperature = read_temp_sensor(i);
+    }
+    transmit_uart(uart_buffer, BUFFER_SIZE);
+}
+
+// Pro: No fragmentation, no memory leaks, predictable memory use
+// Con: Can't grow/shrink at runtime, fixed at compile-time</code></pre>
+
+            <h3>Model 2: Limited Allocation with Pools</h3>
+            <pre><code>// Pre-allocate pools, reuse blocks
+class PacketMemory {
+    struct Packet { uint8_t data[64]; } packets[20];
+    bool free_list[20];
+    
+public:
+    Packet* allocate_packet() {
+        for (int i = 0; i < 20; i++) {
+            if (free_list[i]) {
+                free_list[i] = false;
+                return &packets[i];
+            }
+        }
+        return nullptr;
+    }
+    
+    void free_packet(Packet *p) {
+        int index = (p - packets);
+        free_list[index] = true;
+    }
+};
+
+PacketMemory packet_pool;
+
+void handle_message() {
+    Packet *p = packet_pool.allocate_packet();
+    if (!p) return;  // No memory available
+    
+    receive_data(p->data);
+    process_packet(p);
+    packet_pool.free_packet(p);
+}</code></pre>
+
+            <h3>Model 3: Static Allocation with Ring Buffers</h3>
+            <p>For streaming data (UART, SPI, DMA):</p>
+            <pre><code>// Ring/Circular buffer: reuses same memory
+class RingBuffer {
+    static const int SIZE = 256;
+    uint8_t buffer[SIZE];
+    int write_idx = 0;
+    int read_idx = 0;
+    
+public:
+    void write(uint8_t byte) {
+        buffer[write_idx] = byte;
+        write_idx = (write_idx + 1) % SIZE;  // Wrap around
+    }
+    
+    uint8_t read() {
+        uint8_t byte = buffer[read_idx];
+        read_idx = (read_idx + 1) % SIZE;
+        return byte;
+    }
+    
+    bool is_empty() { return write_idx == read_idx; }
+    bool is_full() { return (write_idx + 1) % SIZE == read_idx; }
+};
+
+RingBuffer uart_rx;  // Receives data endlessly without growing</code></pre>
+
+            <h2 class="section-header">Memory Debugging Techniques</h2>
+
+            <h3>Technique 1: Stack Canary</h3>
+            <pre><code>// Place a known value on stack, check if overwritten
+void check_stack_overflow() {
+    uint32_t canary = 0xDEADBEEF;
+    // ... rest of function ...
+    if (canary != 0xDEADBEEF) {
+        // Stack was corrupted!
+        error_handler();
+    }
+}</code></pre>
+
+            <h3>Technique 2: Memory Sentinel Bytes</h3>
+            <pre><code>// Allocate more memory than needed, fill boundaries with sentinel
+uint8_t *safe_allocate(int size) {
+    uint8_t *ptr = (uint8_t*)malloc(size + 2);
+    ptr[0] = 0xAA;         // Boundary sentinel
+    ptr[size + 1] = 0xBB;  // Another sentinel
+    return &ptr[1];        // Return pointer to actual data
+}
+
+void check_buffer_overflow(uint8_t *ptr) {
+    if (ptr[-1] != 0xAA || ptr[expected_size] != 0xBB) {
+        // Buffer overflow detected!
+        error_handler();
+    }
+}</code></pre>
+
+            <h2 class="section-header">Best Practices for Embedded Memory</h2>
+            <ul>
+                <li><strong>Prefer stack:</strong> Variables are deallocated automatically</li>
+                <li><strong>Use static buffers:</strong> For fixed-size data (sensors, protocols)</li>
+                <li><strong>Avoid large stack allocations:</strong> Keep functions' local data < 1KB</li>
+                <li><strong>Avoid dynamic allocation:</strong> Use pools instead of malloc/new</li>
+                <li><strong>Check free memory:</strong> Monitor available RAM (especially with networking)</li>
+                <li><strong>Use const where possible:</strong> Store lookup tables in FLASH, not RAM</li>
+                <li><strong>Profile memory:</strong> Compile with `-fstack-usage` to find stack hogs</li>
+                <li><strong>Test on real hardware:</strong> Simulators don't catch many memory bugs</li>
+            </ul>
+
+            <h2 class="section-header">The Golden Rules</h2>
+            <div class="success-box">
+                <strong>✅ Memory Safety Rules:</strong>
+                <ol>
+                    <li><strong>Know your limits:</strong> How much RAM? How much stack? MEASURE it.</li>
+                    <li><strong>Avoid large stack allocations:</strong> Max 256 bytes per function unless you're sure.</li>
+                    <li><strong>No dynamic allocation:</strong> Use pools if you must allocate.</li>
+                    <li><strong>Debug memory:</strong> Add canaries, sentinels, monitors.</li>
+                    <li><strong>Crash safely:</strong> When memory runs out, enter safe mode, not undefined behavior.</li>
+                </ol>
+            </div>
+
+            <h2 class="section-header">Summary</h2>
+            <p>Stack and Heap serve different purposes:</p>
+            <ul>
+                <li><strong>Stack:</strong> Fast, automatic, small, safe (if used correctly)</li>
+                <li><strong>Heap:</strong> Large, manual, slow, dangerous (if misused)</li>
+            </ul>
+            <p>In embedded systems, <strong>minimize heap usage</strong> and <strong>design around static allocation</strong>. The systems that never crash are the ones that never surprise their memory manager.</p>
+        </section>
+
+        <section>
+            <h2 class="section-header">Hands-On Exercises</h2>
+            <p><strong>Exercise 1:</strong> Profile your microcontroller's actual stack usage with `-fstack-usage`. Identify which function uses the most stack and why.</p>
+            <p><strong>Exercise 2:</strong> Implement a simple memory pool allocator. Test allocating, using, and freeing blocks without fragmentation.</p>
+            <p><strong>Exercise 3:</strong> Write a function to report current free memory. Use this in your main loop to detect memory leaks during testing.</p>
+        </section>
+
+        <section>
+            <h2 class="section-header">What's Next?</h2>
+            <p>You're now equipped to manage memory safely in embedded systems. Continue with:</p>
+            <ul>
+                <li><a href="cpp-basics-memory.html" style="color: #00d4ff; font-weight: bold;">Memory Management (Basics)</a> - Review fundamental concepts</li>
+                <li><a href="embedded-systems.html" style="color: #00d4ff; font-weight: bold;">Embedded Systems</a> - Apply memory knowledge to real hardware</li>
+                <li><a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">Back to C++ Basics</a> - Explore other topics</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 C++ Embedded Learning Site</p>
+    </footer>
+</body>
+</html>

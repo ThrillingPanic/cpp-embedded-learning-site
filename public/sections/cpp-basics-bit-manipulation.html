@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bit Manipulation Patterns - C++ Basics</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+        .section-header { border-bottom: 2px solid #00d4ff; padding-bottom: 12px; margin: 30px 0 20px 0; }
+        .warning-box { background: #3a2a1a; padding: 16px; border-left: 4px solid #ff9000; border-radius: 4px; margin: 20px 0; }
+        .success-box { background: #1a3a1a; padding: 16px; border-left: 4px solid #00ff00; border-radius: 4px; margin: 20px 0; }
+        .info-box { background: #1a2a3a; padding: 16px; border-left: 4px solid #00d4ff; border-radius: 4px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>C++ Basics</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <section>
+            <h1>Bit Manipulation Patterns</h1>
+            <p><strong>Difficulty Level:</strong> Critical (Intermediate)</p>
+            <p>Bit manipulation is the language of hardware. Every hardware register is just a collection of bits. Every protocol encodes data bitwise. Every optimization starts with understanding bits. If you only learn one "pattern" topic in embedded, make it this one.</p>
+            
+            <h2 class="section-header">Why Bit Manipulation Is Critical</h2>
+            <p><strong>Embedded Reality:</strong> You control devices through bit patterns. Want LED on? Set bit 5 of GPIO register. Want interrupt enabled? Set bit 12 of control register. Want to extract temperature from a multi-byte sensor reading? Shift and mask bits. Every embedded system you program will depend on bitwise operations.</p>
+            
+            <div class="warning-box">
+                <strong>⚠️ Performance Fact:</strong> Bitwise operations are <strong>single CPU cycles</strong>. Branch instructions can cause pipeline stalls. For embedded systems with limited power, a single bitwise AND is preferred over an if statement every time.
+            </div>
+
+            <h2 class="section-header">1. Bitwise Operators Review</h2>
+
+            <h3>AND (&) - Select Specific Bits</h3>
+            <p>AND produces 1 only if BOTH bits are 1. Use it to "mask out" (zero) unwanted bits:</p>
+            <pre><code>uint8_t status = 0b11010110;  // Status register
+uint8_t mask = 0b00001111;    // We care about lower 4 bits only
+uint8_t lower_nibble = status & mask;  // Result: 0b00000110 = 6
+
+// Practical: Check if bit 3 is set
+if (status & (1 << 3)) {
+    // Bit 3 is 1
+}
+
+// Extract lower 4 bits of a 16-bit value
+uint16_t sensor = 0x1A5C;
+uint8_t low_byte = sensor & 0xFF;  // Get lower 8 bits</code></pre>
+
+            <h3>OR (|) - Set Specific Bits</h3>
+            <p>OR produces 1 if EITHER bit is 1. Use it to "turn on" specific bits:</p>
+            <pre><code>uint8_t control = 0b00000000;  // Start with nothing
+control |= (1 << 0);           // Set bit 0: 0b00000001
+control |= (1 << 3);           // Set bit 3: 0b00001001
+// Now control = 0x09 with bits 0 and 3 set
+
+// Enable multiple features at once
+uint32_t gpio_config = 0;
+gpio_config |= 0x0001;  // Enable output
+gpio_config |= 0x0010;  // Enable pull-up
+// Result: both features enabled</code></pre>
+
+            <h3>XOR (^) - Toggle/Compare Bits</h3>
+            <p>XOR produces 1 if bits DIFFER. Use it to toggle (flip) specific bits:</p>
+            <pre><code>uint8_t led_state = 0;
+led_state ^= (1 << 5);  // Toggle bit 5: becomes 0b00100000
+led_state ^= (1 << 5);  // Toggle again: becomes 0b00000000
+
+// Flash an LED: toggle every loop iteration
+while(1) {
+    led_state ^= (1 << LED_PIN);
+    delay_ms(500);
+}</code></pre>
+
+            <h3>NOT (~) - Invert All Bits</h3>
+            <p>NOT flips every bit (0→1, 1→0). Use carefully—understand widths!</p>
+            <pre><code>uint8_t mask = 0x0F;           // 0b00001111
+uint8_t inverted = ~mask;      // 0b11110000 (in 8 bits)
+
+// More often: use with other operators
+uint8_t config = 0xFF;
+config &= ~(1 << 3);           // Clear bit 3 (turn off feature)</code></pre>
+
+            <h3>Left Shift (<<) - Multiply by Powers of 2</h3>
+            <p>Shift bits left N positions. Each shift multiplies by 2:</p>
+            <pre><code>uint8_t value = 3;
+uint8_t shifted = value << 2;  // 3 * 2^2 = 3 * 4 = 12
+// 3 = 0b00000011, shifted left 2 = 0b00001100 = 12
+
+// Create bit masks
+uint32_t bit_5_mask = 1 << 5;  // 0x00000020 = 32
+uint32_t bit_15_mask = 1 << 15; // 0x00008000 = 32768
+
+// Pack bytes into a 32-bit word
+uint32_t packed = (uint8_t)0x12 << 24 |  // Most significant byte
+                  (uint8_t)0x34 << 16 |
+                  (uint8_t)0x56 << 8 |
+                  (uint8_t)0x78;        // Least significant byte
+// Result: 0x12345678</code></pre>
+
+            <h3>Right Shift (>>) - Divide by Powers of 2</h3>
+            <p>Shift bits right N positions. For unsigned, fills with 0. For signed, depends on implementation (usually sign-extends):</p>
+            <pre><code>uint16_t value = 1024;
+uint16_t divided = value >> 2;  // 1024 / 2^2 = 1024 / 4 = 256
+
+// Extract bytes from a packed 32-bit word
+uint32_t packed = 0x12345678;
+uint8_t byte0 = (packed >> 24) & 0xFF;  // 0x12
+uint8_t byte1 = (packed >> 16) & 0xFF;  // 0x34
+uint8_t byte2 = (packed >> 8) & 0xFF;   // 0x56
+uint8_t byte3 = packed & 0xFF;          // 0x78
+
+// Right shift with signed number (watch the sign bit!)
+int8_t negative = -4;  // 0b11111100 in two's complement
+int8_t shifted = negative >> 1;  // Result is -2 (sign extends)</code></pre>
+
+            <h2 class="section-header">2. Common Bit Manipulation Patterns</h2>
+
+            <h3>Pattern 1: Check if Bit N is Set</h3>
+            <pre><code>// Generic macro for checking a bit
+#define BIT_IS_SET(value, bit) (((value) >> (bit)) & 1)
+
+uint8_t status = 0b10110101;
+if (BIT_IS_SET(status, 2)) {  // Check bit 2
+    // Bit 2 is set (it is! 1)
+}
+
+// Or without macro:
+if ((status & (1 << 2)) != 0) {
+    // Bit 2 is set
+}
+
+// For hardware registers (e.g., checking if interrupt fired)
+volatile uint32_t *interrupt_status = (volatile uint32_t*)0x40000008;
+if (*interrupt_status & (1 << 5)) {
+    // Interrupt 5 fired!
+}</code></pre>
+
+            <h3>Pattern 2: Set Bit N</h3>
+            <pre><code>#define BIT_SET(value, bit) ((value) |= (1 << (bit)))
+
+uint8_t flags = 0;
+BIT_SET(flags, 3);  // Set bit 3: flags = 0b00001000
+
+// Or without macro:
+flags |= (1 << 3);
+
+// For hardware: enable GPIO output on pin 5
+volatile uint32_t *gpio_config = (volatile uint32_t*)0x40020000;
+*gpio_config |= (1 << 5);  // Set output enable for pin 5</code></pre>
+
+            <h3>Pattern 3: Clear Bit N</h3>
+            <pre><code>#define BIT_CLEAR(value, bit) ((value) &= ~(1 << (bit)))
+
+uint8_t flags = 0xFF;  // All bits set
+BIT_CLEAR(flags, 3);   // Clear bit 3: flags = 0b11110111
+
+// Or without macro:
+flags &= ~(1 << 3);
+
+// Practical: disable interrupt source 2
+volatile uint32_t *interrupt_enable = (volatile uint32_t*)0x40000004;
+*interrupt_enable &= ~(1 << 2);  // Disable interrupt 2</code></pre>
+
+            <h3>Pattern 4: Toggle Bit N</h3>
+            <pre><code>#define BIT_TOGGLE(value, bit) ((value) ^= (1 << (bit)))
+
+uint8_t led = 0;
+BIT_TOGGLE(led, 5);  // Set bit 5
+BIT_TOGGLE(led, 5);  // Clear bit 5 again
+
+// Blinking LED in main loop
+while(1) {
+    BIT_TOGGLE(gpio_output, LED_PIN);
+    delay_ms(200);
+}</code></pre>
+
+            <h3>Pattern 5: Extract N-Bit Field</h3>
+            <pre><code>// Extract bits 4-7 (4-bit field at position 4)
+uint8_t value = 0b11010110;
+uint8_t field = (value >> 4) & 0x0F;  // Shift right 4, mask 4 bits
+// Result: 0b00001101 = 13
+
+// Macro for clarity
+#define EXTRACT_BITS(value, start, count) (((value) >> (start)) & ((1 << (count)) - 1))
+
+uint8_t field2 = EXTRACT_BITS(value, 4, 4);  // Extract 4 bits starting at bit 4
+
+// Real hardware example: ADC priority field (bits 5-7) of control register
+uint8_t control_reg = 0b10110101;
+uint8_t priority = EXTRACT_BITS(control_reg, 5, 3);  // Get priority (bits 5,6,7)</code></pre>
+
+            <h3>Pattern 6: Set N-Bit Field</h3>
+            <pre><code>// Set bits 4-7 to value 0b1010
+uint8_t value = 0b00101101;           // Original
+value &= 0x0F;                        // Clear bits 4-7
+value |= (0x0A << 4);                 // Set bits 4-7 to 0x0A
+// Result: 0b10100101
+
+// Or in one line:
+value = (value & 0x0F) | (0x0A << 4);
+
+// Macro for setting a field
+#define SET_BITS(value, start, count, new_val) \
+    ((value) = ((value) & ~(((1 << (count)) - 1) << (start))) | ((new_val) << (start)))
+
+// Set priority field (bits 5-7) to 3
+SET_BITS(control_reg, 5, 3, 3);</code></pre>
+
+            <h3>Pattern 7: Check if Power of 2</h3>
+            <pre><code>// A number is power of 2 if it has only 1 bit set
+// n & (n-1) equals 0 only for powers of 2
+bool is_power_of_2(uint32_t n) {
+    return (n > 0) && ((n & (n - 1)) == 0);
+}
+
+// Examples:
+// 1 (0b0001): 1 & 0 = 0 ✓ power of 2
+// 2 (0b0010): 2 & 1 = 0 ✓ power of 2
+// 3 (0b0011): 3 & 2 = 2 ✗ not power of 2
+// 4 (0b0100): 4 & 3 = 0 ✓ power of 2
+// 5 (0b0101): 5 & 4 = 4 ✗ not power of 2</code></pre>
+
+            <h3>Pattern 8: Count Set Bits (Bit Population)</h3>
+            <pre><code>// Count how many bits are set to 1
+int count_set_bits(uint8_t value) {
+    int count = 0;
+    while (value) {
+        count += value & 1;  // Check lowest bit
+        value >>= 1;         // Shift right to check next bit
+    }
+    return count;
+}
+
+// Faster: uses Brian Kernighan's algorithm
+int fast_count_bits(uint8_t value) {
+    int count = 0;
+    while (value) {
+        value &= (value - 1);  // Clear lowest set bit
+        count++;
+    }
+    return count;
+}
+
+// GCC built-in (if available)
+int bit_count = __builtin_popcount(value);  // Returns number of 1 bits
+
+// Example: count enabled interrupts
+uint32_t enabled_mask = 0x00001F03;
+int active_interrupts = __builtin_popcount(enabled_mask);  // Returns 6</code></pre>
+
+            <h2 class="section-header">3. Real Embedded Patterns</h2>
+
+            <h3>Pattern: GPIO Pin Control</h3>
+            <pre><code>// STM32 GPIO example
+#define GPIO_OUTPUT_ENABLE(port, pin) ((port) |= (1 << (pin)))
+#define GPIO_OUTPUT_DISABLE(port, pin) ((port) &= ~(1 << (pin)))
+#define GPIO_PIN_ON(port, pin) ((port) |= (1 << (pin)))
+#define GPIO_PIN_OFF(port, pin) ((port) &= ~(1 << (pin)))
+#define GPIO_PIN_TOGGLE(port, pin) ((port) ^= (1 << (pin)))
+
+// Usage
+uint32_t port_a = 0;
+GPIO_PIN_ON(port_a, 5);      // LED on
+GPIO_PIN_TOGGLE(port_a, 5);  // LED off
+GPIO_PIN_TOGGLE(port_a, 5);  // LED on again</code></pre>
+
+            <h3>Pattern: Status Register Parsing</h3>
+            <pre><code>// Device status register (fictional)
+// Bit 0: Ready
+// Bits 1-3: Error code
+// Bit 4: Busy flag
+// Bits 5-7: Reserved
+
+uint8_t status = read_device_status();
+
+bool ready = status & 0x01;  // Check bit 0
+uint8_t error_code = (status >> 1) & 0x07;  // Extract bits 1-3
+bool busy = (status >> 4) & 0x01;  // Check bit 4
+
+if (ready && !busy) {
+    // Device is ready to use
+    if (error_code != 0) {
+        // But there's an error code
+        printf("Error %d occurred\n", error_code);
+    }
+}</code></pre>
+
+            <h3>Pattern: Data Serialization</h3>
+            <pre><code>// Pack sensor readings into bytes for transmission
+struct SensorData {
+    uint16_t temp;      // 0-100°C (can fit in 7 bits: 0-127)
+    uint8_t humidity;   // 0-100% (can fit in 7 bits: 0-127)
+    bool alert;         // 1 bit
+};
+
+// Encode into 2 bytes instead of 4 (saves bandwidth!)
+uint8_t encode_sensor_data(SensorData *data) {
+    uint16_t packed = 0;
+    
+    // Pack temperature in bits 0-6 (7 bits)
+    packed |= (data->temp << 0);
+    
+    // Pack humidity in bits 7-13 (7 bits)
+    packed |= (data->humidity << 7);
+    
+    // Pack alert in bit 14 (1 bit)
+    packed |= ((data->alert ? 1 : 0) << 14);
+    
+    return packed;  // 15 bits used, 1 spare
+}
+
+// Decode back
+SensorData decode_sensor_data(uint16_t packed) {
+    SensorData data;
+    data.temp = (packed >> 0) & 0x7F;     // Extract bits 0-6
+    data.humidity = (packed >> 7) & 0x7F;  // Extract bits 7-13
+    data.alert = (packed >> 14) & 0x01;    // Extract bit 14
+    return data;
+}</code></pre>
+
+            <h2 class="section-header">Performance Optimization</h2>
+            <p>Bitwise operations are <strong>incredibly fast</strong>—usually single CPU cycles. Compare:</p>
+            <pre><code>// Method 1: Conditional (slow, branch prediction miss = stall)
+if (status == 1) {
+    // Approximately 2-5 cycles (depending on pipeline)
+}
+
+// Method 2: Bitwise (fast, no branching)
+if (status & 0x01) {
+    // 1 cycle (no branch)
+}
+
+// On deeply embedded systems, this matters!</code></pre>
+
+            <div class="success-box">
+                <strong>✅ Bit Mastery Levels:</strong>
+                <ol>
+                    <li><strong>Beginner:</strong> Can check/set/clear individual bits</li>
+                    <li><strong>Intermediate:</strong> Can extract and set multi-bit fields</li>
+                    <li><strong>Expert:</strong> Optimizes data layouts using bit packing, understands byte ordering and bit operations at instruction level</li>
+                </ol>
+            </div>
+
+            <h2 class="section-header">Best Practices</h2>
+            <ul>
+                <li><strong>Use macros for clarity:</strong> `BIT_SET(val, 3)` is clearer than `val |= 8`</li>
+                <li><strong>Comment bit layouts:</strong> When dealing with packed data, document the bit layout</li>
+                <li><strong>Consider endianness:</strong> Bit shifting behaves differently on big-endian vs little-endian systems</li>
+                <li><strong>Use fixed-width types:</strong> Always use uint8_t, uint16_t, etc. Never assume int size</li>
+                <li><strong>Beware of signed shifts:</strong> Right-shifting negative numbers can have surprising results</li>
+                <li><strong>Test on hardware:</strong> Bit behaviors vary subtly across processors</li>
+            </ul>
+
+            <h2 class="section-header">Summary</h2>
+            <p>Bit manipulation is the foundation of embedded programming. Master these operators and patterns:</p>
+            <ul>
+                <li><strong>&</strong> selects bits (AND)</li>
+                <li><strong>|</strong> enables bits (OR)</li>
+                <li><strong>^</strong> toggles bits (XOR)</li>
+                <li><strong>~</strong> inverts bits (NOT)</li>
+                <li><strong><<</strong> shifts left (multiply by 2^n)</li>
+                <li><strong>>></strong> shifts right (divide by 2^n)</li>
+            </ul>
+            <p>Use them to control hardware, parse data, optimize memory, and communicate with devices. Every embedded system you'll ever program depends on these operations.</p>
+        </section>
+
+        <section>
+            <h2 class="section-header">Practice Projects</h2>
+            <p><strong>Project 1:</strong> Write a system to manage 8 GPIO pins using a single uint8_t variable. Provide functions to set, clear, and toggle pins, and read their state.</p>
+            <p><strong>Project 2:</strong> Implement a bitfield struct for a status register with multiple control fields. Show how to read and write individual fields without affecting others.</p>
+            <p><strong>Project 3:</strong> Build a circular buffer implementation that uses bit manipulation for the write pointer wrapping (assume buffer size is power of 2).</p>
+        </section>
+
+        <section>
+            <h2 class="section-header">What's Next?</h2>
+            <p>You've mastered bit manipulation! Continue with:</p>
+            <ul>
+                <li><a href="cpp-basics-operators.html" style="color: #00d4ff; font-weight: bold;">Operators (Bitwise Deep Dive)</a> - Review faster operators for even more optimization</li>
+                <li><a href="embedded-systems.html" style="color: #00d4ff; font-weight: bold;">Embedded Systems</a> - Apply bit manipulation directly to hardware</li>
+                <li><a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">Back to C++ Basics</a> - Return to the fundamentals</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 C++ Embedded Learning Site</p>
+    </footer>
+</body>
+</html>

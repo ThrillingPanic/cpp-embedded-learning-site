@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Flow - C++ Basics</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        .lesson-nav { background: #151b28; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #00d4ff; }
+        .learning-objectives { background: #1a2332; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #00d4ff; }
+        .learning-objectives li { margin: 8px 0; }
+        .key-concepts { background: #2c5aa0; padding: 15px; margin: 15px 0; border-radius: 5px; font-weight: bold; }
+        .concept-box { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #ff9000; border-radius: 3px; }
+        .real-world { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
+        .warning-box { background: #3a1a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #ff4444; border-radius: 3px; }
+        .section-divider { border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px; }
+        .project { background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px; }
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Control Flow</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics Hub</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="lesson-nav">
+            <h2>What You'll Learn</h2>
+            <div class="learning-objectives">
+                <ul>
+                    <li>if statements: how to make conditional decisions</li>
+                    <li>if-else: choosing between two actions</li>
+                    <li>else-if chains: testing multiple conditions in order</li>
+                    <li>switch statements: handling many possible values</li>
+                    <li>Nested conditions: combining multiple decisions</li>
+                    <li>Guard clauses: early returns to clean code</li>
+                </ul>
+            </div>
+        </section>
+
+        <section>
+            <h2>Understanding Control Flow: Making Your Program Smart</h2>
+            <p><strong>Control flow</strong> is the beating heart of interactive programs. It's how your program makes decisions and reacts to what it senses. Without control flow, your program would be like a robot that always does the same thing—useful maybe three times, useless the other 999 times.</p>
+
+            <p><strong>Imagine a thermostat without control flow:</strong> It would heat the house constantly, regardless of temperature. The house would become unbearably hot. The system would waste energy. It's useless because it can't decide "am I hot? If so, stop heating. Am I cold? If so, start heating."</p>
+
+            <p><strong>Real embedded systems make thousands of decisions every second:</strong></p>
+            <ul>
+                <li><strong>A medical monitor:</strong> "Is patient's heart rate normal? If abnormal, sound alarm"</li>
+                <li><strong>A car's engine control:</strong> "Is oxygen sensor reading strange? If so, enter safe mode"</li>
+                <li><strong>An industrial robot:</strong> "Did I reach the target position? If not, adjust motors"</li>
+                <li><strong>A drone:</strong> "Is wind too strong? If so, return to launch site"</li>
+            </ul>
+
+            <p>Control flow statements (if, else if, else, switch) are how embedded systems read sensors, make decisions, and take action. Master these concepts and you're well on your way to writing intelligent code.</p>
+
+            <p><strong>The three fundamental control structures in embedded C++:</strong></p>
+            <ul>
+                <li><strong>if:</strong> "Is this condition true? If YES, execute this block. If NO, skip it"</li>
+                <li><strong>if...else:</strong> "Is this condition true? If YES, execute block A. If NO, execute block B" (choose one or the other)</li>
+                <li><strong>switch:</strong> "What is this value? If 1, do this. If 2, do that. If 3, do something else" (pick one from many options)</li>
+            </ul>
+
+            <a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Hub</a>
+        </section>
+
+        <section style="border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px;">
+            <h2>The if Statement: "Do This Only If..."</h2>
+            <p>The if statement is the simplest decision. It means: "Check this condition. If it's true, execute the code block. If it's false, skip it."</p>
+
+            <p><strong>Think of it like a security checkpoint:</strong> "Is it raining? If YES, close the roof. If NO, ignore this." If it's not raining, you don't close the roof. Simple.</p>
+
+            <p><strong>Syntax:</strong></p>
+            <pre><code>if (condition) {
+    // Statements here execute ONLY if condition is true
+    // If condition is false, this block is skipped completely
+}</code></pre>
+
+            <h3>Real-World Embedded Examples</h3>
+
+            <p><strong>Example 1: Low Battery Protection</strong></p>
+            <pre><code>uint8_t battery_percent = 15;
+
+if (battery_percent < 20) {
+    // Battery is critically low
+    enterLowPowerMode();  // Only runs if battery is below 20%
+    displayBatteryWarning();
+    disableWifi();  // Conserve power
+}
+// If battery_percent is 50, these functions never execute</code></pre>
+
+            <p><strong>Example 2: Temperature Safety</strong></p>
+            <pre><code>uint8_t motor_temperature = 85;
+
+if (motor_temperature > 80) {
+    // Motor is overheating—take action
+    reduceMotorPower();
+    activateCooling();
+    logTemperatureEvent();
+}
+// If motor_temperature is 70, nothing happens—motor is fine</code></pre>
+
+            <p><strong>Example 3: Sensor Sanity Check</strong></p>
+            <pre><code>uint16_t pressure_reading = 985;
+
+if (pressure_reading < 500) {
+    // Pressure is impossibly low (sensor malfunction?)
+    reportSensorError();
+    useDefaultPressure();
+}
+// If pressure is reasonable (>500), code continues normally</code></pre>
+
+            <h3>Critical Mistake: Forgetting Braces</h3>
+            <div class="warning-box">
+                <strong>⚠️ Always Use Braces in if Statements</strong>
+                <p>C++ allows single-line if statements without braces. This is a disaster waiting to happen:</p>
+
+                <pre><code>// DANGEROUS - no braces
+if (error)
+    log_error();
+    shutdown_system();  // This ALWAYS runs, regardless of error!
+
+// The second line is NOT part of the if statement.
+// It executes after the if regardless of condition.
+// Very subtle bug!
+
+// CORRECT - with braces
+if (error) {
+    log_error();
+    shutdown_system();  // Now correctly tied to the if
+}</code></pre>
+
+                <p><strong>Golden rule:</strong> Always use braces around if blocks, even for single statements. Your future self won't accidentally add bugs.</p>
+            </div>
+
+            <h3>Nested if Statements: Multiple Conditions</h3>
+            <p>Sometimes you need to make a decision inside a decision. This is called nesting:</p>
+
+            <pre><code>// Device startup sequence
+if (power_button_pressed) {
+    // First decision: is the button being held?
+    
+    if (self_diagnostics_passed) {
+        // Second decision: did self-test pass?
+        
+        if (battery_voltage_good) {
+            // Third decision: is battery healthy?
+            
+            start_system();  // Only if ALL conditions are true
+        } else {
+            show_low_battery_error();
+        }
+    } else {
+        show_self_test_failed_message();
+    }
+} else {
+    // Power button not pressed—don't start
+}</code></pre>
+
+            <p><strong>Nesting deepens logic complexity.</strong> Three levels is getting hard to follow. Five levels is a nightmare. More than three levels usually signals you should refactor into separate functions.</p>
+        </section>
+
+        <section>
+            <h3>The if-else Statement</h3>
+            <p>Execute one block if true, different block if false.</p>
+
+            <pre><code>if (sensor_reading > THRESHOLD) {
+    turn_on_motor();
+} else {
+    turn_off_motor();
+}
+            </code></pre>
+
+            <h4>if-else if-else Chain</h4>
+            <pre><code>uint8_t temperature = 35;
+
+if (temperature > 40) {
+    shutdown_device();
+} else if (temperature > 35) {
+    reduce_clock_speed();
+} else if (temperature > 25) {
+    normal_operation();
+} else {
+    increase_performance();
+}
+
+// Note: Only ONE block executes!
+            </code></pre>
+
+            <h4>Nested if Statements</h4>
+            <pre><code>if (device_powered_on) {
+    if (self_test_passed) {
+        if (sensors_ready) {
+            start_measurement();
+        } else {
+            wait_for_sensors();
+        }
+    } else {
+        report_fault();
+    }
+} else {
+    enter_sleep_mode();
+}
+            </code></pre>
+
+            <p><strong>Problem:</strong> Gets hard to read. Consider combining conditions instead:</p>
+            <pre><code>// Clearer
+if (device_powered_on && self_test_passed && sensors_ready) {
+    start_measurement();
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>The switch Statement</h3>
+            <p>Use when checking one variable against multiple values. Cleaner than many if-else chains.</p>
+
+            <pre><code>uint8_t state = 2;
+
+switch (state) {
+    case 0:
+        init_device();
+        break;
+    case 1:
+        normal_operation();
+        break;
+    case 2:
+        error_detected();
+        break;
+    default:
+        unknown_state();
+        break;
+}
+            </code></pre>
+
+            <h4>The Break Statement (Critical!)</h4>
+            <pre><code>// WRONG - No break statements!
+switch (mode) {
+    case 1:
+        set_high_speed();    // Runs...
+    case 2:
+        set_low_speed();     // ...then this runs too!
+    case 3:
+        set_standby();       // ...and this!
+}
+
+// RIGHT - break prevents fall-through
+switch (mode) {
+    case 1:
+        set_high_speed();
+        break;
+    case 2:
+        set_low_speed();
+        break;
+    case 3:
+        set_standby();
+        break;
+    default:
+        invalid_mode();
+        break;
+}
+            </code></pre>
+
+            <h4>Intentional Fall-through</h4>
+            <p>Sometimes you want code to execute for multiple cases:</p>
+            <pre><code>switch (error_code) {
+    case 1:          // Fall through
+    case 2:
+    case 3:
+        // Handle errors 1, 2, 3 the same way
+        log_mild_error();
+        continue_operation();
+        break;
+    case 4:          // Different handling
+    case 5:
+        // Handle errors 4, 5 differently
+        shutdown_device();
+        break;
+}
+            </code></pre>
+
+            <h4>Practical Embedded Example</h4>
+            <pre><code>// UART command parser
+uint8_t command = read_uart();
+
+switch (command) {
+    case 'S':  // Start
+        start_measurement();
+        uart_send("Started\n");
+        break;
+    case 'P':  // Pause
+        pause_measurement();
+        uart_send("Paused\n");
+        break;
+    case 'R':  // Reset
+        reset_state();
+        uart_send("Reset\n");
+        break;
+    case '?':  // Help
+        uart_send("Commands: S, P, R, ?\n");
+        break;
+    default:
+        uart_send("Unknown command\n");
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Conditional (Ternary) Operator</h3>
+            <p>Compact if-else in one line. Good for simple conditions.</p>
+
+            <pre><code>uint8_t speed = (speed_sensor > 100) ? 255 : 128;
+// If speed_sensor > 100, speed = 255, else speed = 128
+
+// Equivalent if-else
+uint8_t speed;
+if (speed_sensor > 100) {
+    speed = 255;
+} else {
+    speed = 128;
+}
+            </code></pre>
+
+            <p><strong>Good use:</strong> Simple substitutions</p>
+            <pre><code>uint8_t max_val = (a > b) ? a : b;  // Clear and short
+            </code></pre>
+
+            <p><strong>Bad use:</strong> Nested or complex</p>
+            <pre><code>// AVOID
+uint8_t result = (temp > 30) ? (humidity > 60 ? 3 : 2) : 1;
+
+// Use if-else instead
+uint8_t result;
+if (temp > 30) {
+    result = (humidity > 60) ? 3 : 2;
+} else {
+    result = 1;
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Boolean Expressions</h3>
+            <p>Conditions evaluate to true (1) or false (0).</p>
+
+            <pre><code>uint8_t count = 5;
+
+// These are equivalent
+if (count > 0) { }      // Explicit
+if (count) { }          // Implicit (non-zero = true)
+
+// For clarity, be explicit
+if (count != 0) { }     // Very clear
+
+// For flags/booleans
+uint8_t ready = 1;
+if (ready) { }          // OK - it's a flag
+if (ready == 1) { }     // Also OK
+
+// Negation
+if (!ready) { }         // NOT ready
+if (ready == 0) { }     // Same thing
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Early Return / Guard Clauses</h3>
+            <p>Exit early to reduce nesting and improve readability.</p>
+
+            <pre><code>// NESTED - Hard to follow
+void process_command(uint8_t cmd) {
+    if (cmd != 0) {
+        if (system_ready) {
+            if (!error_flag) {
+                execute_command(cmd);
+            }
+        }
+    }
+}
+
+// GUARD CLAUSES - Much clearer
+void process_command(uint8_t cmd) {
+    if (cmd == 0) return;              // Early exit
+    if (!system_ready) return;         // Another early exit
+    if (error_flag) return;            // Another
+    
+    execute_command(cmd);              // Main logic at top level
+}
+            </code></pre>
+
+            <h4>Real Embedded Example</h4>
+            <pre><code>uint8_t read_sensor_safe() {
+    // Guard clauses: return early if conditions aren't met
+    if (!power_enabled()) {
+        return 0;
+    }
+    if (!sensor_initialized()) {
+        return 0;
+    }
+    if (temperature_critical()) {
+        return 0;
+    }
+    
+    // If we get here, everything is OK
+    return read_sensor();
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Scope and Variable Visibility</h3>
+            <p>Variables are only visible within their scope (curly braces).</p>
+
+            <pre><code>uint8_t global_var = 1;  // Visible everywhere
+
+void my_function() {
+    uint8_t function_var = 2;  // Only visible in this function
+    
+    if (condition) {
+        uint8_t block_var = 3;  // Only visible in this block
+        // Can access: global_var, function_var, block_var
+    }
+    
+    // Can't access block_var here - it's out of scope
+    // CAN access global_var and function_var
+}
+
+// Can't access function_var or block_var here
+            </code></pre>
+
+            <h4>Scope Advantages</h4>
+            <pre><code>// You can reuse variable names in different scopes
+void sensor_reading() {
+    uint8_t value = read_temp();
+    process_temperature(value);
+}
+
+void voltage_reading() {
+    uint8_t value = read_voltage();
+    process_voltage(value);
+}
+
+// Each function has its own 'value' variable - no conflict
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Common Flow Mistakes</h3>
+            <ul>
+                <li><strong>Missing braces:</strong> Leads to unexpected behavior when multiple statements intended</li>
+                <li><strong>Assignment vs comparison:</strong> <code>if (x = 5)</code> assigns, <code>if (x == 5)</code> compares</li>
+                <li><strong>Forgetting break in switch:</strong> Code falls through to next case</li>
+                <li><strong>Deep nesting:</strong> Hard to understand. Refactor with guard clauses</li>
+                <li><strong>Relying on implicit true:</strong> <code>if (counter)</code> works but <code>if (counter != 0)</code> is clearer</li>
+            </ul>
+
+            <pre><code>// WRONG - Assignment in condition!
+if (status = READY) {  // Now status is set to READY!
+    // This runs even if status was something else
+}
+
+// RIGHT
+if (status == READY) {
+    // Check if status equals READY
+}
+
+// WRONG - Missing braces, confusing indentation
+if (armed)
+    disable_power();
+    shutdown_safely();  // This ALWAYS runs!
+
+// RIGHT
+if (armed) {
+    disable_power();
+    shutdown_safely();
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Performance Notes</h3>
+            <p>In embedded systems, every instruction counts.</p>
+
+            <pre><code>// Simple if-else is fast
+if (flag) {
+    action_a();
+} else {
+    action_b();
+}
+
+// Switch with many cases: compiler optimizes to jump table
+// For many cases (10+), often faster than if-else chains
+switch (state) {
+    case 0: ... break;
+    case 1: ... break;
+    case 2: ... break;
+    // ... many more cases
+}
+
+// Avoid deep nesting - makes branch prediction harder
+// Instead, use guard clauses or switch statements
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>Summary</h2>
+            <ul>
+                <li>Use if for single conditions, if-else for alternatives</li>
+                <li>Use switch for checking one variable against many values</li>
+                <li>Always use braces to avoid mistakes</li>
+                <li>Use ternary operator for simple, clear expressions</li>
+                <li>Use guard clauses to reduce nesting</li>
+                <li>Be aware of scope—variables are only visible in their block</li>
+                <li>Use boolean logic to combine multiple conditions clearly</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Mini-Projects to Strengthen Your Skills</h2>
+            
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 1: Traffic Light State Machine</h3>
+                <p><strong>Objective:</strong> Create a simple state machine that determines which traffic light to show based on a current state variable.</p>
+
+                <p><strong>What you'll learn:</strong> How if-else chains represent simple decision logic in embedded systems.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a uint8_t variable light_state (0 = red, 1 = yellow, 2 = green)</li>
+                    <li>Use if-else to check the state and set appropriate LEDs to HIGH or LOW</li>
+                    <li>Try all three states and verify the right LED lights up</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution1')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution1" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code">// Define pins for each light
+#define RED_PIN 2
+#define YELLOW_PIN 3
+#define GREEN_PIN 4
+
+// Current light state
+uint8_t light_state = 0;  // 0=red, 1=yellow, 2=green
+
+// Showing the current light
+uint8_t red_on = 0;
+uint8_t yellow_on = 0;
+uint8_t green_on = 0;
+
+// Determine which light to show
+if (light_state == 0) {
+    red_on = 1;
+    yellow_on = 0;
+    green_on = 0;
+} else if (light_state == 1) {
+    red_on = 0;
+    yellow_on = 1;
+    green_on = 0;
+} else if (light_state == 2) {
+    red_on = 0;
+    yellow_on = 0;
+    green_on = 1;
+} else {
+    // Invalid state - turn all off
+    red_on = 0;
+    yellow_on = 0;
+    green_on = 0;
+}
+
+// (In real code, you'd then write these to the actual pins)</code></pre>
+                    
+                    <p><strong>Why this works:</strong> If-else chains let you map a state value to different outputs. This pattern appears everywhere in embedded systems: different modes, different behaviors based on a value, etc.</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 2: Device Mode Selector with Switch</h3>
+                <p><strong>Objective:</strong> Use a switch statement to control different device behaviors based on a mode variable.</p>
+
+                <p><strong>What you'll learn:</strong> Switch statements are cleaner than if-else when checking one variable against many values.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a uint8_t device_mode (0=standby, 1=normal, 2=fast, 3=eco)</li>
+                    <li>Use a switch statement to set power consumption based on mode</li>
+                    <li>Create a uint8_t power_level and set it differently for each mode</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution2')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>uint8_t device_mode = 1;      // Current operating mode
+uint8_t power_level = 0;      // How much power to use (0-255)
+uint8_t led_brightness = 0;   // How bright to make status LED
+
+switch (device_mode) {
+    case 0:
+        // Standby mode: minimal power
+        power_level = 10;
+        led_brightness = 10;
+        break;
+    
+    case 1:
+        // Normal mode: moderate power
+        power_level = 128;
+        led_brightness = 128;
+        break;
+    
+    case 2:
+        // Fast mode: maximum power
+        power_level = 255;
+        led_brightness = 255;
+        break;
+    
+    case 3:
+        // Eco mode: low power, optimized
+        power_level = 50;
+        led_brightness = 30;
+        break;
+    
+    default:
+        // Unknown mode: safe default
+        power_level = 0;
+        led_brightness = 0;
+        break;
+}
+
+// (Now apply these settings to actual hardware)</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Each case represents a different mode. Without the break, it would "fall through" to the next case (usually a mistake). The default case catches invalid modes safely.</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 3: Temperature-Based Fan Control</h3>
+                <p><strong>Objective:</strong> Use nested if-else and ternary operators to control fan speed based on temperature.</p>
+
+                <p><strong>What you'll learn:</strong> Complex conditions using nesting and ternary operators for concise decision logic.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a uint8_t temperature variable</li>
+                    <li>Use if-else to determine fan_status (0=off, 1=low, 2=medium, 3=max)</li>
+                    <li>Use a ternary operator to set warning_led (1 if temp > 40, else 0)</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution3')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution3" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>const uint8_t TEMP_OFF = 15;
+const uint8_t TEMP_LOW = 20;
+const uint8_t TEMP_MEDIUM = 28;
+const uint8_t TEMP_MAX = 35;
+const uint8_t TEMP_WARNING = 40;
+
+uint8_t temperature = 22;
+
+// Determine fan speed
+uint8_t fan_status = 0;
+
+if (temperature < TEMP_OFF) {
+    fan_status = 0;  // Off
+} else if (temperature < TEMP_LOW) {
+    fan_status = 1;  // Low
+} else if (temperature < TEMP_MEDIUM) {
+    fan_status = 2;  // Medium
+} else if (temperature < TEMP_MAX) {
+    fan_status = 3;  // Max
+} else {
+    fan_status = 3;  // Stay at max if above max threshold
+}
+
+// Simple warning: true/false with ternary
+uint8_t warning_led = (temperature > TEMP_WARNING) ? 1 : 0;
+
+// (In real code, you'd apply these to actual hardware)</code></pre>
+                    
+                    <p><strong>Why this works:</strong> If-else chains determine outputs, ternary operators handle simple true/false decisions. Together they give you flexible control over device behavior.</p>
+                </div>
+            </div>
+        </section>
+
+        <section style="background: #151b28; padding: 20px; border-radius: 5px; margin: 30px 0;">
+            <h2>Key Takeaways</h2>
+            <ul>
+                <li>if statements: Execute code only if condition is true</li>
+                <li>if-else: Choose between two actions</li>
+                <li>else-if chains: Test multiple conditions in order</li>
+                <li>switch: Clean when checking one variable against many values</li>
+                <li>Use guard clauses to reduce nesting and improve readability</li>
+                <li>Always use braces to avoid subtle bugs</li>
+            </ul>
+        </section>
+
+        <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
+            <h3>Ready for loops?</h3>
+            <p>Now you can make decisions. Next lesson: how to repeat actions with loops. You'll combine decisions with repetition to create powerful programs.</p>
+            <a href="cpp-basics-loops.html" style="display: inline-block; background: #00d4ff; color: #0a0f1b; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Next: Loops →</a>
+            <a href="cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to Basics</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 C++ Embedded Learning Site</p>
+    </footer>
+    <script src="../assets/js/script.js"></script>
+</body>
+</html>
+
+// (Now use fan_status and warning_led to control actual hardware)</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Nested if-else lets you check multiple thresholds in order. The ternary operator is perfect for simple on/off decisions (like the warning LED). Together they handle temperature control intuitively.</p>
+                </div>
+            </div>
+        </section>
+
+        <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
+            <h3>Ready for the next lesson?</h3>
+            <a href="cpp-basics-loops.html" style="display: inline-block; background: #00d4ff; color: #0a0f1b; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Next: Loops →</a>
+            <a href="cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to Basics</a>
+        </section>
+
+        <section>
+            <p><a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Overview</a></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 C++ Embedded Learning Site</p>
+    </footer>
+    <script src="../assets/js/script.js"></script>
+</body>
+</html>

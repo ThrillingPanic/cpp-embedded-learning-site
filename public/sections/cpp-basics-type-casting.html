@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type Casting & Conversions - C++ Basics</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+        .section-header { border-bottom: 2px solid #00d4ff; padding-bottom: 12px; margin: 30px 0 20px 0; }
+        .warning-box { background: #3a2a1a; padding: 16px; border-left: 4px solid #ff9000; border-radius: 4px; margin: 20px 0; }
+        .success-box { background: #1a3a1a; padding: 16px; border-left: 4px solid #00ff00; border-radius: 4px; margin: 20px 0; }
+        .info-box { background: #1a2a3a; padding: 16px; border-left: 4px solid #00d4ff; border-radius: 4px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>C++ Basics</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container">
+        <section>
+            <h1>Type Casting & Conversions</h1>
+            <p><strong>Difficulty Level:</strong> Fundamental</p>
+            <p>Type casting is how you convert one data type to another. In embedded systems, this is critical because you're constantly working with hardware that expects specific types: ADC readings come in as uint16_t, but you might need to work with them as floats for filtering. A sensor returns bytes, but you need to interpret them as signed values.</p>
+            
+            <h2 class="section-header">Why Type Casting Matters</h2>
+            <p><strong>Embedded Reality:</strong> Hardware is type-strict. A GPIO register expects uint32_t. A temperature sensor returns 12-bit values. A UART buffer is uint8_t. You WILL encounter type mismatches, and understanding casting prevents subtle bugs.</p>
+            
+            <div class="warning-box">
+                <strong>⚠️ Warning:</strong> Incorrect casting can silently corrupt data. A -10 stored in uint8_t becomes 246. A float truncated to int loses its decimal part. These bugs are insidious because the code compiles fine.
+            </div>
+
+            <h2 class="section-header">1. Implicit Conversions (Type Coercion)</h2>
+            <p>C++ automatically converts types in certain situations. This is convenient but <strong>dangerous in embedded code</strong> because you might not notice data loss.</p>
+
+            <h3>Widening Conversions (Safe)</h3>
+            <p>Expanding from smaller to larger type—no data loss:</p>
+            <pre><code>uint8_t sensor_reading = 42;
+uint16_t expanded = sensor_reading;  // OK: 8-bit → 16-bit</code></pre>
+            
+            <p>When you expand from uint8_t to uint16_t, the value 42 is preserved perfectly. The larger container has plenty of room. Nothing is lost:</p>
+            <pre><code>uint32_t more_space = expanded;  // OK: 16-bit → 32-bit</code></pre>
+            
+            <p>Same principle applies to signed integers:</p>
+            <pre><code>int8_t temp = -5;
+int16_t safe = temp;  // Fine: still -5
+int32_t safer = safe; // Still -5</code></pre>
+            
+            <p>Widening is always safe. You're moving from a small box to a bigger box—nothing gets lost in the move.</p>
+
+            <h3>Narrowing Conversions (Dangerous!)</h3>
+            <p>Shrinking from larger to smaller type—<strong>DATA LOSS</strong>:</p>
+            <pre><code>uint16_t adc_value = 300;
+uint8_t truncated = adc_value;  // Becomes 44 (300 & 0xFF)!
+// Upper bits thrown away. Value corrupted.
+
+int16_t sensor = 260;
+int8_t broken = sensor;  // Becomes 4 (truncation)
+// In embedded, this causes real-world failures</code></pre>
+
+            <p><strong>Why this happens:</strong> uint16_t value 300 = 0x012C. Only the lower byte (0x2C = 44) fits in uint8_t. The rest is discarded.</p>
+
+            <h3>Signed/Unsigned Mixing (Very Dangerous!)</h3>
+            <p>Mixing signed and unsigned is a classic bug:</p>
+            <pre><code>int8_t temp = -10;
+uint8_t positive = temp;  // Becomes 246 (bitwise reinterpret)!
+// -10 in 8-bit signed = 0xF6 = 246 unsigned
+// Not what you intended!
+
+// Common mistake in sensor code:
+int16_t sensor_reading = -50;
+if (sensor_reading < 200) {  // This might NOT work as expected!
+    // In some contexts, signed/unsigned comparison is implementation-defined
+}</code></pre>
+
+            <div class="warning-box">
+                <strong>Embedded Rule:</strong> Never implicitly convert between signed and unsigned. Always cast explicitly so future readers understand your intent.
+            </div>
+
+            <h2 class="section-header">2. Explicit C-Style Casts</h2>
+            <p>Traditional C-style casting with parentheses. Simple but dangerous because it forces any conversion:</p>
+
+            <pre><code>uint16_t adc = 300;
+uint8_t small = (uint8_t)adc;  // Truncate to 44
+// You made the choice explicit
+
+float voltage = 3.3;
+uint16_t digital = (uint16_t)voltage;  // Becomes 3 (truncates decimal)
+
+// Dangerous: cast away const
+const uint32_t *hardware_reg = (const uint32_t *)0x40000000;
+uint32_t *mutable_ptr = (uint32_t *)hardware_reg;  // Removes const!</code></pre>
+
+            <p><strong>Problems with C-style casts:</strong></p>
+            <ul>
+                <li>Hard to search for (just looks like parentheses)</li>
+                <li>Too powerful—can cast almost anything to anything</li>
+                <li>Hides bugs during code review</li>
+            </ul>
+
+            <h2 class="section-header">3. C++ Casts (Better!)</h2>
+            <p>C++ provides four specific casts. Use these instead of C-style casts in modern embedded code:</p>
+
+            <h3>static_cast - Safe Type Conversions</h3>
+            <p>For conversions that the compiler knows are safe (or intentionally lossy):</p>
+            <pre><code>// Converting between numeric types
+uint16_t adc_value = 1024;
+float voltage = static_cast<float>(adc_value) * 3.3 / 4096.0;
+
+// Converting between class types (if valid conversion exists)
+int sensor_value = 42;
+char ascii_digit = static_cast<char>('0' + sensor_value);
+
+// Pointers to base/derived class
+class Sensor { public: virtual void read() {} };
+class TemperatureSensor : public Sensor {};
+Sensor *base_ptr = new TemperatureSensor();
+TemperatureSensor *derived = static_cast<TemperatureSensor*>(base_ptr);</code></pre>
+
+            <h3>reinterpret_cast - Bit-Level Reinterpretation</h3>
+            <p>For pointer/reference casting where you're saying "interpret these bits as a different type". Dangerous but necessary for hardware access:</p>
+            <pre><code>// Hardware register access (this is where reinterpret_cast shines!)
+uint32_t *gpio_port_a = reinterpret_cast<uint32_t *>(0x40020000);
+uint32_t port_state = *gpio_port_a;
+
+// Interpreting buffer data as a struct
+struct SensorData { uint16_t temp; uint16_t humidity; };
+uint8_t raw_buffer[4] = { 0x10, 0x01, 0x50, 0x00 };
+SensorData *data = reinterpret_cast<SensorData*>(raw_buffer);
+// Now data->temp accesses first 2 bytes, data->humidity accesses last 2
+
+// Converting int to pointer (used in bootloader memory copying)
+void *buffer = reinterpret_cast<void*>(0x08000000);  // Flash memory address</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Critical:</strong> reinterpret_cast is how you access hardware registers. It's <strong>essential</strong> for embedded, but dangerous if misused. Always comment why you're doing it.
+            </div>
+
+            <h3>const_cast - Add/Remove const</h3>
+            <p>Remove const from a pointer or reference (usually a bad idea, but sometimes necessary):</p>
+            <pre><code>// Interfacing with legacy C code that doesn't use const
+void old_c_function(uint32_t *data);  // Doesn't promise to preserve data
+const uint32_t hw_register = 0x12345678;
+old_c_function(const_cast<uint32_t*>(&hw_register));  // Sketchy but necessary
+
+// More practical: reading a volatile hardware register into a const
+volatile uint32_t *sensor_port = reinterpret_cast<volatile uint32_t*>(0x40021000);
+const uint32_t snapshot = *sensor_port;  // Take const snapshot for processing</code></pre>
+
+            <h3>dynamic_cast - Runtime Type Checking</h3>
+            <p>Safely cast pointers/references in inheritance hierarchies. Returns nullptr on failure:</p>
+            <pre><code>// Probably NOT used in resource-constrained embedded code (requires RTTI)
+class Sensor { public: virtual ~Sensor() {} };
+class TempSensor : public Sensor {};
+class HumiditySensor : public Sensor {};
+
+Sensor *sensor = new TempSensor();
+TempSensor *temp = dynamic_cast<TempSensor*>(sensor);  // Safe!
+if (temp) { /* Yes, it's a TempSensor */ }
+else { /* No, it's something else */ }
+
+// Returns nullptr if cast fails
+HumiditySensor *humidity = dynamic_cast<HumiditySensor*>(sensor);
+if (!humidity) { /* Not a humidity sensor */ }</code></pre>
+
+            <div class="info-box">
+                <strong>Note:</strong> dynamic_cast requires RTTI (Run-Time Type Information), which adds overhead. Most embedded systems disable RTTI to save code space. Use static_cast if you know the type at compile-time.
+            </div>
+
+            <h2 class="section-header">4. Real Embedded Examples</h2>
+
+            <h3>Example 1: ADC to Voltage Conversion</h3>
+            <pre><code>// Raw 12-bit ADC value (0-4095)
+uint16_t adc_raw = read_adc_channel(0);
+
+// Convert to voltage (0-3.3V)
+float reference_voltage = 3.3f;
+float adc_max = 4095.0f;
+float voltage = static_cast<float>(adc_raw) * reference_voltage / adc_max;
+
+// Problem: float is slow on microcontrollers without FPU
+// Better: keep as integer math
+uint16_t millivolts = (adc_raw * 3300) / 4095;  // Result in mV</code></pre>
+
+            <h3>Example 2: Parsing Multi-Byte Sensor Data</h3>
+            <pre><code>// Sensor sends 4 bytes: [status_byte][temp_high][temp_low][crc]
+uint8_t sensor_buffer[4] = { 0x01, 0x19, 0x5C, 0x42 };
+
+// Method 1: Manually extract
+uint8_t status = sensor_buffer[0];
+int16_t temp = static_cast<int16_t>((sensor_buffer[1] << 8) | sensor_buffer[2]);
+// temp = 0x195C = 6492 (raw sensor units)
+
+// Method 2: Reinterpret as struct (careful with alignment!)
+struct SensorReading {
+    uint8_t status;
+    int16_t temperature;  // Note: byte order matters!
+    uint8_t crc;
+};
+// Dangerous! Assumes buffer layout matches struct
+// SensorReading *data = reinterpret_cast<SensorReading*>(sensor_buffer);</code></pre>
+
+            <h3>Example 3: Hardware Register Access</h3>
+            <pre><code>// GPIO Port A Control Register at memory address 0x40020000
+volatile uint32_t *gpio_port_a = reinterpret_cast<volatile uint32_t*>(0x40020000);
+
+// Set GPIO pin 5 as output (write 0x20 to lower byte)
+*gpio_port_a = 0x20;
+
+// Alternatively, use volatile uint32_t& for references
+volatile uint32_t &gpio_control = *reinterpret_cast<volatile uint32_t*>(0x40020000);
+gpio_control |= 0x20;  // Set bit 5</code></pre>
+
+            <h3>Example 4: Type-Safe Status Code Enum</h3>
+            <pre><code>// Define status codes
+enum class SensorStatus : uint8_t {
+    OK = 0x00,
+    ERROR = 0x01,
+    TIMEOUT = 0x02,
+    OVERFLOW = 0x03
+};
+
+// Hardware returns raw uint8_t
+uint8_t status_byte = read_hardware_register();
+
+// Safe conversion
+SensorStatus status = static_cast<SensorStatus>(status_byte);
+
+// Safer approach: validate the conversion
+if (status_byte <= 0x03) {
+    SensorStatus status = static_cast<SensorStatus>(status_byte);
+    // Handle known status
+} else {
+    // Unknown status—handle error
+}</code></pre>
+
+            <h2 class="section-header">5. Casting Pitfalls & Solutions</h2>
+
+            <h3>Pitfall 1: Truncation Without Notice</h3>
+            <pre><code>// Silent data loss
+uint32_t large_value = 1000000;
+uint16_t small = large_value;  // Compiles! But value becomes 64896 (overflow)
+
+// Better: explicit cast shows intent
+uint16_t small = static_cast<uint16_t>(large_value & 0xFFFF);</code></pre>
+
+            <h3>Pitfall 2: Signed/Unsigned Confusion</h3>
+            <pre><code>// Sensor reads -5°C, stored as signed int8_t
+int8_t temperature = -5;
+
+// Need to send over UART as unsigned byte
+uint8_t uart_data = static_cast<uint8_t>(temperature);  // Becomes 251
+
+// Receiver must know to interpret as signed
+int8_t received_temp = static_cast<int8_t>(uart_data);  // Back to -5</code></pre>
+
+            <h3>Pitfall 3: Float to Int Truncation</h3>
+            <pre><code>// Incorrect: data loss
+float sensor_value = 3.87;
+int scaled = sensor_value * 100;  // Becomes 387 (usually)
+
+// Better: be explicit
+int scaled = static_cast<int>(sensor_value * 100);
+
+// Best for embedded: scale to integer first, avoid float
+uint16_t raw_adc = 987;
+uint16_t millivolts = (raw_adc * 3300) / 4095;  // Integer-only, exact</code></pre>
+
+            <h2 class="section-header">Best Practices for Embedded Casting</h2>
+            <ul>
+                <li><strong>Prefer static_cast:</strong> It's the default choice for numeric conversions and inheritance.</li>
+                <li><strong>Use reinterpret_cast for hardware:</strong> Accessing memory-mapped registers requires it. Always comment why.</li>
+                <li><strong>Avoid implicit conversions:</strong> Use explicit casts so readers understand your intent.</li>
+                <li><strong>Avoid C-style casts:</strong> They're too powerful and hide mistakes.</li>
+                <li><strong>Validate conversions:</strong> If casting from uint32_t to uint8_t, check first that value fits.</li>
+                <li><strong>Document byte order:</strong> When casting between structs and raw buffers, specify endianness.</li>
+                <li><strong>Use const_cast rarely:</strong> If you're casting away const, question why. Usually indicates design issue.</li>
+                <li><strong>Test on actual hardware:</strong> Casting behavior can differ on different architectures.</li>
+            </ul>
+
+            <h2 class="section-header">Summary</h2>
+            <p>Type casting is unavoidable in embedded programming. The key is understanding:</p>
+            <ul>
+                <li><strong>Implicit conversions</strong> are convenient but dangerous (narrowing = data loss)</li>
+                <li><strong>static_cast</strong> handles numeric conversions and safe class conversions</li>
+                <li><strong>reinterpret_cast</strong> accesses hardware registers and reinterprets memory</li>
+                <li><strong>const_cast</strong> removes const (rare, usually unnecessary)</li>
+                <li><strong>dynamic_cast</strong> is for runtime type checking with inheritance (usually too expensive for embedded)</li>
+            </ul>
+            <p>Always be <strong>explicit</strong> about casting and <strong>documented</strong> about your intent. Future you (and your teammates) will thank you.</p>
+
+            <div class="success-box">
+                <strong>✅ Key Takeaway:</strong> In embedded systems, every cast is a potential data loss point. Make them explicit, validate them, and comment why you're doing it. The compiler will catch type errors if you let it—don't force conversions with casts unless absolutely necessary.
+            </div>
+        </section>
+
+        <section>
+            <h2 class="section-header">Practice Exercises</h2>
+            <p><strong>Exercise 1:</strong> Write a function that safely converts a uint16_t ADC reading to an int8_t temperature (-128 to +127°C), validating that the value fits before casting.</p>
+            <p><strong>Exercise 2:</strong> Design a function that parses a 6-byte sensor packet: 1 byte status + 2 bytes temperature + 2 bytes humidity + 1 byte checksum. Show both manual extraction and struct reinterpret methods.</p>
+            <p><strong>Exercise 3:</strong> Write hardware register access code that sets a specific bit in a GPIO control register using reinterpret_cast. Explain why reinterpret_cast is necessary here.</p>
+        </section>
+
+        <section>
+            <h2 class="section-header">What's Next?</h2>
+            <p>You've mastered type casting! Now explore:</p>
+            <ul>
+                <li><a href="cpp-basics-bit-manipulation.html" style="color: #00d4ff; font-weight: bold;">Bit Manipulation</a> - Use bitwise operators with your casted values</li>
+                <li><a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">Back to C++ Basics Hub</a> - Review other foundational topics</li>
+                <li><a href="embedded-systems.html" style="color: #00d4ff; font-weight: bold;">Embedded Systems</a> - See casting in action with real hardware</li>
+            </ul>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 C++ Embedded Learning Site</p>
+    </footer>
+</body>
+</html>
