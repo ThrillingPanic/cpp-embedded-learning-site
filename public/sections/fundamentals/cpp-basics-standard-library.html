@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard Library - C++ Basics</title>
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <style>
+        .lesson-nav { background: #151b28; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #00d4ff; }
+        .learning-objectives { background: #1a2332; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #00d4ff; }
+        .learning-objectives li { margin: 8px 0; }
+        .key-concepts { background: #2c5aa0; padding: 15px; margin: 15px 0; border-radius: 5px; font-weight: bold; }
+        .concept-box { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #ff9000; border-radius: 3px; }
+        .real-world { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
+        .warning-box { background: #3a1a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #ff4444; border-radius: 3px; }
+        .section-divider { border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px; }
+        .project { background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px; }
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+        .safe-box { background: #1a3a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
+        .avoid-box { background: #3a1a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #ff4444; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Standard Library</h1>
+        <nav>
+            <ul>
+                <li><a href="../intro.html">Introduction</a></li>
+                <li><a href="../cpp-basics.html">C++ Basics Hub</a></li>
+                <li><a href="../embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="../peripherals.html">Peripherals</a></li>
+                <li><a href="../rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <!-- LEARNING OBJECTIVES -->
+        <section class="lesson-nav">
+            <h2>What You'll Learn</h2>
+            <div class="learning-objectives">
+                <ul>
+                    <li>Which standard library headers are safe and useful for embedded systems</li>
+                    <li>How to use cstdio for formatted output (printf, sprintf)</li>
+                    <li>String handling with cstring and the dangers to avoid</li>
+                    <li>Math functions from cmath and when to use them</li>
+                    <li>Memory and utility functions from cstdlib</li>
+                    <li>Debugging with cassert and static_assert</li>
+                    <li>Which STL containers to avoid (and why) in embedded systems</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- CORE CONCEPT -->
+        <section>
+            <h2>The Standard Library in Embedded Systems</h2>
+            
+            <p><strong>C++ provides a massive standard library.</strong> But not all of it is appropriate for embedded systems. Some functions are designed for servers with gigabytes of RAM. Some rely on features not available in microcontrollers. Some cause runtime overhead that breaks real-time performance.</p>
+
+            <p><strong>Our philosophy:</strong> Use the parts of the standard library that provide genuine value without hidden costs. Avoid dynamic memory, heavy abstractions, and features that increase binary size.</p>
+
+            <div class="concept-box">
+                <strong>Embedded Standard Library Principle:</strong> Use only the headers you actually need. Each #include adds code to your binary. On a microcontroller with 32KB of flash, every kilobyte matters. Only include what you'll actually use.
+            </div>
+
+            <p><strong>The gold standard headers for embedded:</strong></p>
+            <ul>
+                <li><strong>cstdio:</strong> printf, sprintf, fprintf—essential for debugging and formatted output</li>
+                <li><strong>cstring:</strong> strlen, strcpy, strcmp—necessary for C-style strings and hardware communication</li>
+                <li><strong>cmath:</strong> sin, cos, sqrt, pow—when you need mathematical calculations</li>
+                <li><strong>cstdlib:</strong> malloc, free, abs, rand—general utilities (use malloc/free carefully!)</li>
+                <li><strong>cassert:</strong> assert—catch programmer mistakes during development</li>
+                <li><strong>cstdint:</strong> uint8_t, int16_t, uint32_t—fixed-width integer types (essential!)</li>
+                <li><strong>climits:</strong> INT_MAX, INT_MIN, UINT_MAX—value limits</li>
+            </ul>
+
+            <p><strong>Headers to use carefully or avoid:</strong></p>
+            <ul>
+                <li><strong>NO dynamic STL containers:</strong> std::vector, std::map, std::deque (use fixed arrays instead)</li>
+                <li><strong>NO std::string:</strong> Use C-style char arrays or fixed-size buffers</li>
+                <li><strong>NO exceptions:</strong> Many embedded systems disable exceptions (adds overhead, embedded systems crash anyway)</li>
+                <li><strong>NO iostream:</strong> Use cstdio (printf) instead—larger binary, more overhead</li>
+                <li><strong>NO threads:</strong> Use RTOS or interrupts instead</li>
+            </ul>
+        </section>
+
+        <!-- CSTDIO: FORMATTED OUTPUT -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>cstdio: Formatted Output with printf and sprintf</h2>
+            
+            <p><strong>printf is your best friend in embedded systems.</strong> It's the foundation of debugging, logging, and communicating with the outside world.</p>
+
+            <h3>Basic printf Usage</h3>
+            <pre><code>#include <cstdio>
+
+int main() {
+    int count = 42;
+    float voltage = 3.14159;
+    
+    printf("Count: %d\n", count);
+    printf("Voltage: %.2f V\n", voltage);
+}</code></pre>
+
+            <p><strong>Common format specifiers:</strong></p>
+            <ul>
+                <li><code>%d</code> – decimal integer (int)</li>
+                <li><code>%u</code> – unsigned integer</li>
+                <li><code>%x</code> – hexadecimal (0x3F4A)</li>
+                <li><code>%f</code> – floating point (3.14159)</li>
+                <li><code>%.2f</code> – floating point with 2 decimals (3.14)</li>
+                <li><code>%c</code> – single character</li>
+                <li><code>%s</code> – null-terminated string</li>
+            </ul>
+
+            <h3>sprintf: Formatted String Building</h3>
+            <p><strong>sprintf writes formatted output to a string buffer instead of the console.</strong> This is essential when you need to construct messages for transmission:</p>
+
+            <pre><code>char message[100];
+int temperature = 25;
+
+sprintf(message, "TEMP:%d,STATUS:OK\n", temperature);
+// message now contains: "TEMP:25,STATUS:OK\n"
+
+// Send to serial/network
+send_message(message, strlen(message));</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Buffer Overflow Risk with sprintf</strong>
+                <p>sprintf can write past your buffer if the formatted string is too long! Always use snprintf with a size limit:</p>
+                <pre><code>char message[32];
+
+// DANGEROUS - could overflow buffer
+sprintf(message, "Value: %d", huge_number);
+
+// SAFE - limits to 32 bytes
+snprintf(message, sizeof(message), "Value: %d", huge_number);</code></pre>
+            </div>
+
+            <h3>Real Embedded Example: Sensor Logging</h3>
+            <pre><code>struct SensorReading {
+    uint16_t temperature;
+    uint16_t humidity;
+    uint32_t timestamp;
+};
+
+void log_sensor(SensorReading *data) {
+    char buffer[128];
+    
+    snprintf(buffer, sizeof(buffer),
+             "[%lu] TEMP:%d HUMID:%d\n",
+             data->timestamp,
+             data->temperature,
+             data->humidity);
+    
+    // Send to serial/SD card/network
+    send_log_entry(buffer);
+}</code></pre>
+
+            <p><strong>Key takeaway:</strong> printf and sprintf are lightweight, efficient, and available everywhere. Use them liberally for debugging and communication.</p>
+        </section>
+
+        <!-- CSTRING: STRING OPERATIONS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>cstring: C-Style String Functions</h2>
+            
+            <p><strong>Embedded systems use C-style strings (char arrays).</strong> The C++ std::string class adds overhead and dynamic memory. Learn these essential string functions:</p>
+
+            <h3>Essential cstring Functions</h3>
+            <pre><code>#include <cstring>
+
+// Length of string (counts until \0)
+const char *msg = "Hello";
+printf("Length: %zu\n", strlen(msg));  // Output: Length: 5
+
+// Copy string
+char buffer[50];
+strcpy(buffer, "Source");  // buffer now contains "Source"
+
+// Safe copy with length limit (preferred)
+strncpy(buffer, "Source", sizeof(buffer) - 1);
+buffer[sizeof(buffer) - 1] = '\0';  // Ensure null termination
+
+// Compare strings
+if (strcmp(buffer, "Source") == 0) {
+    printf("Strings are equal\n");
+}
+
+// Case-insensitive comparison
+if (strcasecmp(buffer, "source") == 0) {
+    printf("Strings match (case-insensitive)\n");
+}
+
+// Find character in string
+char *ptr = strchr("Hello World", 'o');  // Points to first 'o'
+
+// Find substring
+char *sub = strstr("Hello World", "World");  // Points to "World"</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Critical: strcpy and strcat are Dangerous</strong>
+                <p>These functions can overflow buffers if the source is longer than the destination:</p>
+                <pre><code>// DANGEROUS
+char buffer[10];
+strcpy(buffer, "This is a very long string");  // OVERFLOW!
+
+// SAFE - use strncpy or better yet, strlcpy
+char buffer[10];
+strncpy(buffer, "This is a very long string", sizeof(buffer) - 1);
+buffer[sizeof(buffer) - 1] = '\0';</code></pre>
+            </div>
+
+            <h3>Real Embedded Example: Parsing Commands</h3>
+            <pre><code>// Parse incoming serial command
+void parse_command(char *received) {
+    char cmd[32];
+    int param;
+    
+    // Extract command (until space)
+    if (sscanf(received, "%s %d", cmd, &param) == 2) {
+        if (strcmp(cmd, "MOTOR") == 0) {
+            set_motor_speed(param);
+        } else if (strcmp(cmd, "LED") == 0) {
+            set_led_brightness(param);
+        }
+    }
+}</code></pre>
+
+            <div class="safe-box">
+                <strong>✓ Best Practice: Always Use Size-Limited Versions</strong>
+                <p>Prefer strncpy, strncat, snprintf over strcpy, strcat, sprintf. Size limits prevent buffer overflows:</p>
+                <pre><code>// Always do this:
+strncpy(dest, src, sizeof(dest) - 1);
+dest[sizeof(dest) - 1] = '\0';
+
+// Or use strlcpy (BSD extension, very safe):
+strlcpy(dest, src, sizeof(dest));</code></pre>
+            </div>
+        </section>
+
+        <!-- CMATH: MATHEMATICAL FUNCTIONS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>cmath: Mathematical Functions</h2>
+            
+            <p><strong>When you need mathematical calculations,</strong> cmath provides trigonometric, exponential, and power functions. However, be aware that floating-point math is expensive on many microcontrollers.</p>
+
+            <h3>Common cmath Functions</h3>
+            <pre><code>#include <cmath>
+
+// Trigonometric
+double angle = 0.5;  // radians
+printf("sin(%.2f) = %.4f\n", angle, sin(angle));
+printf("cos(%.2f) = %.4f\n", angle, cos(angle));
+printf("tan(%.2f) = %.4f\n", angle, tan(angle));
+
+// Exponential and logarithmic
+printf("e^2 = %.4f\n", exp(2.0));
+printf("ln(10) = %.4f\n", log(10.0));
+printf("log10(100) = %.4f\n", log10(100.0));
+
+// Power and roots
+printf("2^8 = %.0f\n", pow(2.0, 8.0));
+printf("sqrt(25) = %.1f\n", sqrt(25.0));
+
+// Rounding
+printf("ceil(3.2) = %.0f\n", ceil(3.2));  // 4.0
+printf("floor(3.9) = %.0f\n", floor(3.9));  // 3.0
+printf("round(3.5) = %.0f\n", round(3.5));  // 4.0
+
+// Absolute value
+printf("fabs(-5.5) = %.1f\n", fabs(-5.5));  // 5.5</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Floating-Point Performance Impact</strong>
+                <p>Many microcontrollers lack hardware floating-point units. Using cmath functions means slow software emulation. Consider:</p>
+                <ul>
+                    <li>Using lookup tables for sin/cos instead of computing them</li>
+                    <li>Integer math when precision allows</li>
+                    <li>Fixed-point arithmetic for efficiency</li>
+                </ul>
+                <pre><code>// SLOW - floating point computation
+float angle_rad = angle_deg * M_PI / 180.0;
+float result = sin(angle_rad);
+
+// FAST - lookup table (pre-computed)
+const float sin_table[360] = {0.0, 0.01745, ...};
+float result = sin_table[angle_deg];</code></pre>
+            </div>
+
+            <h3>Real Embedded Example: PID Controller</h3>
+            <pre><code>#include <cmath>
+
+struct PIDController {
+    float Kp, Ki, Kd;
+    float integral;
+    float last_error;
+};
+
+float compute_pid(PIDController *pid, float error) {
+    // Proportional term
+    float P = pid->Kp * error;
+    
+    // Integral term (prevent windup)
+    pid->integral += error;
+    if (pid->integral > 100.0) pid->integral = 100.0;
+    if (pid->integral < -100.0) pid->integral = -100.0;
+    float I = pid->Ki * pid->integral;
+    
+    // Derivative term
+    float D = pid->Kd * (error - pid->last_error);
+    pid->last_error = error;
+    
+    return P + I + D;
+}</code></pre>
+        </section>
+
+        <!-- CSTDLIB: UTILITIES -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>cstdlib: Utilities and Memory Management</h2>
+            
+            <p><strong>cstdlib provides general utilities.</strong> Some are useful, some—like dynamic allocation—should be used carefully in embedded systems.</p>
+
+            <h3>Useful Functions</h3>
+            <pre><code>#include <cstdlib>
+
+// Absolute value
+printf("abs(-42) = %d\n", abs(-42));  // 42
+printf("labs(-1234567L) = %ld\n", labs(-1234567L));
+
+// Random numbers
+srand(time(NULL));  // Seed random generator
+int random_value = rand() % 100;  // 0-99
+
+// String to number conversion
+int value = atoi("42");  // "42" -> 42
+double dvalue = atof("3.14");  // "3.14" -> 3.14
+long lvalue = strtol("0xFF", NULL, 16);  // "0xFF" -> 255 (hexadecimal)
+
+// Malloc and free (use carefully!)
+int *ptr = (int *)malloc(sizeof(int) * 100);
+if (ptr) {
+    ptr[0] = 42;
+    free(ptr);
+}</code></pre>
+
+            <h3>When to Use malloc/free</h3>
+            <p><strong>Dynamic allocation should be rare in production embedded systems.</strong> Use only when:</p>
+            <ul>
+                <li>You allocate once at startup (not repeatedly)</li>
+                <li>You pre-calculate maximum needed size</li>
+                <li>You check for allocation failure (malloc returns NULL)</li>
+                <li>You actually need dynamic sizing</li>
+            </ul>
+
+            <div class="avoid-box">
+                <strong>✗ Avoid: Repeated malloc/free</strong>
+                <pre><code>// BAD - allocates/frees every loop
+for (int i = 0; i < 1000; i++) {
+    char *buffer = (char *)malloc(100);
+    process(buffer);
+    free(buffer);  // Fragmentation!
+}</code></pre>
+            </div>
+
+            <div class="safe-box">
+                <strong>✓ Preferred: Allocate once, reuse</strong>
+                <pre><code>// GOOD - allocate once, use repeatedly
+char *buffer = (char *)malloc(100);
+if (!buffer) {
+    return ERROR;
+}
+for (int i = 0; i < 1000; i++) {
+    process(buffer);
+}
+free(buffer);</code></pre>
+            </div>
+        </section>
+
+        <!-- CASSERT: DEBUGGING ASSERTIONS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>cassert: Catch Programmer Mistakes</h2>
+            
+            <p><strong>assert() is a development-time safety check.</strong> It forces you to think about invariants: "This should always be true. If it's not, something is very wrong."</p>
+
+            <h3>Using assert</h3>
+            <pre><code>#include <cassert>
+
+void set_temperature(int temp) {
+    // Temperature should always be in valid range
+    assert(temp >= -40 && temp <= 125);
+    
+    // This condition should always be true, but just to be safe
+    assert(temp != UNDEFINED_VALUE);
+    
+    update_sensor_value(temp);
+}
+
+void process_array(int *arr, int size) {
+    // Null check
+    assert(arr != NULL);
+    
+    // Size should be valid
+    assert(size > 0);
+    assert(size < MAX_SIZE);
+    
+    for (int i = 0; i < size; i++) {
+        process_element(arr[i]);
+    }
+}</code></pre>
+
+            <p><strong>What assert does:</strong></p>
+            <ul>
+                <li>In DEBUG builds: If condition is false, prints error message and halts</li>
+                <li>In RELEASE builds: assert can be disabled with `-DNDEBUG` compiler flag</li>
+            </ul>
+
+            <h3>static_assert: Compile-Time Checks</h3>
+            <p><strong>static_assert checks conditions at compile time,</strong> catching errors before code ever runs:</p>
+
+            <pre><code>#include <cassert>
+
+// Verify that uint16_t is exactly 2 bytes
+static_assert(sizeof(uint16_t) == 2, "uint16_t is not 2 bytes!");
+
+// Verify array size
+uint8_t buffer[256];
+static_assert(sizeof(buffer) < AVAILABLE_MEMORY, "Buffer too large!");
+
+// Compile-time type checks
+struct Device {
+    uint8_t id;
+    uint16_t serial;
+};
+static_assert(sizeof(Device) == 3, "Unexpected struct size!");
+</code></pre>
+
+            <div class="real-world">
+                <strong>Production Reality:</strong> Use assertions during development to catch bugs early. Disable assertions in released firmware to save code space and remove any performance impact.
+            </div>
+        </section>
+
+        <!-- WHAT TO AVOID -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Standard Library Features to Avoid in Embedded Systems</h2>
+            
+            <h3>NO: std::vector, std::map, std::deque</h3>
+            <p>These STL containers use dynamic memory and are overkill for embedded systems:</p>
+            <pre><code>// AVOID in embedded
+std::vector<int> data;  // Dynamic, can fragment memory
+data.push_back(42);     // Allocates at runtime
+
+// INSTEAD: Use fixed arrays
+int data[MAX_SIZE];
+int data_count = 0;
+data[data_count++] = 42;  // Predictable, no allocation</code></pre>
+
+            <h3>NO: std::string</h3>
+            <p>std::string handles memory for you but adds overhead:</p>
+            <pre><code>// AVOID in embedded
+std::string msg = "Hello";  // Dynamic allocation, overhead
+
+// INSTEAD: Use C-style strings
+char msg[] = "Hello";  // Fixed size, no overhead</code></pre>
+
+            <h3>NO: iostream (cout, cin)</h3>
+            <p>iostream is much larger than cstdio, adds buffering overhead:</p>
+            <pre><code>// AVOID: Larger binary, more overhead
+#include <iostream>
+std::cout << "Count: " << 42 << std::endl;
+
+// INSTEAD: Lightweight, efficient
+#include <cstdio>
+printf("Count: %d\n", 42);</code></pre>
+
+            <h3>NO: Exceptions (on resource-constrained platforms)</h3>
+            <p>Exception handling adds code size. Many embedded systems disable it:</p>
+            <pre><code>// AVOID: Uses exception overhead (if enabled)
+try {
+    risky_operation();
+} catch (...) {
+    handle_error();
+}
+
+// INSTEAD: Return error codes
+int result = risky_operation();
+if (result != SUCCESS) {
+    handle_error();
+}</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Binary Size Impact</strong>
+                <p>Using STL containers and iostream can double your binary size! On a 32KB microcontroller, this is catastrophic. Use lightweight alternatives.</p>
+            </div>
+        </section>
+
+        <!-- KEY TAKEAWAYS -->
+        <section style="background: #151b28; padding: 20px; border-radius: 5px; margin: 30px 0;">
+            <h2>Key Takeaways</h2>
+            <ul>
+                <li>Use cstdio (printf, sprintf) for formatted output—efficient and available everywhere</li>
+                <li>Use cstring functions for character arrays (but always check sizes!)</li>
+                <li>Use cmath for mathematical functions (but consider lookup tables for performance)</li>
+                <li>Use cassert during development to catch mistakes; use static_assert for compile-time checks</li>
+                <li>Avoid STL containers (std::vector, std::map) in embedded systems</li>
+                <li>Avoid std::string; use C-style char arrays instead</li>
+                <li>Avoid iostream; use cstdio (printf) instead</li>
+                <li>Use malloc/free sparingly: allocate once at startup, not repeatedly</li>
+                <li>Every #include adds to binary size—only include what you need</li>
+            </ul>
+        </section>
+
+        <!-- MINI-PROJECTS -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Mini-Projects to Strengthen Your Skills</h2>
+            
+            <div class="project">
+                <h3>Project 1: Serial Command Parser</h3>
+                <p><strong>Objective:</strong> Parse incoming serial commands and execute them.</p>
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Receive strings like "MOTOR:100" or "LED:255"</li>
+                    <li>Parse command and parameter using sscanf or manual parsing</li>
+                    <li>Execute appropriate action</li>
+                    <li>Validate parameters are in valid range</li>
+                    <li>Send formatted response back</li>
+                </ul>
+
+                <button class="solution-btn" onclick="toggleSolution('solution1')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution1" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>#include <cstdio>
+#include <cstring>
+
+void parse_command(char *received) {
+    char cmd[32];
+    int value;
+    char response[64];
+    
+    // Parse: "COMMAND:VALUE"
+    if (sscanf(received, "%[^:]:%d", cmd, &value) == 2) {
+        // Validate value
+        if (value < 0 || value > 255) {
+            sprintf(response, "ERROR: Invalid value %d\n", value);
+        }
+        else if (strcmp(cmd, "MOTOR") == 0) {
+            set_motor_speed(value);
+            sprintf(response, "MOTOR set to %d\n", value);
+        }
+        else if (strcmp(cmd, "LED") == 0) {
+            set_led_brightness(value);
+            sprintf(response, "LED set to %d\n", value);
+        }
+        else {
+            sprintf(response, "ERROR: Unknown command: %s\n", cmd);
+        }
+    } else {
+        sprintf(response, "ERROR: Parse failed\n");
+    }
+    
+    // Send response
+    Serial.print(response);
+}</code></pre>
+                    <p><strong>Key Learning:</strong> sscanf parses formatted strings from input. Always validate parameters before use.</p>
+                </div>
+            </div>
+
+            <div class="project">
+                <h3>Project 2: Sensor Data Logger with Formatting</h3>
+                <p><strong>Objective:</strong> Log sensor readings to EEPROM or SD card with timestamps and formatting.</p>
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Read multiple sensor values (temperature, humidity, pressure)</li>
+                    <li>Format reading with timestamp using sprintf</li>
+                    <li>Store formatted string in buffer</li>
+                    <li>Send to logging destination</li>
+                    <li>Parse log entries back from storage</li>
+                </ul>
+
+                <button class="solution-btn" onclick="toggleSolution('solution2')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>#include <cstdio>
+#include <cstring>
+#include <ctime>
+
+struct SensorReading {
+    uint16_t temp_c;
+    uint16_t humidity;
+    uint16_t pressure;
+    uint32_t timestamp;
+};
+
+char log_buffer[256];
+
+void log_sensor_reading(SensorReading *data) {
+    snprintf(log_buffer, sizeof(log_buffer),
+             "[%lu] TEMP:%d C HUMID:%d%% PRES:%d hPa\n",
+             data->timestamp,
+             data->temp_c,
+             data->humidity,
+             data->pressure);
+    
+    write_to_storage(log_buffer, strlen(log_buffer));
+}
+
+void parse_log_entry(char *entry) {
+    uint32_t timestamp;
+    int temp, humid, pres;
+    
+    int parsed = sscanf(entry,
+                        "[%lu] TEMP:%d C HUMID:%d%% PRES:%d hPa",
+                        &timestamp, &temp, &humid, &pres);
+    
+    if (parsed == 4) {
+        printf("Parsed: T=%d, H=%d, P=%d\n", temp, humid, pres);
+    }
+}</code></pre>
+                    <p><strong>Key Learning:</strong> sprintf/snprintf enable compact, readable logging. Always use snprintf with size limits.</p>
+                </div>
+            </div>
+
+            <div class="project">
+                <h3>Project 3: Fixed-Point Math Alternative to Floating-Point</h3>
+                <p><strong>Objective:</strong> Implement PID controller using integer math instead of floats for efficiency.</p>
+                <p><strong>Requirements:</strong></p>
+                <ul>
+                    <li>Implement PID controller using integer math (shift instead of multiply by fraction)</li>
+                    <li>Compare speed vs floating-point version</li>
+                    <li>Verify results are close enough (acceptable error)</li>
+                    <li>Measure code size difference</li>
+                </ul>
+
+                <button class="solution-btn" onclick="toggleSolution('solution3')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution3" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>#include <cstdint>
+
+// Integer PID (FAST - uses shifts instead of multiply)
+struct IntPID {
+    int16_t Kp_scaled;  // Kp * 256 (scaled)
+    int16_t Ki_scaled;
+    int16_t Kd_scaled;
+    int32_t integral;
+    int16_t last_error;
+};
+
+int16_t compute_int_pid(IntPID *pid, int16_t error) {
+    // Proportional: error * Kp / 256
+    int32_t P = ((int32_t)error * pid->Kp_scaled) >> 8;
+    
+    // Integral: sum * Ki / 256
+    pid->integral += error;
+    if (pid->integral > 10000) pid->integral = 10000;
+    if (pid->integral < -10000) pid->integral = -10000;
+    int32_t I = (pid->integral * pid->Ki_scaled) >> 8;
+    
+    // Derivative: (error - last) * Kd / 256
+    int32_t D = ((int32_t)(error - pid->last_error) * pid->Kd_scaled) >> 8;
+    pid->last_error = error;
+    
+    int32_t output = P + I + D;
+    // Clamp to int16_t range
+    if (output > 32767) output = 32767;
+    if (output < -32768) output = -32768;
+    
+    return (int16_t)output;
+}</code></pre>
+                    <p><strong>Key Learning:</strong> Bitwise shifts (>> 8 means divide by 256) are much faster than floating-point when you need precision.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- QUIZ -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Standard Library Quiz</h2>
+            <p>Test your understanding of which standard library features are safe and useful in embedded systems:</p>
+
+            <div style="background: #1a2332; padding: 20px; border-radius: 5px; margin: 15px 0;">
+                <div id="quiz-container">
+                    <!-- Quiz populated by JavaScript -->
+                </div>
+                <button id="quiz-start-btn" onclick="startQuiz()" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 20px;">Start Quiz</button>
+            </div>
+
+            <div id="quiz-result" style="display: none; background: #151b28; padding: 20px; border-radius: 5px; margin-top: 20px; border: 2px solid #00d4ff;">
+                <h3>Quiz Complete!</h3>
+                <p id="score-display" style="font-size: 18px; color: #00d4ff; margin: 10px 0;"></p>
+                <div id="feedback-display" style="margin-top: 15px;"></div>
+                <button onclick="resetQuiz()" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 20px;">Retake Quiz</button>
+            </div>
+        </section>
+
+        <script>
+            const quizQuestions = [
+                {
+                    question: "Which is the best function for formatted output in embedded systems?",
+                    options: [
+                        "std::cout",
+                        "printf",
+                        "std::cerr",
+                        "write()"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "Why should you avoid std::vector in embedded systems?",
+                    options: [
+                        "It's slow",
+                        "It uses dynamic memory allocation which can fragment heap",
+                        "Vectors are always empty",
+                        "They require exceptions"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What's the safest way to copy a string in C?",
+                    options: [
+                        "strcpy(dest, src)",
+                        "sprintf(dest, \"%s\", src)",
+                        "strncpy(dest, src, sizeof(dest)-1) then null terminate",
+                        "memcpy(dest, src, strlen(src))"
+                    ],
+                    correct: 2
+                },
+                {
+                    question: "When should you use malloc/free in embedded systems?",
+                    options: [
+                        "Repeatedly in loops for temporary buffers",
+                        "For single allocation at startup, not repeatedly",
+                        "Never use malloc",
+                        "As much as possible for flexibility"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What does assert() do in a DEBUG build?",
+                    options: [
+                        "Nothing, it's ignored",
+                        "Halts execution if condition is false and prints error",
+                        "Throws an exception",
+                        "Logs to console always"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "Which function is best for parsing formatted input?",
+                    options: [
+                        "std::cin",
+                        "scanf or sscanf",
+                        "read()",
+                        "fgets()"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What's the risk with sprintf()?",
+                    options: [
+                        "It's too slow",
+                        "Buffer overflow if formatted string exceeds buffer size",
+                        "It doesn't work with integers",
+                        "It's not available in embedded"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "Should you use std::string in embedded systems?",
+                    options: [
+                        "Yes, always",
+                        "No, use C-style char arrays or fixed-size buffers",
+                        "Only for large projects",
+                        "It doesn't matter"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "When is static_assert useful?",
+                    options: [
+                        "Runtime error checking",
+                        "Compile-time checks that catch errors before code runs",
+                        "Dynamic memory validation",
+                        "Debugging in production"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "Why prefer printf over cout in embedded systems?",
+                    options: [
+                        "cout is just a personal preference difference",
+                        "printf has smaller binary size and less overhead",
+                        "cout is faster",
+                        "There's no real difference"
+                    ],
+                    correct: 1
+                }
+            ];
+
+            let currentQuestionIndex = 0;
+            let score = 0;
+            let quizInProgress = false;
+
+            function startQuiz() {
+                quizInProgress = true;
+                currentQuestionIndex = 0;
+                score = 0;
+                document.getElementById('quiz-result').style.display = 'none';
+                document.getElementById('quiz-start-btn').style.display = 'none';
+                displayQuizQuestion();
+            }
+
+            function displayQuizQuestion() {
+                if (currentQuestionIndex >= quizQuestions.length) {
+                    completeQuiz();
+                    return;
+                }
+
+                const q = quizQuestions[currentQuestionIndex];
+                const container = document.getElementById('quiz-container');
+                
+                let html = `<div style="margin-bottom: 20px;">
+                    <h4>Question ${currentQuestionIndex + 1}/${quizQuestions.length}</h4>
+                    <p style="font-size: 16px; margin: 15px 0;"><strong>${q.question}</strong></p>
+                    <div style="margin-left: 20px;">`;
+                
+                q.options.forEach((option, idx) => {
+                    html += `<label style="display: block; margin: 8px 0;">
+                        <input type="radio" name="quiz-answer" value="${idx}"> ${option}
+                    </label>`;
+                });
+
+                html += `</div>
+                    <button onclick="nextQuizQuestion()" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 20px;">Next Question</button>
+                </div>`;
+
+                container.innerHTML = html;
+            }
+
+            function nextQuizQuestion() {
+                const selected = document.querySelector('input[name="quiz-answer"]:checked');
+                if (!selected) {
+                    alert('Please select an answer');
+                    return;
+                }
+
+                if (parseInt(selected.value) === quizQuestions[currentQuestionIndex].correct) {
+                    score++;
+                }
+
+                currentQuestionIndex++;
+                displayQuizQuestion();
+            }
+
+            function completeQuiz() {
+                quizInProgress = false;
+                const percentage = Math.round((score / quizQuestions.length) * 100);
+                const maxScore = quizQuestions.length;
+
+                document.getElementById('quiz-container').innerHTML = '';
+                document.getElementById('quiz-result').style.display = 'block';
+                document.getElementById('score-display').textContent = `Score: ${score}/${maxScore} (${percentage}%)`;
+
+                let feedback = '';
+                let showCompletionButton = false;
+                
+                if (percentage === 100) {
+                    feedback = '🏆 Perfect! You know the standard library like an expert!';
+                    showCompletionButton = true;
+                } else if (percentage >= 80) {
+                    feedback = '✓ Excellent! You understand standard library best practices.';
+                    showCompletionButton = true;
+                } else if (percentage >= 60) {
+                    feedback = '👍 Good progress! Review the sections you found challenging.';
+                } else {
+                    feedback = '📚 Keep studying! Review all standard library usage patterns and try again.';
+                }
+
+                let feedbackHtml = `<p style="font-size: 16px; color: #00d4ff;">${feedback}</p>`;
+                
+                if (showCompletionButton) {
+                    feedbackHtml += `<button onclick="markLessonComplete()" style="background: #00ff00; color: #0a0f1b; padding: 12px 30px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin-top: 15px; font-size: 16px;">Mark Lesson Complete</button>`;
+                }
+
+                document.getElementById('feedback-display').innerHTML = feedbackHtml;
+            }
+            
+            function markLessonComplete() {
+                localStorage.setItem('stdlib_complete', 'true');
+                document.querySelector('button[onclick="markLessonComplete()"]').style.background = '#888';
+                document.querySelector('button[onclick="markLessonComplete()"]').textContent = '✓ Marked Complete';
+                document.querySelector('button[onclick="markLessonComplete()"]').disabled = true;
+            }
+
+            function resetQuiz() {
+                document.getElementById('quiz-result').style.display = 'none';
+                document.getElementById('quiz-container').innerHTML = '';
+                document.getElementById('quiz-start-btn').style.display = 'block';
+            }
+
+            function toggleSolution(solutionId) {
+                const solutionDiv = document.getElementById(solutionId);
+                if (solutionDiv.style.display === 'none') {
+                    solutionDiv.style.display = 'block';
+                } else {
+                    solutionDiv.style.display = 'none';
+                }
+            }
+        </script>
+
+        <!-- RESOURCES -->
+        <section>
+            <div class="section-divider"></div>
+            <h2>Additional Resources</h2>
+            <p>Deepen your understanding with these video resources:</p>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 String Functions in C</h4>
+                    <p>Master strcpy, strcat, strcmp, and safe alternatives.</p>
+                    <a href="https://www.youtube.com/watch?v=HzJngFdAC78" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 printf and sprintf Tutorial</h4>
+                    <p>Formatted output for debugging and communication.</p>
+                    <a href="https://www.youtube.com/watch?v=U4ZiQr7_ztc" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Embedded Systems and STL Containers</h4>
+                    <p>Why to avoid dynamic containers in embedded systems.</p>
+                    <a href="https://www.youtube.com/watch?v=PNjTiTyhsVg" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Fixed-Point Math vs Floating-Point</h4>
+                    <p>Performance comparison and when to use each.</p>
+                    <a href="https://www.youtube.com/watch?v=VkkquIz0W2M" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 C Math Library (cmath)</h4>
+                    <p>Trigonometric, exponential, and power functions.</p>
+                    <a href="https://www.youtube.com/watch?v=b8gfR8qshJg" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+
+                <div style="background: #1a2332; padding: 15px; border-radius: 5px; border: 1px solid #5a6c7d;">
+                    <h4 style="margin-top: 0; color: #00d4ff;">📺 Buffer Overflow and Security</h4>
+                    <p>How to prevent sprintf and strcpy overflow bugs.</p>
+                    <a href="https://www.youtube.com/watch?v=1S8SBaRg8-E" target="_blank" style="color: #00d4ff; text-decoration: none; font-weight: bold;">Watch on YouTube →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- NAVIGATION -->
+        <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
+            <h3>You've mastered the Standard Library for embedded systems!</h3>
+            <p>You now know which parts of the C++ standard library are safe and useful, and which to avoid when working with constrained resources.</p>
+            <a href="../cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to C++ Basics Hub</a>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 C++ Embedded Learning Site</p>
+    </footer>
+    <script src="../../assets/js/script.js"></script>
+</body>
+</html>
