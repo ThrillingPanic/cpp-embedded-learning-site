@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pointers - C++ Basics</title>
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <style>
+        .lesson-nav { background: #151b28; padding: 15px; margin: 20px 0; border-radius: 5px; border-left: 4px solid #00d4ff; }
+        .learning-objectives { background: #1a2332; padding: 15px; margin: 15px 0; border-radius: 5px; border: 1px solid #00d4ff; }
+        .learning-objectives li { margin: 8px 0; }
+        .key-concepts { background: #2c5aa0; padding: 15px; margin: 15px 0; border-radius: 5px; font-weight: bold; }
+        .concept-box { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #ff9000; border-radius: 3px; }
+        .real-world { background: #1a2332; padding: 15px; margin: 15px 0; border-left: 4px solid #00ff00; border-radius: 3px; }
+        .warning-box { background: #3a1a1a; padding: 15px; margin: 15px 0; border-left: 4px solid #ff4444; border-radius: 3px; }
+        .section-divider { border-top: 2px solid #00d4ff; margin: 40px 0 20px 0; padding-top: 20px; }
+        .project { background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px; }
+        pre { background: #0f1419; border-left: 4px solid #00d4ff; padding: 16px; border-radius: 4px; overflow-x: auto; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); margin: 15px 0; }
+        code { font-family: 'Courier New', 'Monaco', 'Menlo', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.5; }
+        pre code { color: #e0e0e0; background: transparent; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Pointers</h1>
+        <nav>
+            <ul>
+                <li><a href="intro.html">Introduction</a></li>
+                <li><a href="cpp-basics.html">C++ Basics</a></li>
+                <li><a href="embedded-systems.html">Embedded Systems</a></li>
+                <li><a href="peripherals.html">Peripherals</a></li>
+                <li><a href="rtos.html">RTOS</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section>
+            <h2>Pointers in C++: The Gateway to Hardware</h2>
+            <p><strong>What is a pointer, fundamentally?</strong> A pointer is a variable that holds a memory address—the location of data in RAM (or hardware registers). Instead of storing data directly, it stores WHERE that data is located. When you need the data, you "dereference" the pointer (follow the address) to get the value.</p>
+            
+            <p><strong>Why pointers are absolutely essential in embedded systems:</strong> Your embedded device isn't just a normal computer. It's connected to HARDWARE—LED pins, temperature sensors, radio modules, display screens. Each piece of hardware has a MEMORY ADDRESS (a specific location). To communicate with hardware, you create a pointer to that address, then read/write through it. Without pointers, you can't talk to hardware at all.</p>
+
+            <p><strong>Real-world analogy:</strong> Imagine a mailbox system:</p>
+            <ul>
+                <li><strong>Regular variable:</strong> You personally hold a letter in your hand (stores the actual data)</li>
+                <li><strong>Pointer:</strong> You don't have the letter, but you have a note saying "The letter is in Mailbox #47 at Main Street." To read it, you go to that address and open the mailbox</li>
+            </ul>
+
+            <p><strong>The two critical symbols:</strong></p>
+            <ul>
+                <li><strong>&amp; (address-of):</strong> "Give me the memory address of this variable" → Example: <code>&my_variable</code> returns 0x2000 (the address where it's stored)</li>
+                <li><strong>* (dereference):</strong> "Go to this address and give me what's there" → Example: <code>*ptr</code> reads the value at the address ptr points to</li>
+            </ul>
+
+            <h3>THE Critical Embedded Use Case: Accessing Hardware Registers</h3>
+            <p><strong>This is why pointers matter most in embedded systems.</strong> Every hardware device—microcontroller, sensor, radio—has registers at specific memory addresses. To configure the hardware or read sensor values, you create a pointer to the register address and read/write through it. By casting a literal address to a pointer and dereferencing it, you directly modify the hardware configuration.</p>
+
+            <pre><code>uint32_t *gpio_register = (uint32_t *)0x40020000;
+*gpio_register = 0x00000001;
+
+#define GPIO_A_BASE ((uint32_t *)0x40020000)
+*GPIO_A_BASE = 0x00000001;</code></pre>
+
+            <p><strong>Why we NEED pointers for this:</strong> The LED pin, the temperature sensor, the radio module—they all exist at fixed hardware addresses. C++ doesn't have any other way to access specific addresses except through pointers. It's the only way to talk to hardware.</p>
+
+            <h3>Another Critical Use: Passing Data to Functions Without Copying</h3>
+            <p><strong>In embedded systems, memory is precious.</strong> Instead of copying huge data structures, pass a pointer (tiny address) and let the function read/modify the original data. The function receives the address of the array, not a copy of the data.</p>
+
+            <pre><code>void find_max_temperature(uint16_t *temperature_array, uint8_t count) {
+    uint16_t max_temp = temperature_array[0];
+    
+    for (uint8_t i = 1; i < count; i++) {
+        if (temperature_array[i] > max_temp) {
+            max_temp = temperature_array[i];
+        }
+    }
+    
+    return max_temp;
+}
+
+uint16_t temps[100];
+find_max_temperature(temps, 100);</code></pre>
+
+            <p><strong>The scariest thing about pointers:</strong> If you point to the wrong address or use an invalid pointer, you read/write garbage data or corrupt memory. THIS IS WHY EMBEDDED DEBUGGING IS HARD. Always check for NULL before dereferencing!</p>
+            
+            <a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics</a>
+        </section>
+
+        <section class="section-divider">
+            <h2>Pointer Fundamentals: & and *</h2>
+            <p><strong>Two operators you MUST understand:</strong></p>
+            <ul>
+                <li><strong>&amp; (address-of):</strong> "Where is this variable stored?" → Gives you the memory address</li>
+                <li><strong>* (dereference):</strong> "What's at this address?" → Lets you read or modify what the pointer points to</li>
+            </ul>
+            
+            <p><strong>A pointer is a variable that holds a memory address.</strong></p>
+
+            <pre><code>uint8_t value = 42;
+uint8_t *ptr = &value;
+
+uint8_t x = *ptr;
+
+*ptr = 100;</code></pre>
+
+            <h3>Getting Addresses With &</h3>
+            <p>The address-of operator <code>&</code> returns the memory address where a variable is stored. This address can then be assigned to a pointer variable.</p>
+            <pre><code>uint16_t sensor_reading = 1023;
+uint16_t *ptr_sensor = &sensor_reading;</code></pre>
+
+            <h3>Declaring Different Pointer Types</h3>
+            <p>Different pointer types tell the compiler how many bytes to read when dereferencing. A pointer to uint8_t reads 1 byte, while a pointer to uint32_t reads 4 bytes.</p>
+            <pre><code>uint8_t *ptr8;
+uint16_t *ptr16;
+int32_t *ptrInt;
+float *ptrFloat;</code></pre>
+
+            <h3>The NULL Pointer: Safety Check</h3>
+            <p><strong>Always initialize pointers! Uninitialized pointers contain garbage addresses.</strong></p>
+
+            <pre><code>// WRONG - dangerous!
+uint8_t *uninitialized;
+*uninitialized = 5;  // Points to unknown address, corrupts memory!
+
+// RIGHT - initialized to NULL
+uint8_t *safe = NULL;
+
+// Always check before dereferencing!
+if (safe != NULL) {
+    uint8_t value = *safe;  // Safe - only if pointer is valid
+} else {
+    Serial.println("Pointer is NULL, can't dereference");
+}</code></pre>
+
+            <div class="warning-box">
+                <strong>⚠️ Null Pointer Dereference = Instant Crash</strong>
+                <p>This is the #1 pointer bug. You create a pointer, never initialize it (or initialize to NULL), then try to read from it. The microcontroller reads from address 0x0000 or some garbage address. Either it crashes immediately or reads/writes garbage data that destroys other variables.</p>
+                <p>Solution: Always initialize pointers. Always check for NULL before using. Use static analysis tools if possible.</p>
+            </div>
+        </section>
+
+        <section>
+            <h3>Pointers and Arrays</h3>
+            <p>Array names automatically decay to pointers to the first element in most contexts. This means you can use array names as pointers and vice versa. You can iterate through arrays using pointer arithmetic (incrementing the pointer) or traditional indexing.</p>
+
+            <pre><code>uint8_t array[5] = {10, 20, 30, 40, 50};
+
+uint8_t *ptr = array;
+
+uint8_t first = *ptr;
+uint8_t second = *(ptr+1);
+uint8_t third = ptr[2];
+
+ptr++;
+uint8_t val = *ptr;
+
+uint8_t *p = array;
+for (uint8_t i = 0; i < 5; i++) {
+    uart_print_int(*p);
+    p++;
+}
+
+for (uint8_t i = 0; i < 5; i++) {
+    uart_print_int(array[i]);
+}
+            </code></pre>
+
+            <h4>Passing Arrays to Functions</h4>
+            <p>When an array is passed to a function, it automatically decays to a pointer. This means the function receives the address of the first element, not a copy of the entire array. You must pass the array size separately, since the function has no way to know how many elements there are.</p>
+            <pre><code>void process_data(uint8_t *data, uint8_t count) {
+    for (uint8_t i = 0; i < count; i++) {
+        uint8_t value = data[i];
+    }
+}
+
+uint8_t sensor_data[10];
+process_data(sensor_data, 10);
+
+void fill_array(uint8_t *arr, uint8_t size, uint8_t value) {
+    for (uint8_t i = 0; i < size; i++) {
+        arr[i] = value;
+    }
+}
+
+uint8_t buffer[5];
+fill_array(buffer, 5, 0);
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Pointers to Pointers</h3>
+            <p>A pointer can point to another pointer.</p>
+
+            <pre><code>uint8_t value = 42;
+uint8_t *ptr = &value;
+uint8_t **pptr = &ptr;
+
+uint8_t result = **pptr;
+
+**pptr = 100;
+
+typedef void (*HANDLER_T)(uint8_t);
+HANDLER_T handlers[5];
+
+HANDLER_T *phandlers = handlers;
+
+phandlers[0] = my_function;
+(*phandlers[0])(5);
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Hardware Registers (Critical!)</h3>
+            <p>Embedded programming involves reading/writing hardware registers at specific memory addresses.</p>
+
+            <pre><code>#define GPIO_PORTA_ODR  ((volatile uint32_t *)0x40020014)
+
+*GPIO_PORTA_ODR = 0xFF;
+
+*GPIO_PORTA_ODR |= (1 << 5);
+
+*GPIO_PORTA_ODR &= ~(1 << 5);
+
+typedef struct {
+    volatile uint32_t VALUE;
+    volatile uint32_t STATUS;
+    volatile uint32_t CONTROL;
+} PeripheralRegs_t;
+
+PeripheralRegs_t *device = (PeripheralRegs_t *)0x40020000;
+
+device->VALUE = 100;
+if (device->STATUS & 0x01) {
+}
+
+volatile uint8_t *gpio_output = (volatile uint8_t *)0x40020014;
+*gpio_output = 0x55;
+
+volatile uint8_t *status_reg = (volatile uint8_t *)0x50000008;
+while (*status_reg & READY_BIT) {
+}
+            </code></pre>
+
+            <h4>Practical GPIO Control</h4>
+            <p>This real-world example shows how to create helper functions that use pointers to configure hardware. The <code>volatile</code> keyword tells the compiler that this hardware register may change unpredictably, so it should not optimize away repeated reads or writes.</p>
+            <pre><code>#define GPIO_A_BASE      0x40020000
+#define GPIO_PDR_OFFSET  0x14
+#define GPIO_A_ODR  ((volatile uint32_t *)(GPIO_A_BASE + GPIO_PDR_OFFSET))
+
+void gpio_set_pin(uint8_t pin, uint8_t state) {
+    if (state) {
+        *GPIO_A_ODR |= (1 << pin);
+    } else {
+        *GPIO_A_ODR &= ~(1 << pin);
+    }
+}
+
+void blink_led() {
+    gpio_set_pin(5, 1);
+    delay_ms(500);
+    gpio_set_pin(5, 0);
+    delay_ms(500);
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Pointer Arithmetic</h3>
+            <p>Adding to pointers moves by the size of the pointed type. When you increment a pointer to uint8_t, it moves 1 byte forward. When you increment a pointer to uint16_t, it moves 2 bytes. The compiler automatically scales the arithmetic based on the type.</p>
+
+            <pre><code>uint8_t array[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+uint8_t *p = &array[0];
+
+p++;
+
+uint16_t array16[10];
+uint16_t *p16 = &array16[0];
+
+p16++;
+
+int16_t diff = &array[5] - &array[0];
+
+uint8_t *p8 = (uint8_t *)&array[0];
+uint16_t *p16 = (uint16_t *)&array[0];
+
+p8++;
+p16++;
+            </code></pre>
+
+            <h4>Buffer Scanning</h4>
+            <p>This example uses pointer arithmetic to scan through a buffer looking for a specific value. The pointer moves through the buffer one element at a time, and we calculate the index by subtracting the start address.</p>
+            <pre><code>uint8_t *buffer = get_buffer();
+uint8_t size = get_buffer_size();
+uint8_t *zero_pos = buffer;
+
+while (zero_pos < buffer + size) {
+    if (*zero_pos == 0) {
+        break;
+    }
+    zero_pos++;
+}
+
+if (zero_pos < buffer + size) {
+    uint16_t index = zero_pos - buffer;
+    uart_print_int(index);
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Const Pointers</h3>
+            <p>The <code>const</code> keyword can be applied to pointers in different ways: you can protect the data being pointed to, protect the pointer itself, or protect both. Understanding which part is const is critical for writing correct embedded code.</p>
+
+            <pre><code>uint8_t value = 42;
+
+const uint8_t *ptr1 = &value;
+
+uint8_t * const ptr2 = &value;
+
+const uint8_t * const ptr3 = &value;
+
+            </code></pre>
+const uint8_t SIN_TABLE[256] = {0, 1, 2, ...};
+const uint8_t *p = SIN_TABLE;
+uint8_t sine = *p;
+// *p = 5;  // ERROR - table is constant
+            </code></pre>
+
+            <p><strong>Memory aid:</strong> Read right-to-left. "const uint8_t *" = "pointer to const uint8_t"</p>
+        </section>
+
+        <section>
+            <h3>Type Casting Pointers</h3>
+            <p>Convert between pointer types with care!</p>
+
+            <pre><code>uint32_t *reg = (uint32_t *)0x40020000;
+
+uint8_t *p8;
+uint16_t *p16 = (uint16_t *)p8;
+
+volatile uint32_t *io_reg = (volatile uint32_t *)0x40000000;
+*io_reg = 0x12345678;
+typedef struct {
+    uint8_t control;
+    uint8_t status;
+} Device_t;
+
+Device_t *dev = (Device_t *)0x40200000;
+dev->control = 1;
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Dangers of Pointers</h3>
+            <p>Pointers are powerful but easy to misuse. Dereferencing NULL, pointing to invalid memory, array bounds violations, and uninitialized pointers are all common mistakes that cause hard-to-debug crashes. Always initialize pointers, always check for NULL before dereferencing, and always validate array bounds.</p>
+
+            <pre><code>uint8_t *ptr = NULL;
+uint8_t value = *ptr;
+
+uint8_t *ptr;
+{
+    uint8_t local = 42;
+    ptr = &local;
+}
+*ptr = 100;
+
+uint8_t *random_ptr;
+*random_ptr = 5;
+
+uint8_t array[5];
+uint8_t *p = array;
+p += 10;
+*p = 100;
+
+uint8_t *safe_ptr = NULL;
+if (safe_ptr != NULL) {
+    *safe_ptr = 5;
+}
+
+if (p >= array && p < array + 5) {
+    *p = 100;
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Common Pointer Mistakes</h3>
+            <ul>
+                <li><strong>Forgetting &:</strong> Assigning variable instead of address</li>
+                <li><strong>Forgetting *:</strong> Accessing pointer itself instead of value</li>
+                <li><strong>NULL dereference:</strong> Using pointer without checking NULL</li>
+                <li><strong>Wrong type cast:</strong> Casting pointer to wrong type</li>
+                <li><strong>Use-after-free:</strong> Using pointer after memory is freed</li>
+            </ul>
+
+            <pre><code>uint8_t value = 42;
+uint8_t *ptr = value;
+
+uint8_t *ptr = &value;
+
+uint8_t *ptr = &value;
+uint8_t x = ptr;
+
+uint8_t x = *ptr;
+
+uint8_t *ptr = get_pointer();
+*ptr = 100;
+
+uint8_t *ptr = get_pointer();
+if (ptr != NULL) {
+    *ptr = 100;
+}
+
+uint8_t *p8 = &some_byte;
+uint16_t value16 = *(uint16_t *)p8;
+
+uint16_t *p16 = (uint16_t *)aligned_address;
+uint16_t value16 = *p16;
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Pointers in Embedded Patterns</h3>
+
+            <h4>Output Parameters</h4>
+            <pre><code>// Function returns error code, outputs result through pointer
+uint8_t read_sensor(uint16_t *result) {
+    if (sensor_not_ready()) {
+        return ERROR_TIMEOUT;
+    }
+    
+    *result = ADC_READ();
+    return SUCCESS;
+}
+
+uint16_t reading;
+uint8_t status = read_sensor(&reading);
+if (status == SUCCESS) {
+    uart_print_int(reading);
+}
+            </code></pre>
+
+            <h4>Callbacks</h4>
+            <pre><code>typedef void (*INTERRUPT_HANDLER)(uint8_t);
+
+static INTERRUPT_HANDLER button_handler = NULL;
+
+void register_button_handler(INTERRUPT_HANDLER handler) {
+    button_handler = handler;
+}
+
+void button_interrupt() {
+    if (button_handler != NULL) {
+        button_handler(BUTTON_PIN);
+    }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Void Pointers: Generic Pointers</h3>
+            <p>A void pointer can point to any data type. Must be cast to specific type before dereferencing.</p>
+
+            <pre><code>uint8_t byte_val = 42;
+uint16_t word_val = 1000;
+uint32_t dword_val = 100000;
+
+void *generic = &byte_val;
+
+uint8_t *p8 = (uint8_t *)generic;
+uint8_t val = *p8;
+
+generic = &word_val;
+uint16_t *p16 = (uint16_t *)generic;
+val = *p16;
+
+// Common in embedded: array of different types
+struct Packet {
+    uint8_t type;
+    void *data;
+};
+
+// Use case: event handler with variable payload types
+void process_packet(Packet *pkt) {
+    if (pkt->type == TYPE_TEMPERATURE) {
+        uint16_t *temp = (uint16_t *)pkt->data;
+        handle_temperature(*temp);
+    } else if (pkt->type == TYPE_PRESSURE) {
+        uint32_t *pressure = (uint32_t *)pkt->data;
+        handle_pressure(*pressure);
+    }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Function Pointers Revisited</h3>
+            <p>Pointers to functions enable callbacks and polymorphism in embedded systems.</p>
+
+            <pre><code>// Define a function signature
+typedef void (*CALLBACK_T)(uint8_t data);
+
+// Multiple functions with matching signature
+void on_uart_data(uint8_t byte) {
+    buffer_put(byte);
+}
+
+void on_uart_error(uint8_t byte) {
+    log_error_byte(byte);
+}
+
+// Array of handlers (event-driven architecture)
+CALLBACK_T event_handlers[EVENT_COUNT] = {NULL};
+
+void register_handler(uint8_t event, CALLBACK_T handler) {
+    if (event < EVENT_COUNT) {
+        event_handlers[event] = handler;
+    }
+}
+
+void dispatch_event(uint8_t event, uint8_t data) {
+    if (event_handlers[event] != NULL) {
+        event_handlers[event](data);  // Call registered handler
+    }
+}
+
+void init() {
+    register_handler(EVENT_UART_RX, on_uart_data);
+    register_handler(EVENT_UART_ERROR, on_uart_error);
+}
+
+// Interrupt handler just calls dispatch
+void UART_IRQHandler() {
+    uint8_t byte = uart_read();
+    if (uart_has_error()) {
+        dispatch_event(EVENT_UART_ERROR, byte);
+    } else {
+        dispatch_event(EVENT_UART_RX, byte);
+    }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Circular Buffers: Real Pattern</h3>
+            <p>A practical pointer pattern: circular buffer for UART/SPI data streaming.</p>
+
+            <pre><code>#define BUFFER_SIZE 128
+uint8_t buffer[BUFFER_SIZE];
+uint8_t *head = buffer;
+uint8_t *tail = buffer;
+uint8_t *end = buffer + BUFFER_SIZE - 1;
+
+
+// Write to buffer (called from interrupt)
+void buffer_put(uint8_t byte) {
+    *head = byte;
+    
+    // Wrap around
+    if (head == end) {
+        head = buffer;  // Circle back to start
+    } else {
+        head++;
+    }
+    
+    // Check for overflow (if head catches tail)
+    if (head == tail) {
+        // Buffer overflow! Oldest data will be lost
+        overflow_flag = 1;
+    }
+}
+
+// Read from buffer (called from main loop)
+uint8_t buffer_get(uint8_t *byte) {
+    if (tail == head) {
+        return 0;  // Empty
+    }
+    
+    *byte = *tail;
+    
+    if (tail == end) {
+        tail = buffer;
+    } else {
+        tail++;
+    }
+    
+    return 1;  // Success
+}
+
+// Usage in UART interrupt
+void UART_RX_IRQHandler() {
+    uint8_t byte = UART_DATA_REG;
+    buffer_put(byte);  // Store in circular buffer
+}
+
+// Usage in main loop
+while (1) {
+    uint8_t byte;
+    while (buffer_get(&byte)) {
+        process_byte(byte);
+    }
+}
+            </code></pre>
+
+            <p><strong>Why circular buffers matter:</strong> Interrupt handlers must be fast. Instead of processing data immediately, store it in a circular buffer. Main loop processes at leisure. No data lost, no blocking.</p>
+        </section>
+
+        <section>
+            <h3>Common Pointer Mistakes in Embedded</h3>
+
+            <h4>Mistake 1: Uninitialized Pointers</h4>
+            <pre><code>// WRONG - undefined behavior
+void buggy_function() {
+    uint8_t *ptr;  // Contains garbage address
+    *ptr = 42;     // Write to unknown address - CRASH!
+}
+
+// RIGHT
+void safe_function() {
+    uint8_t *ptr = NULL;  // Initialized to NULL
+    uint8_t value = 5;
+    ptr = &value;
+    *ptr = 42;
+}
+            </code></pre>
+
+            <h4>Mistake 2: Pointer Goes Out of Scope</h4>
+            <pre><code>// WRONG - dangling pointer
+uint8_t *global_ptr;
+
+void fill_data() {
+    uint8_t local_array[10];
+    global_ptr = local_array;  // Points to local (on stack!)
+}  // local_array is destroyed
+
+void read_data() {
+    uint8_t val = *global_ptr;  // Reads garbage! local_array is gone
+}
+
+// RIGHT - use static or global memory
+uint8_t static_array[10];
+
+void fill_data() {
+    static_array[0] = 42;
+    global_ptr = static_array;  // Points to static
+}  // static_array still exists
+
+void read_data() {
+    uint8_t val = *global_ptr;  // Safe
+}
+            </code></pre>
+
+            <h4>Mistake 3: Type Mismatch</h4>
+            <pre><code>// WRONG - subtle bug
+uint32_t register_val;
+uint8_t *ptr = (uint8_t *)&register_val;  // Cast to wrong size
+
+*ptr = 0xFF;  // Writes to ONLY first byte
+// register_val is now 0x000000FF, not intended!
+
+// RIGHT
+uint32_t *ptr = &register_val;  // Correct type
+*ptr = 0xFFFFFFFF;  // All bytes written
+            </code></pre>
+
+            <h4>Mistake 4: Off-by-One Errors</h4>
+            <pre><code>// Array access
+uint8_t array[10];  // Valid: 0 to 9
+uint8_t *ptr = array;
+
+// WRONG
+ptr[10] = 5;  // OFF BY ONE! Writes past array end
+ptr[-1] = 5;  // WRONG! Negative index
+
+// RIGHT
+for (uint8_t i = 0; i < 10; i++) {  // i < 10, not i <= 10
+    ptr[i] = i;
+}
+            </code></pre>
+
+            <h4>Mistake 5: Forgetting Volatile for Hardware</h4>
+            <pre><code>// WRONG - compiler might optimize away
+uint32_t *status_reg = (uint32_t *)0x40000000;
+uint32_t status = *status_reg;
+if (status & READY_BIT) {  // Compiler uses cached value!
+    process();
+}
+
+// RIGHT
+volatile uint32_t *status_reg = (volatile uint32_t *)0x40000000;
+uint32_t status = *status_reg;  // Always reads fresh value
+if (status & READY_BIT) {
+    process();
+}
+
+// Or in a wait loop
+while ((*status_reg & READY_BIT) == 0) {
+    // volatile ensures each iteration reads hardware
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Advanced Hardware Register Patterns</h3>
+
+            <h4>Bit Field Access</h4>
+            <pre><code>// Bit-by-bit register access
+#define GPIO_BASE 0x40020000
+#define GPIO_ODR  ((volatile uint32_t *)(GPIO_BASE + 0x14))
+
+// Set individual bit
+void gpio_set(uint8_t pin) {
+    *GPIO_ODR |= (1 << pin);  // Set bit
+}
+
+// Clear individual bit
+void gpio_clear(uint8_t pin) {
+    *GPIO_ODR &= ~(1 << pin);  // Clear bit
+}
+
+// Toggle bit
+void gpio_toggle(uint8_t pin) {
+    *GPIO_ODR ^= (1 << pin);  // XOR toggles
+}
+
+// Read bit
+uint8_t gpio_read(uint8_t pin) {
+    return ((*GPIO_ODR) >> pin) & 1;
+}
+            </code></pre>
+
+            <h4>Register Structures (Memory-Mapped I/O)</h4>
+            <pre><code>// Complex peripheral with multiple registers
+typedef struct {
+    volatile uint32_t CONTROL;    // +0x00
+    volatile uint32_t STATUS;     // +0x04
+    volatile uint32_t IRQ_MASK;   // +0x08
+    volatile uint32_t DATA;       // +0x0C
+    volatile uint32_t CONFIG;     // +0x10
+} SPI_Registers_t;
+
+// Map structure to hardware base address
+SPI_Registers_t *spi = (SPI_Registers_t *)0x40003000;
+
+// Use structure members to access registers
+spi->CONTROL = 0x0001;
+spi->CONFIG = 0x00FF;
+uint32_t status = spi->STATUS;
+uint32_t data = spi->DATA;
+
+// Compiler generates correct offsets automatically
+            </code></pre>
+        </section>
+
+        <section>
+            <h3>Pointer Best Practices for Embedded</h3>
+
+            <p><strong>Rule 1: Initialize ALL pointers</strong></p>
+            <pre><code>uint8_t *ptr = NULL;  // Always start with NULL
+// Later: ptr = &some_variable;</code></pre>
+
+            <p><strong>Rule 2: Check for NULL before dereferencing</strong></p>
+            <pre><code>if (ptr != NULL) {
+    uint8_t val = *ptr;
+}</code></pre>
+
+            <p><strong>Rule 3: Use volatile for hardware</strong></p>
+            <pre><code>volatile uint32_t *hw_reg = (volatile uint32_t *)0x40000000;</code></pre>
+
+            <p><strong>Rule 4: Document pointer ownership</strong></p>
+            <pre><code>// This function owns the pointer (will free it)
+void process_data(uint8_t *data);
+
+// This function borrows the pointer (doesn't free)
+void read_data(const uint8_t *data);</code></pre>
+
+            <p><strong>Rule 5: Avoid casting when possible</strong></p>
+            <pre><code>// If you're casting pointers often, reconsider design
+// Casts hide errors and make code fragile</code></pre>
+        </section>
+
+            
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 1: Modify Variables Through Pointers</h3>
+                <p><strong>Objective:</strong> Create a function that takes a pointer to a variable and modifies it.</p>
+
+                <p><strong>What you'll learn:</strong> How pointers enable functions to change variables in the calling code.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create a variable: uint8_t led_brightness = 100</li>
+                    <li>Write a function: void incrementBrightness(uint8_t *ptr)</li>
+                    <li>Inside: dereference the pointer and add 10: *ptr += 10</li>
+                    <li>Call it: incrementBrightness(&led_brightness)</li>
+                    <li>Check that led_brightness changed from 100 to 110</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution1')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution1" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>uint8_t led_brightness = 100;
+
+// Function that modifies the variable it points to
+void incrementBrightness(uint8_t *ptr) {
+    if (ptr != NULL) {  // Always check!
+        *ptr += 10;  // Dereference + modify
+    }
+}
+
+void setup() {
+    Serial.begin(9600);
+    Serial.print("Before: ");
+    Serial.println(led_brightness);  // Prints 100
+    
+    // Pass the ADDRESS of led_brightness
+    incrementBrightness(&led_brightness);
+    
+    Serial.print("After: ");
+    Serial.println(led_brightness);  // Prints 110!
+}
+
+void loop() {}</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Without pointers, functions can't modify the caller's variables. With pointers, you pass the address, and the function can dereference (*ptr) to modify what's at that address. Powerful!</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 2: Array Processing with Pointers</h3>
+                <p><strong>Objective:</strong> Pass an array to a function using a pointer and modify all elements.</p>
+
+                <p><strong>What you'll learn:</strong> How arrays automatically convert to pointers and how to iterate through them.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Create an array: uint8_t values[5] = {1, 2, 3, 4, 5}</li>
+                    <li>Write: void scaleValues(uint8_t *ptr, uint8_t count)</li>
+                    <li>Inside: multiply each element by 2 using pointer arithmetic</li>
+                    <li>Call: scaleValues(values, 5)</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution2')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution2" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code">uint8_t values[5] = {1, 2, 3, 4, 5};
+
+// Function takes array as pointer + size
+void scaleValues(uint8_t *ptr, uint8_t count) {
+    for (uint8_t i = 0; i < count; i++) {
+        ptr[i] *= 2;  // Array notation: ptr[i]
+        // OR: *(ptr + i) *= 2;  (pointer arithmetic)
+    }
+}
+
+void setup() {
+    Serial.begin(9600);
+    
+    Serial.print("Before: ");
+    for (uint8_t i = 0; i < 5; i++) {
+        Serial.print(values[i]);
+        Serial.print(" ");
+    }
+    Serial.println();  // 1 2 3 4 5
+    
+    // Arrays automatically decay to pointers
+    scaleValues(values, 5);
+    
+    Serial.print("After: ");
+    for (uint8_t i = 0; i < 5; i++) {
+        Serial.print(values[i]);
+        Serial.print(" ");
+    }
+    Serial.println();  // 2 4 6 8 10
+}</code></pre>
+                    
+                    <p><strong>Why this works:</strong> When you pass values (an array name) to a function, it automatically converts to a pointer (&values[0]). The function can then use ptr[i] notation to access each element, or use pointer arithmetic (ptr + i).</p>
+                </div>
+            </div>
+
+            <div class="project" style="background: #1a2033; padding: 20px; margin: 15px 0; border-left: 4px solid #00d4ff; border-radius: 5px;">
+                <h3>Project 3: Hardware Register Access (Simulation)</h3>
+                <p><strong>Objective:</strong> Simulate hardware register access by creating a pointer to a fixed memory address.</p>
+
+                <p><strong>What you'll learn:</strong> How embedded systems access hardware by pointing to memory addresses.</p>
+
+                <p><strong>Step by step:</strong></p>
+                <ol>
+                    <li>Define a hardware register address: #define HW_REG_ADDR 0x3F000000</li>
+                    <li>Create a pointer to it: uint32_t *reg = (uint32_t *)HW_REG_ADDR</li>
+                    <li>Write to the register: *reg = 0xFF (set all bits)</li>
+                    <li>Read from it: uint32_t value = *reg</li>
+                </ol>
+
+                <button class="solution-btn" onclick="toggleSolution('solution3')" style="background: #00d4ff; color: #0a0f1b; padding: 10px 20px; border: none; border-radius: 3px; cursor: pointer; font-weight: bold; margin: 10px 0;">Show Solution</button>
+
+                <div id="solution3" style="display: none; background: #0a0f1b; padding: 15px; margin-top: 10px; border-radius: 3px; border: 1px solid #00d4ff;">
+                    <pre><code>// Simulated hardware register address
+#define GPIO_PORT_ADDR 0x3F000000
+
+void setup() {
+    Serial.begin(9600);
+    
+    // Create a pointer to the hardware register
+    volatile uint32_t *gpio_port = (volatile uint32_t *)GPIO_PORT_ADDR;
+    
+    // Read the register value
+    uint32_t current = *gpio_port;
+    Serial.print("Register value: 0x");
+    Serial.println(current, HEX);
+    
+    // Write to the register
+    *gpio_port = 0xFF;  // Set to 0xFF
+    
+    // Read it back
+    uint32_t new_value = *gpio_port;
+    Serial.print("New value: 0x");
+    Serial.println(new_value, HEX);
+}
+
+void loop() {}
+
+// Notes:
+// - (volatile uint32_t *) casts the address to a pointer type
+// - volatile tells compiler: don't optimize, hardware can change this
+// - Real hardware: addresses are defined in datasheets
+// - This is how ALL embedded systems control hardware!</code></pre>
+                    
+                    <p><strong>Why this works:</strong> Embedded systems have hardware at fixed memory addresses. To talk to hardware, you create a pointer to that address, then read/write through the pointer. The volatile keyword tells the compiler not to optimize it away.</p>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Summary</h2>
+            <ul>
+                <li>Pointers store memory addresses: & gets address, * dereferences</li>
+                <li>Arrays decay to pointers; pass size separately to functions</li>
+                <li>Hardware registers are accessed via pointers to fixed addresses</li>
+                <li>volatile modifier prevents compiler optimization for hardware</li>
+                <li>Null-check before dereferencing</li>
+                <li>const pointers clarify intent: pointer-to-const vs const-pointer</li>
+                <li>Pointer arithmetic moves by type size</li>
+                <li>Initialize all pointers; uninitialized = undefined behavior</li>
+                <li>Pointers enable passing data that functions can modify</li>
+            </ul>
+        </section>
+
+        <section style="text-align: center; margin: 40px 0; padding: 20px; background: #151b28; border-radius: 5px;">
+            <h3>Ready for the next lesson?</h3>
+            <a href="cpp-basics-classes.html" style="display: inline-block; background: #00d4ff; color: #0a0f1b; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Next: Classes & Structs →</a>
+            <a href="cpp-basics.html" style="display: inline-block; background: #5a6c7d; color: #00d4ff; padding: 12px 30px; text-decoration: none; border-radius: 3px; font-weight: bold; margin: 10px 5px;">Back to Basics</a>
+        </section>
+
+        <section>
+            <p><a href="cpp-basics.html" style="color: #00d4ff; font-weight: bold;">← Back to C++ Basics Overview</a></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 C++ Embedded Learning Site</p>
+    </footer>
+    <script src="../assets/js/script.js"></script>
+</body>
+</html>

@@ -20,10 +20,10 @@
         .topic-checkbox { margin-right: 10px; width: 18px; height: 18px; cursor: pointer; accent-color: #00d4ff; }
         .topic-card.completed { opacity: 0.7; background: linear-gradient(135deg, #1a2428 0%, #0f1419 100%); }
         .topic-card.completed h3 { text-decoration: line-through; color: #888888; }
-        .section-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin: 24px 0; }
+        .section-grid { display: flex; flex-direction: column; gap: 24px; margin: 24px 0; }
         .category-section { margin: 40px 0; }
-        .category-title { color: #00d4ff; font-size: 1.5em; margin: 30px 0 20px 0; padding-bottom: 10px; border-bottom: 3px solid #00d4ff; }
-        .category-subtitle { color: #999; margin-bottom: 15px; font-style: italic; }
+        .category-title { color: #00d4ff; font-size: 1.8em; margin: 40px 0 20px 0; padding-bottom: 15px; border-bottom: 3px solid #00d4ff; }
+        .category-subtitle { color: #999; margin-bottom: 20px; font-style: italic; font-size: 1.1em; }
     </style>
     <script>
         function toggleCompletion(topicId) {
@@ -76,15 +76,16 @@
             <p><strong>This course reflects these realities.</strong> You'll learn C++ concepts with embedded constraints always in mind. We emphasize efficiency, safety, and—most importantly—how to talk to hardware.</p>
         </section>
 
+        <!-- FUNDAMENTALS SECTION -->
         <section class="category-section">
-            <h2 class="category-title">🏗️ FUNDAMENTAL CONCEPTS</h2>
-            <p class="category-subtitle">Master the core building blocks that all embedded code depends on. These are your foundation.</p>
+            <h2 class="category-title">📚 FUNDAMENTALS</h2>
+            <p class="category-subtitle">Master the core building blocks that all C++ and embedded code depends on. Start here if you're new to programming.</p>
             <div class="section-grid">
                 <div class="topic-card" id="topic-1" data-topic-id="topic-1">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-1')">
-                            <span class="difficulty difficulty-beginner">1.1</span>
+                            <span class="difficulty difficulty-beginner">F.1</span>
                         </div>
                     </div>
                     <h3>Variables & Data Types</h3>
@@ -97,7 +98,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-2')">
-                            <span class="difficulty difficulty-beginner">1.2</span>
+                            <span class="difficulty difficulty-beginner">F.2</span>
                         </div>
                     </div>
                     <h3>Operators</h3>
@@ -110,7 +111,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-3')">
-                            <span class="difficulty difficulty-beginner">1.3</span>
+                            <span class="difficulty difficulty-beginner">F.3</span>
                         </div>
                     </div>
                     <h3>Control Structures</h3>
@@ -119,24 +120,11 @@
                     <a href="cpp-basics-control-flow.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
                 </div>
 
-                <div class="topic-card" id="topic-4" data-topic-id="topic-4">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-4')">
-                            <span class="difficulty difficulty-beginner">1.4</span>
-                        </div>
-                    </div>
-                    <h3>Type Casting & Conversions</h3>
-                    <p><strong>Why it matters:</strong> Hardware returns data in specific types (uint16_t ADC values, uint8_t UART bytes). Safe conversion is critical.</p>
-                    <p><strong>Key topics:</strong> static_cast, reinterpret_cast, const_cast, hardware register access, data loss prevention</p>
-                    <a href="critical/cpp-basics-type-casting.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
-                </div>
-
                 <div class="topic-card" id="topic-5" data-topic-id="topic-5">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-5')">
-                            <span class="difficulty difficulty-beginner">1.5</span>
+                            <span class="difficulty difficulty-beginner">F.4</span>
                         </div>
                     </div>
                     <h3>Debugging Basics</h3>
@@ -149,7 +137,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-6')">
-                            <span class="difficulty difficulty-beginner">1.6</span>
+                            <span class="difficulty difficulty-beginner">F.5</span>
                         </div>
                     </div>
                     <h3>Standard Library Intro</h3>
@@ -157,18 +145,12 @@
                     <p><strong>Key topics:</strong> stdio (printf, sprintf), string operations, cmath, stdlib, assertions</p>
                     <a href="cpp-basics-standard-library.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
                 </div>
-            </div>
-        </section>
 
-        <section class="category-section">
-            <h2 class="category-title">⚡ CRITICAL PATTERNS</h2>
-            <p class="category-subtitle">These are the skills you'll use EVERY DAY in embedded development. Every embedded program uses loops, arrays, and functions.</p>
-            <div class="section-grid">
                 <div class="topic-card" id="topic-7" data-topic-id="topic-7">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-7')">
-                            <span class="difficulty difficulty-intermediate">2.1</span>
+                            <span class="difficulty difficulty-intermediate">F.6</span>
                         </div>
                     </div>
                     <h3>Loops</h3>
@@ -181,7 +163,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-8')">
-                            <span class="difficulty difficulty-intermediate">2.2</span>
+                            <span class="difficulty difficulty-intermediate">F.7</span>
                         </div>
                     </div>
                     <h3>Arrays</h3>
@@ -194,7 +176,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-9')">
-                            <span class="difficulty difficulty-intermediate">2.3</span>
+                            <span class="difficulty difficulty-intermediate">F.8</span>
                         </div>
                     </div>
                     <h3>Functions</h3>
@@ -203,69 +185,11 @@
                     <a href="fundamentals/cpp-basics-functions.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
                 </div>
 
-                <div class="topic-card" id="topic-10" data-topic-id="topic-10">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-10')">
-                            <span class="difficulty difficulty-intermediate">2.4</span>
-                        </div>
-                    </div>
-                    <h3>Bit Manipulation Patterns</h3>
-                    <p><strong>Why it matters:</strong> EVERY hardware register is just bits. Every protocol encodes data bitwise. Every optimization starts here.</p>
-                    <p><strong>Key topics:</strong> AND, OR, XOR, NOT, shifts, bit patterns, field extraction, hardware registers</p>
-                    <a href="critical/cpp-basics-bit-manipulation.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
-                </div>
-
-                <div class="topic-card" id="topic-11" data-topic-id="topic-11">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-11')">
-                            <span class="difficulty difficulty-intermediate">2.5</span>
-                        </div>
-                    </div>
-                    <h3>Error Handling & Exceptions</h3>
-                    <p><strong>Why it matters:</strong> Embedded systems must be robust. Learn to handle errors gracefully without crashing.</p>
-                    <p><strong>Key topics:</strong> Return codes, exceptions, try/catch, error patterns, graceful degradation, recovery strategies</p>
-                    <a href="cpp-basics-error-handling.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
-                </div>
-
-                <div class="topic-card" id="topic-12" data-topic-id="topic-12">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-12')">
-                            <span class="difficulty difficulty-intermediate">2.6</span>
-                        </div>
-                    </div>
-                    <h3>Optimization Techniques</h3>
-                    <p><strong>Why it matters:</strong> Embedded systems have constraints. Turn on compiler flags and pick better algorithms to achieve 10x speedup.</p>
-                    <p><strong>Key topics:</strong> Profiling, compiler flags, algorithmic optimization, cache efficiency, lookup tables, inline functions</p>
-                    <a href="cpp-basics-optimization.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
-                </div>
-            </div>
-        </section>
-
-        <section class="category-section">
-            <h2 class="category-title">🔧 MEMORY MANAGEMENT & ADVANCED</h2>
-            <p class="category-subtitle">Master how memory works and how to directly interface with hardware. This is where embedded mastery happens.</p>
-            <div class="section-grid">
-                <div class="topic-card" id="topic-13" data-topic-id="topic-13">
-                    <div style="display: flex; justify-content: space-between; align-items: start;">
-                        <div>
-                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-13')">
-                            <span class="difficulty difficulty-advanced">3.1</span>
-                        </div>
-                    </div>
-                    <h3>Pointers & References</h3>
-                    <p><strong>Why it matters:</strong> POINTERS ARE HOW YOU TALK TO HARDWARE. Every hardware register is accessed via a pointer.</p>
-                    <p><strong>Key topics:</strong> Syntax and dereferencing, hardware register access, pointer arithmetic, function pointers, NULL checks</p>
-                    <a href="critical/cpp-basics-pointers.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
-                </div>
-
                 <div class="topic-card" id="topic-14" data-topic-id="topic-14">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-14')">
-                            <span class="difficulty difficulty-advanced">3.2</span>
+                            <span class="difficulty difficulty-intermediate">F.9</span>
                         </div>
                     </div>
                     <h3>Structs & Classes</h3>
@@ -273,12 +197,19 @@
                     <p><strong>Key topics:</strong> Data organization, OOP basics, constructors/destructors, access control, inheritance</p>
                     <a href="fundamentals/cpp-basics-classes.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
                 </div>
+            </div>
+        </section>
 
+        <!-- MEMORY SECTION -->
+        <section class="category-section">
+            <h2 class="category-title">💾 MEMORY MANAGEMENT</h2>
+            <p class="category-subtitle">Understand how memory works in embedded systems. Learn stack vs heap, dynamic allocation, and memory safety patterns.</p>
+            <div class="section-grid">
                 <div class="topic-card" id="topic-15" data-topic-id="topic-15">
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-15')">
-                            <span class="difficulty difficulty-advanced">3.3</span>
+                            <span class="difficulty difficulty-advanced">M.1</span>
                         </div>
                     </div>
                     <h3>Memory Management</h3>
@@ -291,7 +222,7 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-16')">
-                            <span class="difficulty difficulty-advanced">3.4</span>
+                            <span class="difficulty difficulty-advanced">M.2</span>
                         </div>
                     </div>
                     <h3>Stack vs Heap: Deep Dive</h3>
@@ -304,13 +235,85 @@
                     <div style="display: flex; justify-content: space-between; align-items: start;">
                         <div>
                             <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-17')">
-                            <span class="difficulty difficulty-advanced">3.5</span>
+                            <span class="difficulty difficulty-advanced">M.3</span>
                         </div>
                     </div>
                     <h3>Smart Pointers & RAII</h3>
                     <p><strong>Why it matters:</strong> Memory leaks destroy embedded systems. Let the C++ runtime handle cleanup automatically with smart pointers.</p>
                     <p><strong>Key topics:</strong> RAII pattern, unique_ptr, shared_ptr, weak_ptr, custom deleters, circular references</p>
                     <a href="cpp-basics-smart-pointers.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- EMBEDDED SYSTEMS SECTION -->
+        <section class="category-section">
+            <h2 class="category-title">⚡ EMBEDDED SYSTEMS</h2>
+            <p class="category-subtitle">Master hardware interaction. These skills are essential for writing real embedded code that controls physical devices.</p>
+            <div class="section-grid">
+                <div class="topic-card" id="topic-4" data-topic-id="topic-4">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-4')">
+                            <span class="difficulty difficulty-beginner">E.1</span>
+                        </div>
+                    </div>
+                    <h3>Type Casting & Conversions</h3>
+                    <p><strong>Why it matters:</strong> Hardware returns data in specific types (uint16_t ADC values, uint8_t UART bytes). Safe conversion is critical.</p>
+                    <p><strong>Key topics:</strong> static_cast, reinterpret_cast, const_cast, hardware register access, data loss prevention</p>
+                    <a href="critical/cpp-basics-type-casting.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
+                </div>
+
+                <div class="topic-card" id="topic-10" data-topic-id="topic-10">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-10')">
+                            <span class="difficulty difficulty-intermediate">E.2</span>
+                        </div>
+                    </div>
+                    <h3>Bit Manipulation Patterns</h3>
+                    <p><strong>Why it matters:</strong> EVERY hardware register is just bits. Every protocol encodes data bitwise. Every optimization starts here.</p>
+                    <p><strong>Key topics:</strong> AND, OR, XOR, NOT, shifts, bit patterns, field extraction, hardware registers</p>
+                    <a href="critical/cpp-basics-bit-manipulation.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
+                </div>
+
+                <div class="topic-card" id="topic-13" data-topic-id="topic-13">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-13')">
+                            <span class="difficulty difficulty-advanced">E.3</span>
+                        </div>
+                    </div>
+                    <h3>Pointers & References</h3>
+                    <p><strong>Why it matters:</strong> POINTERS ARE HOW YOU TALK TO HARDWARE. Every hardware register is accessed via a pointer.</p>
+                    <p><strong>Key topics:</strong> Syntax and dereferencing, hardware register access, pointer arithmetic, function pointers, NULL checks</p>
+                    <a href="critical/cpp-basics-pointers.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
+                </div>
+
+                <div class="topic-card" id="topic-11" data-topic-id="topic-11">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-11')">
+                            <span class="difficulty difficulty-intermediate">E.4</span>
+                        </div>
+                    </div>
+                    <h3>Error Handling & Exceptions</h3>
+                    <p><strong>Why it matters:</strong> Embedded systems must be robust. Learn to handle errors gracefully without crashing.</p>
+                    <p><strong>Key topics:</strong> Return codes, exceptions, try/catch, error patterns, graceful degradation, recovery strategies</p>
+                    <a href="cpp-basics-error-handling.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
+                </div>
+
+                <div class="topic-card" id="topic-12" data-topic-id="topic-12">
+                    <div style="display: flex; justify-content: space-between; align-items: start;">
+                        <div>
+                            <input type="checkbox" class="topic-checkbox" onclick="toggleCompletion('topic-12')">
+                            <span class="difficulty difficulty-intermediate">E.5</span>
+                        </div>
+                    </div>
+                    <h3>Optimization Techniques</h3>
+                    <p><strong>Why it matters:</strong> Embedded systems have constraints. Turn on compiler flags and pick better algorithms to achieve 10x speedup.</p>
+                    <p><strong>Key topics:</strong> Profiling, compiler flags, algorithmic optimization, cache efficiency, lookup tables, inline functions</p>
+                    <a href="cpp-basics-optimization.html" style="display: inline-block; margin-top: 10px; padding: 10px 20px; background: #2c5aa0; color: #00d4ff; border-radius: 3px; text-decoration: none; font-weight: bold;">Read Lesson →</a>
                 </div>
             </div>
         </section>
